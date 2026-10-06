@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="675" viewBox="0 0 900 675">
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#101d18"/>
+      <stop offset="1" stop-color="#0a120e"/>
+    </linearGradient>
+    <linearGradient id="wood2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6b4a2c"/>
+      <stop offset="1" stop-color="#41301c"/>
+    </linearGradient>
+    <linearGradient id="leafb" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3e9e5f"/>
+      <stop offset="1" stop-color="#1d5c38"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="675" fill="url(#bg2)"/>
+  <rect y="540" width="900" height="135" fill="#0d1813"/>
+
+  <!-- left flowerbox -->
+  <rect x="60" y="300" width="200" height="240" rx="12" fill="url(#wood2)"/>
+  <rect x="60" y="300" width="200" height="20" rx="10" fill="#7a573a"/>
+  <circle cx="130" cy="270" r="55" fill="url(#leafb)"/>
+  <circle cx="215" cy="255" r="62" fill="#2f7d4c"/>
+
+  <!-- bench seat -->
+  <rect x="270" y="380" width="360" height="34" rx="10" fill="url(#wood2)"/>
+  <rect x="285" y="414" width="330" height="10" rx="5" fill="#ffdd99" opacity="0.4"/>
+
+  <!-- right flowerbox -->
+  <rect x="640" y="300" width="200" height="240" rx="12" fill="url(#wood2)"/>
+  <rect x="640" y="300" width="200" height="20" rx="10" fill="#7a573a"/>
+  <circle cx="700" cy="265" r="58" fill="#2f7d4c"/>
+  <circle cx="790" cy="275" r="50" fill="url(#leafb)"/>
+
+  <!-- steel legs -->
+  <rect x="300" y="424" width="14" height="116" fill="#181818"/>
+  <rect x="586" y="424" width="14" height="116" fill="#181818"/>
+</svg>

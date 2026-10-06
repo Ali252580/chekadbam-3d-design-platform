@@ -1,0 +1,121 @@
+/* Chekadbam Studio Manager - admin styles (RTL friendly) */
+
+.ckb-wrap { direction: rtl; }
+.ckb-sub { color: #646970; font-size: 13px; }
+
+/* Hero header bar */
+.ckb-hero-bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
+	background: linear-gradient(135deg, #064e3b, #0f766e);
+	color: #fff;
+	padding: 20px 24px;
+	border-radius: 14px;
+	margin: 18px 0 22px;
+	box-shadow: 0 10px 30px rgba(6,78,59,.25);
+}
+.ckb-hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.ckb-btn {
+	display: inline-flex; align-items: center; gap: 6px;
+	padding: 9px 16px; border-radius: 10px; font-weight: 700; font-size: 13px;
+	text-decoration: none; border: 0; cursor: pointer;
+}
+.ckb-btn-light { background: #ecfdf5; color: #064e3b; }
+.ckb-btn-light:hover { background: #fff; color: #065f46; }
+
+.ckb-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 14px;
+	margin: 0 0 26px;
+}
+.ckb-card {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 12px;
+	padding: 18px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	text-decoration: none;
+	color: #1d2327;
+	box-shadow: 0 1px 2px rgba(0,0,0,.04);
+	transition: transform .15s ease, box-shadow .15s ease;
+}
+.ckb-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.08); }
+.ckb-card-num { font-size: 30px; font-weight: 800; color: #0f766e; line-height: 1; }
+.ckb-card-label { font-weight: 600; }
+.ckb-card-act { font-size: 12px; color: #646970; }
+.ckb-card-alert { border-color: #f0b849; background: #fff8e6; }
+.ckb-card-alert .ckb-card-num { color: #b26205; }
+
+.ckb-panel {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 12px;
+	padding: 16px 20px;
+	margin-bottom: 20px;
+}
+.ckb-panel h2 { margin-top: 4px; }
+.ckb-list { list-style: disc; padding-right: 22px; line-height: 2; }
+.ckb-seed-panel { border-style: dashed; border-color: #10b981; }
+
+.ckb-code {
+	background: #1d2327;
+	color: #9ef0c2;
+	padding: 14px;
+	border-radius: 10px;
+	direction: ltr;
+	text-align: left;
+	overflow: auto;
+	font-size: 12px;
+	line-height: 1.7;
+}
+
+.ckb-table { direction: rtl; }
+.ckb-table code { background: #f0f0f1; padding: 2px 6px; border-radius: 4px; }
+
+.ckb-form th { width: 180px; }
+.ckb-inline label { margin-left: 14px; display: inline-flex; align-items: center; gap: 6px; }
+.ckb-inline input[type=number] { width: 90px; }
+.ckb-code-cell { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+
+/* status badges */
+.ckb-badge {
+	display: inline-block;
+	padding: 3px 10px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 700;
+	background: #f0f0f1;
+	color: #50575e;
+	white-space: nowrap;
+}
+.ckb-badge-38371, .ckb-badge-39343, .ckb-badge-39340 { background: #fff4e0; color: #b26205; } /* در انتظار / نیازمند */
+.ckb-badge-38343, .ckb-badge-39342 { background: #e8f0fe; color: #1d4ed8; } /* درخواست ثبت‌شده / در حال طراحی */
+.ckb-badge-39337, .ckb-badge-39339 { background: #e0f5e9; color: #15803d; } /* قرارداد شده */
+.ckb-badge-38331 { background: #ede9fe; color: #6d28d9; } /* طرح اولیه */
+
+#ckb-items-table input[type=number] { width: 72px; }
+#ckb-items-table select { max-width: 250px; }
+.ckb-row-remove { color: #b32d2d; cursor: pointer; border: none; background: none; font-size: 16px; }
+.ckb-item-dims { color:#646970; font-size:12px; }
+
+/* Snapshot thumbnail in design view */
+.ckb-snapshot { max-width: 520px; width: 100%; border-radius: 10px; border: 1px solid #dcdcde; }
+
+/* Front shortcode form styles are injected inline for theme independence */
+
+
+/* ─────────────── Live 3D preview metabox ─────────────── */
+.ckb-admin-preview {
+	height: 320px;
+	background: #0f172a;
+	border: 1px solid #334155;
+	border-radius: 12px;
+	overflow: hidden;
+}
+.ckb-admin-preview canvas { display: block; }

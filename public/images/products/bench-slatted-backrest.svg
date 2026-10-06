@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="675" viewBox="0 0 900 675">
+  <defs>
+    <linearGradient id="bg3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#101d18"/>
+      <stop offset="1" stop-color="#0a120e"/>
+    </linearGradient>
+    <linearGradient id="wood3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a4551f"/>
+      <stop offset="1" stop-color="#6e3a15"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="675" fill="url(#bg3)"/>
+  <rect y="540" width="900" height="135" fill="#0d1813"/>
+
+  <!-- sled frame -->
+  <path d="M 150 540 L 150 470 Q 150 440 180 440 L 720 440 Q 750 440 750 470 L 750 540"
+        stroke="#18181b" stroke-width="18" fill="none"/>
+  <rect x="120" y="536" width="80" height="14" rx="7" fill="#18181b"/>
+  <rect x="700" y="536" width="80" height="14" rx="7" fill="#18181b"/>
+
+  <!-- seat slats -->
+  <g fill="url(#wood3)">
+    <rect x="160" y="400" width="580" height="16" rx="8"/>
+    <rect x="160" y="424" width="580" height="16" rx="8"/>
+    <rect x="160" y="448" width="580" height="16" rx="8"/>
+  </g>
+
+  <!-- backrest slats (angled) -->
+  <g fill="url(#wood3)" transform="rotate(-12 170 260)">
+    <rect x="160" y="230" width="580" height="16" rx="8"/>
+    <rect x="160" y="262" width="580" height="16" rx="8"/>
+    <rect x="160" y="294" width="580" height="16" rx="8"/>
+  </g>
+  <!-- backrest brackets -->
+  <rect x="220" y="330" width="14" height="80" fill="#18181b" transform="rotate(12 220 330)"/>
+  <rect x="666" y="330" width="14" height="80" fill="#18181b" transform="rotate(-12 666 330)"/>
+</svg>

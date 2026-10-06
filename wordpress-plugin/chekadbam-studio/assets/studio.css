@@ -1,0 +1,1208 @@
+/**
+ * Chekadbam Studio (WordPress) — Studio UI styles v2.
+ * Dark cinematic theme matching the Next.js studio.
+ */
+
+/* ═══════════════ Container ═══════════════ */
+.ckb-wstudio-container {
+	position: relative;
+	width: 100%;
+	background: #020617;
+	color: #f1f5f9;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	font-family: inherit;
+	box-sizing: border-box;
+	user-select: none;
+	direction: rtl;
+}
+.ckb-wstudio-admin {
+	position: fixed !important;
+	top: 0 !important;
+	left: 0 !important;
+	width: 100vw !important;
+	height: 100vh !important;
+	z-index: 99999 !important;
+}
+
+/* ═══════════════ Header ═══════════════ */
+.ckb-wstudio-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 18px;
+	background: #0f172a;
+	border-bottom: 1px solid #1e293b;
+	z-index: 15;
+	flex-shrink: 0;
+}
+.ckb-wstudio-header h3 {
+	margin: 0;
+	color: #10b981;
+	font-size: 14px;
+	font-weight: 800;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.ckb-wstudio-header .ckb-plan-badge {
+	background: #020617;
+	border: 1px solid #334155;
+	padding: 4px 10px;
+	border-radius: 8px;
+	font-size: 11px;
+	color: #cbd5e1;
+}
+.ckb-wstudio-close {
+	background: #1e293b;
+	border: 1px solid #334155;
+	color: #cbd5e1;
+	padding: 6px 12px;
+	border-radius: 10px;
+	cursor: pointer;
+	font-size: 11px;
+	font-weight: bold;
+}
+.ckb-wstudio-close:hover { background: #dc2626; color: #fff; }
+
+/* ═══════════════ Body / Viewport ═══════════════ */
+.ckb-wstudio-body {
+	flex: 1;
+	display: flex;
+	position: relative;
+	overflow: hidden;
+}
+.ckb-wstudio-viewport {
+	flex: 1;
+	position: relative;
+	height: 100%;
+	width: 100%;
+}
+.ckb-wstudio-viewport canvas {
+	display: block;
+	width: 100% !important;
+	height: 100% !important;
+	touch-action: none;
+	cursor: grab;
+}
+.ckb-wstudio-viewport canvas:active { cursor: grabbing; }
+
+/* Floating overlays */
+.ckb-wstudio-collision {
+	position: absolute;
+	top: 14px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: rgba(245, 158, 11, 0.92);
+	color: #020617;
+	font-weight: 600;
+	padding: 6px 16px;
+	border-radius: 999px;
+	font-size: 11px;
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+	display: none;
+	z-index: 20;
+	pointer-events: none;
+}
+.ckb-wstudio-compass {
+	position: absolute;
+	top: 14px;
+	right: 14px;
+	background: rgba(15, 23, 42, 0.85);
+	backdrop-filter: blur(8px);
+	color: #fff;
+	font-size: 11px;
+	padding: 6px 12px;
+	border-radius: 12px;
+	border: 1px solid rgba(51, 65, 85, 0.6);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	z-index: 20;
+}
+
+/* One-off warning toast (v2.7.2) — sits under the collision banner */
+.ckb-wstudio-toast {
+	position: absolute;
+	top: 56px;
+	left: 50%;
+	transform: translateX(-50%) translateY(-6px);
+	background: rgba(245, 158, 11, 0.95);
+	color: #020617;
+	font-weight: 600;
+	padding: 8px 18px;
+	border-radius: 12px;
+	font-size: 11.5px;
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+	max-width: min(92%, 420px);
+	text-align: center;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+	z-index: 21;
+	pointer-events: none;
+}
+.ckb-wstudio-toast.show {
+	opacity: 1;
+	visibility: visible;
+	transform: translateX(-50%) translateY(0);
+}
+.ckb-wstudio-compass .ckb-n-dot {
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	border: 1px solid #34d399;
+	display: grid;
+	place-items: center;
+	font-size: 9px;
+	color: #34d399;
+	font-weight: bold;
+}
+
+/* ═══════════════ Floating Action Dock ═══════════════ */
+.ckb-wstudio-dock {
+	position: absolute;
+	bottom: 18px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: rgba(15, 23, 42, 0.92);
+	border: 1px solid #334155;
+	backdrop-filter: blur(12px);
+	border-radius: 18px;
+	padding: 6px 10px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	z-index: 25;
+	box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+	max-width: 95%;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+.ckb-wstudio-btn {
+	background: #1e293b;
+	border: 1px solid #334155;
+	color: #cbd5e1;
+	padding: 7px 12px;
+	border-radius: 12px;
+	cursor: pointer;
+	font-size: 11px;
+	font-weight: bold;
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	transition: all 0.15s ease;
+}
+.ckb-wstudio-btn:hover { background: #334155; color: #fff; }
+.ckb-wstudio-btn.primary { background: #10b981; color: #022c22; border-color: #10b981; }
+.ckb-wstudio-btn.primary:hover { background: #059669; color: #fff; }
+.ckb-wstudio-btn.active { background: #312e81; color: #c7d2fe; border-color: #4f46e5; }
+.ckb-wstudio-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ckb-wstudio-div { width: 1px; height: 18px; background: #334155; margin: 0 3px; }
+
+/* ═══════════════ Selected Item Floating Inspector ═══════════════ */
+.ckb-wstudio-inspector {
+	position: absolute;
+	bottom: 76px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: rgba(15, 23, 42, 0.95);
+	border: 1px solid #10b981;
+	border-radius: 14px;
+	padding: 6px 12px;
+	display: none;
+	align-items: center;
+	gap: 8px;
+	z-index: 26;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+	font-size: 11px;
+}
+.ckb-wstudio-inspector span { font-weight: bold; color: #34d399; }
+.ckb-wstudio-inspector button {
+	background: #1e293b;
+	border: 1px solid #334155;
+	color: #cbd5e1;
+	padding: 5px 9px;
+	border-radius: 8px;
+	font-size: 11px;
+	cursor: pointer;
+}
+.ckb-wstudio-inspector button:hover { background: #334155; color: #fff; }
+.ckb-wstudio-inspector button.del:hover { background: #dc2626; color: #fff; border-color: #dc2626; }
+
+/* ═══════════════ Modals / Drawers ═══════════════ */
+.ckb-wstudio-modal {
+	position: absolute;
+	inset: 0;
+	background: rgba(2, 6, 23, 0.85);
+	backdrop-filter: blur(8px);
+	display: none;
+	align-items: center;
+	justify-content: center;
+	z-index: 40;
+	padding: 14px;
+}
+.ckb-wstudio-modal-box {
+	background: #0f172a;
+	border: 1px solid #334155;
+	border-radius: 20px;
+	width: 100%;
+	max-width: 640px;
+	max-height: 88vh;
+	overflow-y: auto;
+	padding: 22px;
+	box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+	position: relative;
+}
+.ckb-wstudio-modal-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 16px;
+	border-bottom: 1px solid #1e293b;
+	padding-bottom: 10px;
+}
+.ckb-wstudio-modal-head h4 { margin: 0; color: #10b981; font-size: 15px; font-weight: 800; }
+.ckb-wstudio-x {
+	background: #1e293b;
+	border: 1px solid #334155;
+	color: #94a3b8;
+	border-radius: 8px;
+	width: 28px;
+	height: 28px;
+	display: grid;
+	place-items: center;
+	cursor: pointer;
+}
+.ckb-wstudio-x:hover { color: #fff; }
+
+/* ═══════════════ Catalog Grid ═══════════════ */
+.ckb-catalog-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+	gap: 10px;
+	max-height: 60vh;
+	overflow-y: auto;
+}
+.ckb-catalog-card {
+	background: #1e293b;
+	border: 1px solid #334155;
+	border-radius: 12px;
+	padding: 10px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	transition: border-color 0.15s ease;
+}
+.ckb-catalog-card:hover { border-color: #10b981; }
+.ckb-catalog-3d {
+	width: 100%;
+	height: 110px;
+	border-radius: 8px;
+	background: #0f172a;
+	overflow: hidden;
+	position: relative;
+}
+.ckb-catalog-3d canvas { width: 100% !important; height: 100% !important; display: block; }
+.ckb-catalog-card h5 { margin: 0; font-size: 12px; color: #f8fafc; font-weight: bold; }
+.ckb-catalog-card small { color: #64748b; font-size: 10px; font-family: monospace; }
+.ckb-catalog-btn {
+	background: #10b981;
+	color: #022c22;
+	font-weight: bold;
+	border: 0;
+	border-radius: 8px;
+	padding: 7px;
+	font-size: 11px;
+	cursor: pointer;
+	text-align: center;
+}
+.ckb-catalog-btn:hover { background: #059669; color: #fff; }
+
+/* ═══════════════ Catalog search & category pills (v2.7) ═══════════════ */
+.ckb-catalog-tools { margin-bottom: 12px; }
+.ckb-catalog-search {
+	width: 100%;
+	background: #1e293b;
+	border: 1px solid #334155;
+	border-radius: 10px;
+	color: #f1f5f9;
+	padding: 9px 12px;
+	font-size: 12px;
+	font-family: inherit;
+	outline: none;
+	box-sizing: border-box;
+}
+.ckb-catalog-search:focus { border-color: #10b981; }
+.ckb-catalog-search::placeholder { color: #64748b; }
+.ckb-catalog-cats {
+	display: flex;
+	gap: 6px;
+	overflow-x: auto;
+	padding: 10px 0 4px;
+	scrollbar-width: thin;
+	scrollbar-color: #334155 transparent;
+}
+.ckb-catalog-cats::-webkit-scrollbar { height: 4px; }
+.ckb-catalog-cats::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+.ckb-catalog-cats button {
+	background: #1e293b;
+	border: 1px solid #334155;
+	color: #94a3b8;
+	padding: 5px 10px;
+	border-radius: 9px;
+	font-size: 10.5px;
+	font-family: inherit;
+	white-space: nowrap;
+	cursor: pointer;
+	transition: all 0.15s ease;
+	flex: 0 0 auto;
+}
+.ckb-catalog-cats button:hover { color: #e2e8f0; }
+.ckb-catalog-cats button.on {
+	background: #10b981;
+	border-color: #10b981;
+	color: #022c22;
+	font-weight: bold;
+}
+.ckb-catalog-empty {
+	grid-column: 1 / -1;
+	text-align: center;
+	color: #64748b;
+	padding: 26px 10px;
+	font-size: 12px;
+	border: 1px dashed #334155;
+	border-radius: 12px;
+}
+
+/* ═══════════════ Inspector extras (v2.7): coords, nudge, swatches ═══════════════ */
+.ckb-wstudio-inspector { flex-wrap: wrap; justify-content: center; }
+.ckb-insp-info {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 1px;
+	max-width: 190px;
+}
+.ckb-insp-name {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 190px;
+	font-size: 11px;
+}
+.ckb-wstudio-inspector .ckb-insp-pos {
+	color: #94a3b8;
+	font-weight: normal;
+	font-family: monospace;
+	font-size: 9.5px;
+	white-space: nowrap;
+}
+.ckb-insp-nudge {
+	display: flex;
+	gap: 3px;
+	background: #0f172a;
+	border: 1px solid #1e293b;
+	border-radius: 10px;
+	padding: 3px;
+}
+.ckb-insp-nudge button { min-width: 26px; text-align: center; }
+.ckb-insp-swatches {
+	display: flex;
+	gap: 5px;
+	background: #0f172a;
+	border: 1px solid #1e293b;
+	border-radius: 10px;
+	padding: 6px;
+}
+.ckb-insp-swatch {
+	width: 16px !important;
+	height: 16px !important;
+	padding: 0 !important;
+	border-radius: 50% !important;
+	border: 2px solid #64748b !important;
+	cursor: pointer;
+	transition: transform 0.12s ease, border-color 0.12s ease;
+}
+.ckb-insp-swatch.on {
+	border-color: #34d399 !important;
+	transform: scale(1.25);
+	/* outline (not box-shadow): the theme-guard zeroes box-shadow on all container buttons */
+	outline: 1.5px solid rgba(52, 211, 153, 0.55);
+	outline-offset: 1px;
+}
+
+/* ═══════════════ BOM count bubble (v2.7) ═══════════════ */
+.ckb-bom-btn { position: relative; }
+.ckb-bom-count {
+	position: absolute;
+	top: 1px;
+	left: 1px;
+	min-width: 15px;
+	height: 15px;
+	padding: 0 3px;
+	border-radius: 999px;
+	background: #10b981;
+	color: #022c22;
+	font-size: 9.5px;
+	font-family: monospace;
+	font-weight: bold;
+	display: inline-grid;
+	place-items: center;
+	line-height: 1;
+	box-shadow: 0 0 0 2px #0f172a;
+}
+.ckb-bom-count[hidden] { display: none; }
+
+/* ═══════════════ Save modal snapshot preview (v2.7) ═══════════════ */
+.ckb-save-shot {
+	background: #0b1220;
+	border: 1px solid #334155;
+	border-radius: 12px;
+	padding: 10px;
+	margin-bottom: 12px;
+	text-align: center;
+}
+.ckb-save-shot[hidden] { display: none; }
+.ckb-save-shot img {
+	width: 100%;
+	max-height: 210px;
+	object-fit: contain;
+	border-radius: 8px;
+	display: block;
+	margin-bottom: 8px;
+	background: #020617;
+}
+
+/* ═══════════════ Print: only the open modal (BOM) prints (v2.7) ═══════════════ */
+@media print {
+	body * { visibility: hidden !important; }
+	.ckb-wstudio-modal-box, .ckb-wstudio-modal-box * { visibility: visible !important; }
+	.ckb-wstudio-modal-box {
+		position: fixed !important;
+		inset: 0 !important;
+		max-height: none !important;
+		overflow: visible !important;
+		box-shadow: none !important;
+		border: 0 !important;
+		border-radius: 0 !important;
+	}
+	.ckb-wstudio-x,
+	.ckb-wstudio-head-actions .ckb-wstudio-btn { display: none !important; }
+	.ckb-bom-table { font-size: 11px; }
+}
+
+/* ═══════════════ Plan Select Cards ═══════════════ */
+.ckb-plans-grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 10px;
+	max-height: 60vh;
+	overflow-y: auto;
+}
+.ckb-pcard {
+	background: #1e293b;
+	border: 1px solid #334155;
+	border-radius: 12px;
+	padding: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	cursor: pointer;
+	transition: border-color 0.15s ease;
+}
+.ckb-pcard:hover { border-color: #10b981; }
+.ckb-pcard.selected { border-color: #10b981; background: #064e3b22; }
+.ckb-pcard-meta h5 { margin: 0 0 4px; color: #f8fafc; font-size: 13px; font-weight: bold; }
+.ckb-pcard-meta p { margin: 0; color: #94a3b8; font-size: 11px; }
+
+/* ═══════════════ Plan Editor Form ═══════════════ */
+.ckb-fgroup { margin-bottom: 12px; }
+.ckb-fgroup label {
+	display: block;
+	font-size: 11px;
+	color: #cbd5e1;
+	margin-bottom: 5px;
+	font-weight: bold;
+}
+.ckb-fgroup input,
+.ckb-fgroup select,
+.ckb-fgroup textarea {
+	width: 100%;
+	background: #020617;
+	border: 1px solid #334155;
+	border-radius: 10px;
+	padding: 9px 12px;
+	color: #f8fafc;
+	font-size: 12px;
+	box-sizing: border-box;
+}
+.ckb-fgroup input:focus,
+.ckb-fgroup select:focus,
+.ckb-fgroup textarea:focus { border-color: #10b981; outline: none; }
+.ckb-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ckb-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+/* ═══════════════ BOM Table ═══════════════ */
+.ckb-bom-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.ckb-bom-table th {
+	padding: 8px;
+	text-align: right;
+	color: #94a3b8;
+	border-bottom: 1px solid #334155;
+	font-size: 11px;
+}
+.ckb-bom-table td { padding: 7px 8px; border-bottom: 1px solid #1e293b; color: #f1f5f9; }
+.ckb-bom-stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+	gap: 8px;
+	margin-bottom: 16px;
+}
+.ckb-bom-stat {
+	background: #1e293b;
+	border: 1px solid #334155;
+	border-radius: 10px;
+	padding: 10px;
+	text-align: center;
+}
+.ckb-bom-stat b { display: block; color: #34d399; font-size: 15px; margin-bottom: 3px; }
+.ckb-bom-stat span { color: #94a3b8; font-size: 10px; }
+.ckb-bom-safe { color: #34d399 !important; }
+.ckb-bom-moderate { color: #fbbf24 !important; }
+.ckb-bom-danger { color: #f87171 !important; }
+
+/* ═══════════════ Form Notices ═══════════════ */
+.ckb-notice {
+	border-radius: 10px;
+	padding: 10px 14px;
+	font-size: 12px;
+	margin-bottom: 12px;
+	display: none;
+}
+.ckb-notice.success { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; display: block; }
+.ckb-notice.error { background: #450a0a; color: #fca5a5; border: 1px solid #dc2626; display: block; }
+
+/* ═══════════════ Product 3D Viewer (shortcode + metabox) ═══════════════ */
+.ckb-3d-viewer {
+	position: relative;
+	width: 100%;
+	background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+	border-radius: 18px;
+	overflow: hidden;
+	border: 1px solid #1e293b;
+	direction: rtl;
+}
+.ckb-3d-viewer canvas {
+	display: block;
+	width: 100% !important;
+	height: 100% !important;
+	touch-action: none;
+	cursor: grab;
+}
+.ckb-3d-viewer canvas:active { cursor: grabbing; }
+.ckb-3d-viewer .ckb-3d-hint {
+	position: absolute;
+	bottom: 10px;
+	right: 50%;
+	transform: translateX(50%);
+	background: rgba(15, 23, 42, 0.85);
+	border: 1px solid #334155;
+	color: #94a3b8;
+	font-size: 10px;
+	padding: 4px 12px;
+	border-radius: 999px;
+	pointer-events: none;
+}
+.ckb-3d-viewer .ckb-3d-title {
+	position: absolute;
+	top: 10px;
+	right: 12px;
+	color: #34d399;
+	font-size: 12px;
+	font-weight: 800;
+	background: rgba(2, 6, 23, 0.6);
+	padding: 4px 10px;
+	border-radius: 8px;
+	pointer-events: none;
+}
+.ckb-3d-loading {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	color: #10b981;
+	font-size: 12px;
+	font-weight: bold;
+}
+
+/* Gallery grid of product viewers */
+.ckb-3d-gallery {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 16px;
+}
+.ckb-3d-gallery-item h4 {
+	margin: 0 0 8px;
+	font-size: 13px;
+	color: #f8fafc;
+	font-weight: bold;
+}
+.ckb-3d-gallery-item small { color: #64748b; font-size: 10px; font-family: monospace; display: block; margin-top: 6px; }
+
+/* ═══════════════ Front (non-admin) tweaks ═══════════════ */
+.ckb-wstudio-front { border-radius: 20px; border: 1px solid #1e293b; }
+
+
+/* ─────────────── Studio guide modal ─────────────── */
+.ckb-guide-box { max-width: 620px; }
+.ckb-guide-head { display: flex; align-items: center; gap: 12px; }
+.ckb-guide-ic {
+	width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+	background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3);
+	color: #34d399; font-weight: bold; font-size: 20px;
+	display: flex; align-items: center; justify-content: center;
+}
+.ckb-guide-head h4 { margin: 0; color: #fff; font-size: 15px; }
+.ckb-guide-head p { margin: 2px 0 0; color: #94a3b8; font-size: 11px; }
+.ckb-guide-body { padding: 16px 20px 6px; overflow-y: auto; max-height: 52vh; }
+.ckb-guide-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.ckb-guide-steps li {
+	display: flex; gap: 12px; align-items: flex-start; text-align: right;
+	background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(51, 65, 85, 0.5);
+	border-radius: 16px; padding: 12px 14px;
+}
+.ckb-guide-num {
+	width: 26px; height: 26px; flex-shrink: 0; border-radius: 8px;
+	background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3);
+	color: #34d399; font-weight: 900; font-size: 12px;
+	display: flex; align-items: center; justify-content: center;
+}
+.ckb-guide-steps b { color: #fff; font-size: 12.5px; display: block; }
+.ckb-guide-steps p { margin: 4px 0 0; color: #94a3b8; font-size: 11.5px; line-height: 1.8; }
+.ckb-guide-hint { color: #64748b; font-size: 11px; margin: 12px 0 8px; }
+.ckb-guide-foot {
+	display: flex; align-items: center; justify-content: space-between; gap: 12px;
+	padding: 12px 20px; border-top: 1px solid #1e293b; background: rgba(2, 6, 23, 0.6);
+}
+.ckb-guide-foot > span { color: #64748b; font-size: 11px; }
+
+/* ─────────────── Visual tour (spotlight) ─────────────── */
+.ckb-tour-spot {
+	position: fixed; z-index: 99990; pointer-events: none;
+	border-radius: 16px;
+	box-shadow: 0 0 0 9999px rgba(2, 6, 23, 0.78);
+	border: 2px solid rgba(52, 211, 153, 0.8);
+	transition: all 0.3s ease;
+}
+.ckb-tour-card {
+	position: fixed; z-index: 99991; width: 330px; direction: rtl; text-align: right;
+	background: #0f172a; border: 1px solid rgba(52, 211, 153, 0.4);
+	border-radius: 16px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+	padding: 14px;
+}
+.ckb-tour-row { display: flex; gap: 10px; align-items: flex-start; }
+.ckb-tour-ic {
+	width: 34px; height: 34px; flex-shrink: 0; border-radius: 10px;
+	background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3);
+	color: #34d399; font-weight: bold;
+	display: flex; align-items: center; justify-content: center;
+}
+.ckb-tour-body { flex: 1; min-width: 0; }
+.ckb-tour-body h5 { margin: 0; color: #fff; font-size: 13px; }
+.ckb-tour-body p { margin: 6px 0 0; color: #cbd5e1; font-size: 11.5px; line-height: 1.8; }
+.ckb-tour-foot {
+	display: flex; align-items: center; justify-content: space-between;
+	margin-top: 10px; padding-top: 8px;
+}
+.ckb-tour-skip { background: none; border: none; color: #64748b; font-size: 11px; cursor: pointer; }
+.ckb-tour-skip:hover { color: #cbd5e1; }
+.ckb-tour-nav { display: flex; align-items: center; gap: 8px; }
+.ckb-tour-dots { display: flex; align-items: center; gap: 4px; }
+.ckb-tour-dots span { width: 6px; height: 6px; border-radius: 50%; background: #334155; }
+.ckb-tour-dots span.on { background: #34d399; }
+.ckb-tour-prev, .ckb-tour-next {
+	border: none; cursor: pointer; border-radius: 8px;
+	font-size: 11px; padding: 6px 12px; transition: background 0.2s;
+}
+.ckb-tour-prev { background: #1e293b; color: #cbd5e1; }
+.ckb-tour-prev:hover { background: #334155; }
+.ckb-tour-next { background: #059669; color: #fff; font-weight: bold; }
+.ckb-tour-next:hover { background: #10b981; }
+.ckb-wstudio-head-actions { display: flex; align-items: center; gap: 8px; }
+
+/* Keyboard focus affordance */
+.ckb-wstudio-container button:focus-visible,
+.ckb-wstudio-container .ckb-wstudio-x:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.6);
+}
+
+/* Respect users who opt out of motion */
+@media (prefers-reduced-motion: reduce) {
+	.ckb-wstudio-container *,
+	.ckb-tour-spot, .ckb-tour-card {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}
+
+/* ─────────────── Plan cards with blueprint thumbnails ─────────────── */
+.ckb-pcard {
+	cursor: pointer;
+	display: flex; flex-direction: column; overflow: hidden;
+	background: rgba(30, 41, 59, 0.6);
+	border: 1px solid rgba(71, 85, 105, 0.6);
+	border-radius: 16px;
+	transition: all 0.2s;
+}
+.ckb-pcard:hover {
+	background: rgba(30, 41, 59, 0.9);
+	border-color: rgba(52, 211, 153, 0.5);
+	transform: translateY(-1px);
+}
+.ckb-pcard.selected { border-color: #10b981; box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.4); }
+.ckb-pcard-thumb {
+	aspect-ratio: 16 / 10; overflow: hidden; position: relative;
+	background: #080d1a; border-bottom: 1px solid rgba(71, 85, 105, 0.6);
+}
+.ckb-pcard-thumb .ckb-bp-svg { width: 100%; height: 100%; display: block; }
+.ckb-pcard-meta { padding: 12px 14px; }
+.ckb-pcard-meta h5 { margin: 0; color: #fff; font-size: 12.5px; font-weight: bold; }
+.ckb-pcard-meta p { margin: 4px 0 0; color: #94a3b8; font-size: 11px; }
+.ckb-pcard-badge {
+	align-self: flex-start; margin: 0 14px 12px;
+	background: #020617; color: #10b981;
+	padding: 4px 10px; border-radius: 8px;
+	font-size: 11px; font-weight: bold;
+}
+
+
+/* ─────────────── Typography ─────────────── */
+.ckb-wstudio-container,
+.ckb-wstudio-modal,
+.ckb-tour-card,
+.ckb-guide-box {
+	font-family: 'Vazirmatn', 'Vazir', 'IRANSansX', 'IRANSans', 'Yekan Bakh', 'Segoe UI', Tahoma, sans-serif;
+}
+.ckb-fgroup label {
+	font-size: 12px;
+	font-weight: 700;
+	color: #cbd5e1;
+	letter-spacing: 0.01em;
+}
+.ckb-fgroup input,
+.ckb-fgroup select {
+	font-size: 13px;
+	padding: 9px 12px;
+	color: #f1f5f9;
+}
+.ckb-fgroup input:focus,
+.ckb-fgroup select:focus {
+	border-color: #10b981;
+	box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+	outline: none;
+}
+.ckb-plan-tabs button {
+	font-size: 12.5px;
+	padding: 9px 18px;
+}
+
+/* ─────────────── Two-column plan editor ─────────────── */
+.ckb-pe-grid {
+	display: grid;
+	grid-template-columns: 1.25fr 1fr;
+	gap: 16px;
+	align-items: start;
+}
+.ckb-pe-side .ckb-pe-blueprint {
+	aspect-ratio: 16 / 10;
+	background: #080d1a;
+	border: 1px solid #334155;
+	border-radius: 14px;
+	overflow: hidden;
+	margin-bottom: 12px;
+}
+.ckb-pe-side .ckb-bp-svg { width: 100%; height: 100%; display: block; }
+@media (max-width: 900px) {
+	.ckb-pe-grid { grid-template-columns: 1fr; }
+}
+
+/* ─────────────── Fullscreen studio (shortcode page) ─────────────── */
+.ckb-studio-full {
+	position: fixed !important;
+	top: 0 !important;
+	left: 0 !important;
+	right: 0 !important;
+	bottom: 0 !important;
+	width: 100vw !important;
+	height: 100vh !important;
+	height: 100dvh !important;
+	max-height: none !important;
+	z-index: 99998;
+	border-radius: 0 !important;
+}
+html:has(.ckb-studio-full) {
+	overflow: hidden;
+}
+body.admin-bar .ckb-studio-full {
+	top: var(--wp-admin--admin-bar--height, 32px) !important;
+	height: calc(100dvh - var(--wp-admin--admin-bar--height, 32px)) !important;
+}
+
+
+/* ─────────────── Theme-override guard: studio buttons always look right ─────────────── */
+.ckb-wstudio-container button {
+	font-family: inherit;
+	text-transform: none;
+	letter-spacing: normal;
+	box-shadow: none !important;
+}
+.ckb-wstudio-container .ckb-wstudio-btn {
+	background: #1e293b !important;
+	color: #cbd5e1 !important;
+	border: 1px solid rgba(71, 85, 105, 0.6) !important;
+	text-shadow: none !important;
+	cursor: pointer;
+}
+.ckb-wstudio-container .ckb-wstudio-btn:hover {
+	background: #334155 !important;
+	color: #ffffff !important;
+}
+.ckb-wstudio-container .ckb-wstudio-btn.active {
+	background: rgba(16, 185, 129, 0.18) !important;
+	color: #34d399 !important;
+	border-color: rgba(52, 211, 153, 0.5) !important;
+}
+.ckb-wstudio-container .ckb-wstudio-btn.primary,
+.ckb-wstudio-container .ckb-catalog-btn {
+	background: #059669 !important;
+	color: #ffffff !important;
+	border: none !important;
+	font-weight: bold;
+}
+.ckb-wstudio-container .ckb-wstudio-btn.primary:hover,
+.ckb-wstudio-container .ckb-catalog-btn:hover {
+	background: #10b981 !important;
+	color: #ffffff !important;
+}
+.ckb-wstudio-container .ckb-wstudio-btn.del {
+	background: rgba(159, 18, 57, 0.4) !important;
+	color: #fda4af !important;
+	border-color: rgba(190, 18, 60, 0.6) !important;
+}
+.ckb-wstudio-container .ckb-wstudio-btn.del:hover {
+	background: rgba(190, 18, 60, 0.6) !important;
+	color: #ffe4e6 !important;
+}
+.ckb-wstudio-container .ckb-wstudio-x {
+	background: #1e293b !important;
+	color: #94a3b8 !important;
+	cursor: pointer;
+}
+.ckb-wstudio-container .ckb-wstudio-x:hover { color: #ffffff !important; }
+.ckb-wstudio-container .ckb-plan-tabs button {
+	background: #1e293b !important;
+	color: #cbd5e1 !important;
+	border: none !important;
+}
+.ckb-wstudio-container .ckb-plan-tabs button.active {
+	background: #059669 !important;
+	color: #ffffff !important;
+}
+.ckb-wstudio-container .ckb-pcard-badge {
+	background: #020617 !important;
+	color: #10b981 !important;
+}
+/* v2.7 additions to the guard: inspector buttons, category pills, color swatches
+   (:not(.ckb-insp-swatch) — the swatch color lives in an inline style the guard must not beat) */
+.ckb-wstudio-container .ckb-wstudio-inspector button:not(.ckb-insp-swatch) {
+	background: #1e293b !important;
+	color: #cbd5e1 !important;
+	border: 1px solid rgba(71, 85, 105, 0.6) !important;
+	text-shadow: none !important;
+}
+.ckb-wstudio-container .ckb-wstudio-inspector button:not(.ckb-insp-swatch):hover {
+	background: #334155 !important;
+	color: #ffffff !important;
+}
+.ckb-wstudio-container .ckb-wstudio-inspector button.del {
+	background: rgba(159, 18, 57, 0.4) !important;
+	color: #fda4af !important;
+	border-color: rgba(190, 18, 60, 0.6) !important;
+}
+.ckb-wstudio-container .ckb-catalog-cats button {
+	background: #1e293b !important;
+	color: #94a3b8 !important;
+	border: 1px solid rgba(71, 85, 105, 0.6) !important;
+	border-radius: 9px !important;
+	text-shadow: none !important;
+}
+.ckb-wstudio-container .ckb-catalog-cats button.on {
+	background: #059669 !important;
+	color: #ffffff !important;
+	border-color: #059669 !important;
+}
+.ckb-wstudio-container .ckb-insp-swatch {
+	padding: 0 !important;
+	border-radius: 50% !important;
+	min-width: 16px !important;
+	min-height: 16px !important;
+	text-shadow: none !important;
+}
+
+/* Short save-button label: desktop shows the long one, mobile swaps to the short one */
+.ckb-btn-label-sm { display: none; }
+
+/* Dock collapse handle — mobile-only control (v2.7.1) */
+.ckb-dock-handle { display: none; font-size: 14px; min-width: 30px; justify-content: center; }
+
+/* Drag auto-fade: while an item is being dragged the dock/inspector step aside */
+.ckb-wstudio-dock,
+.ckb-wstudio-inspector { transition: opacity 0.22s ease, transform 0.22s ease; }
+.ckb-dragging .ckb-wstudio-dock,
+.ckb-dragging .ckb-wstudio-inspector {
+	opacity: 0.12;
+	pointer-events: none;
+	transform: translateX(-50%) translateY(16px);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Mobile UX (v2.6) — single-row labeled-icon dock, compact
+   header/modals, dock-synced inspector, small-screen catalog & BOM.
+   The second condition is the fix for "the menu fills the screen
+   in landscape": a rotated phone is WIDE (e.g. 844px) but SHORT,
+   so the width-only test used to fall back to the desktop
+   multi-row dock that ate the whole canvas.
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px), (max-height: 480px) and (orientation: landscape) {
+
+	/* ── Header: designed for 360px-wide screens ── */
+	.ckb-wstudio-header {
+		padding: 8px 10px;
+		gap: 8px;
+	}
+	.ckb-wstudio-header h3 {
+		font-size: 11px;
+		gap: 6px;
+		min-width: 0; /* allow shrinking below content size */
+	}
+	.ckb-wstudio-header h3 span:first-child {
+		width: 7px;
+		height: 7px;
+		min-width: 7px;
+	}
+	.ckb-wstudio-header .ckb-plan-badge {
+		display: none; /* plan name already lives inside the plans modal */
+	}
+	.ckb-wstudio-close {
+		padding: 6px 9px;
+		font-size: 12px;
+		flex-shrink: 0;
+	}
+
+	/* ── Dock: one scrollable icon row, no canvas-hiding wrapping ──
+	   Perf (v2.7.1): backdrop-filter over a WebGL canvas forces expensive
+	   readback every frame on phones — dropped on mobile, opacity raised to
+	   keep the dock readable. Buttons shrunk so the scene shows above them. */
+	.ckb-wstudio-dock {
+		bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+		left: 8px;
+		right: 8px;
+		transform: none;
+		max-width: none;
+		width: auto;
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		overflow-y: hidden;
+		-webkit-overflow-scrolling: touch;
+		scrollbar-width: thin;
+		scrollbar-color: #334155 transparent;
+		justify-content: flex-start;
+		gap: 4px;
+		padding: 5px 6px;
+		border-radius: 14px;
+		background: rgba(15, 23, 42, 0.97);
+		backdrop-filter: none;
+		box-shadow: 0 8px 22px rgba(0, 0, 0, 0.5);
+	}
+	.ckb-wstudio-compass { backdrop-filter: none; background: rgba(15, 23, 42, 0.92); }
+	.ckb-wstudio-modal { backdrop-filter: none; background: rgba(2, 6, 23, 0.94); }
+	.ckb-wstudio-dock::-webkit-scrollbar { height: 4px; }
+	.ckb-wstudio-dock::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+	.ckb-wstudio-dock::-webkit-scrollbar-track { background: transparent; }
+
+	.ckb-wstudio-dock .ckb-wstudio-btn {
+		padding: 5px 6px;
+		font-size: 15px; /* the leading icon/emoji itself */
+		gap: 3px;
+		border-radius: 10px;
+		flex: 0 0 auto;
+		flex-direction: column; /* icon on top, tiny label below (v2.6) */
+		justify-content: center;
+		min-height: 46px; /* comfortable touch target */
+		min-width: 46px;
+		white-space: nowrap;
+		line-height: 1;
+	}
+	/* Long label hidden on mobile; a short label sits UNDER the icon
+	   (icon-only buttons were confusing — v2.6) */
+	.ckb-wstudio-dock .ckb-btn-label { display: none; }
+	.ckb-wstudio-dock .ckb-btn-label-sm {
+		display: block;
+		font-size: 8px;
+		font-weight: 700;
+		line-height: 1.25;
+		color: #94a3b8;
+		max-width: 56px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.ckb-wstudio-dock .ckb-wstudio-btn.primary .ckb-btn-label-sm { color: #d1fae5; }
+	.ckb-wstudio-dock .ckb-wstudio-divider { height: 26px; }
+	.ckb-wstudio-dock .ckb-wstudio-divider { flex: 0 0 auto; }
+	/* Dock height is mirrored into --ckb-dock-h by studio-app.js */
+
+	/* Collapsed dock (v2.7.1): «⌄» keeps only the primary actions + handle,
+	   label-free and shorter, so the deck is (almost) fully visible */
+	.ckb-wstudio-dock .ckb-dock-handle { display: inline-flex; min-height: 46px; min-width: 34px; }
+	.ckb-wstudio-dock.collapsed .ckb-wstudio-btn:not(.primary):not(.ckb-dock-handle) { display: none; }
+	.ckb-wstudio-dock.collapsed .ckb-wstudio-div { display: none; }
+	.ckb-wstudio-dock.collapsed { justify-content: center; overflow-x: visible; }
+	.ckb-wstudio-dock.collapsed .ckb-wstudio-btn {
+		min-height: 38px;
+		min-width: 40px;
+		flex-direction: row;
+		padding: 5px 9px;
+	}
+	.ckb-wstudio-dock.collapsed .ckb-btn-label-sm { display: none; }
+	.ckb-wstudio-dock.collapsed .ckb-dock-handle { min-height: 38px; }
+
+	/* ── Inspector floats directly above the (single-row) dock ──
+	   v2.7.1: one scrollable row instead of wrapping — a wrapped 3-row
+	   inspector band covered half the canvas on phones */
+	.ckb-wstudio-inspector {
+		bottom: calc(var(--ckb-dock-h, 56px) + env(safe-area-inset-bottom, 0px) + 10px);
+		left: 8px;
+		right: 8px;
+		transform: none;
+		justify-content: flex-start;
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		overflow-y: hidden;
+		-webkit-overflow-scrolling: touch;
+		scrollbar-width: none;
+		gap: 5px;
+		padding: 6px 8px;
+		font-size: 12px;
+	}
+	.ckb-wstudio-inspector::-webkit-scrollbar { display: none; }
+	.ckb-wstudio-inspector button {
+		padding: 6px 9px;
+		min-height: 32px;
+		flex: 0 0 auto;
+	}
+	/* drag-fade must not inherit the desktop centering translate */
+	.ckb-dragging .ckb-wstudio-inspector { transform: translateY(16px); }
+	.ckb-insp-info { flex: 0 0 auto; max-width: 104px; }
+	.ckb-insp-name { max-width: 104px; font-size: 10px; }
+	.ckb-insp-nudge button { min-width: 30px; min-height: 30px; }
+	.ckb-insp-swatches { flex: 0 0 auto; }
+	.ckb-insp-swatch { width: 18px !important; height: 18px !important; }
+
+	/* ── Compass: small, tucked into the corner ── */
+	.ckb-wstudio-compass {
+		top: 8px;
+		right: 8px;
+		padding: 4px 8px;
+		font-size: 10px;
+		gap: 6px;
+		border-radius: 10px;
+	}
+	.ckb-wstudio-compass .ckb-n-dot {
+		width: 12px;
+		height: 12px;
+		font-size: 8px;
+	}
+
+	/* ── Modals: near-fullscreen bottom sheets ── */
+	.ckb-wstudio-modal {
+		padding: 10px;
+		align-items: flex-end;
+	}
+	.ckb-wstudio-modal-box {
+		max-height: calc(100vh - 20px - env(safe-area-inset-bottom, 0px));
+		padding: 14px 12px 16px;
+		border-radius: 16px;
+	}
+	.ckb-wstudio-modal-head h4 { font-size: 13.5px; }
+
+	/* ── Catalog: 2-up cards instead of 190px minimum ── */
+	.ckb-catalog-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 8px;
+		max-height: 58vh;
+	}
+	.ckb-catalog-3d { height: 84px; }
+	.ckb-catalog-card h5 {
+		font-size: 11px;
+		line-height: 1.5;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.ckb-catalog-card small { font-size: 9px; }
+	.ckb-catalog-btn { padding: 8px 6px; font-size: 11px; min-height: 34px; }
+
+	/* ── Plan presets & editor ── */
+	.ckb-plans-grid { max-height: 54vh; }
+	.ckb-plan-tabs button { font-size: 11.5px; padding: 8px 12px; }
+	.ckb-grid3 { grid-template-columns: 1fr; } /* 3-up inputs unreadable at 360px */
+	.ckb-grid2 { gap: 8px; }
+	.ckb-fgroup input,
+	.ckb-fgroup select,
+	.ckb-fgroup textarea { font-size: 16px; } /* stop iOS zoom-on-focus */
+
+	/* ── BOM table: horizontal scroll wrapper instead of squeezed columns ── */
+	.ckb-bom-wrap {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		margin: 0 -4px;
+		padding: 0 4px;
+	}
+	.ckb-bom-table { min-width: 430px; }
+	.ckb-bom-stats {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 6px;
+	}
+	.ckb-bom-stat b { font-size: 13px; }
+	.ckb-bom-stat span { font-size: 9.5px; }
+
+	/* ── Save form ── */
+	.ckb-wstudio-modal-box .ckb-grid2 { grid-template-columns: 1fr; }
+
+	/* ── Visual tour card fits small screens ── */
+	.ckb-tour-card {
+		width: min(330px, calc(100vw - 24px));
+	}
+}
+
+/* Very narrow phones (<=380px): tighten the crowded dock further */
+@media (max-width: 380px) {
+	.ckb-wstudio-dock { gap: 3px; padding: 5px 5px; }
+	.ckb-wstudio-dock .ckb-wstudio-btn { padding: 6px 5px; font-size: 15px; min-height: 50px; min-width: 47px; }
+	.ckb-wstudio-dock .ckb-btn-label-sm { font-size: 8px; max-width: 50px; }
+	.ckb-insp-pos { display: none; } /* no room for the coordinate readout */
+}
+
+/* Landscape phones: slim the header so the canvas keeps most of
+   the already-short screen (v2.6) */
+@media (max-height: 480px) and (orientation: landscape) {
+	.ckb-wstudio-header { padding: 3px 10px; }
+	.ckb-wstudio-header h3 { font-size: 10px; }
+	.ckb-wstudio-header .ckb-plan-badge { display: none; }
+	.ckb-wstudio-close { padding: 4px 8px; font-size: 11px; }
+}

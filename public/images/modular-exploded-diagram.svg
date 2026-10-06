@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="750" viewBox="0 0 1000 750">
+  <defs>
+    <linearGradient id="bgx" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#101d18"/>
+      <stop offset="1" stop-color="#0a120e"/>
+    </linearGradient>
+    <linearGradient id="woodx" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6b4a2c"/>
+      <stop offset="1" stop-color="#41301c"/>
+    </linearGradient>
+    <linearGradient id="leafx" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3e9e5f"/>
+      <stop offset="1" stop-color="#1d5c38"/>
+    </linearGradient>
+  </defs>
+  <rect width="1000" height="750" fill="url(#bgx)"/>
+
+  <!-- layer 1: planter module (top, exploded) -->
+  <g>
+    <rect x="200" y="60" width="600" height="120" rx="12" fill="url(#woodx)"/>
+    <rect x="200" y="60" width="600" height="18" rx="9" fill="#7a573a"/>
+    <circle cx="300" cy="70" r="48" fill="url(#leafx)"/>
+    <circle cx="450" cy="55" r="60" fill="#2f7d4c"/>
+    <circle cx="620" cy="70" r="50" fill="url(#leafx)"/>
+    <text x="860" y="125" fill="#6ee7b7" font-family="monospace" font-size="22" text-anchor="start">۱. فلاورباکس</text>
+  </g>
+
+  <!-- dashed explode lines -->
+  <g stroke="#10b981" stroke-width="3" stroke-dasharray="10 8" opacity="0.6">
+    <line x1="500" y1="185" x2="500" y2="250"/>
+    <line x1="500" y1="360" x2="500" y2="420"/>
+    <line x1="500" y1="530" x2="500" y2="590"/>
+  </g>
+
+  <!-- layer 2: frame / structure -->
+  <g>
+    <rect x="240" y="255" width="520" height="100" rx="10" fill="none" stroke="#10b981" stroke-width="4"/>
+    <g stroke="#10b981" stroke-width="3" opacity="0.7">
+      <line x1="240" y1="285" x2="760" y2="285"/>
+      <line x1="240" y1="325" x2="760" y2="325"/>
+    </g>
+    <text x="860" y="315" fill="#6ee7b7" font-family="monospace" font-size="22">۲. استراکچر گالوانیزه</text>
+  </g>
+
+  <!-- layer 3: drainage -->
+  <g>
+    <rect x="240" y="425" width="520" height="100" rx="10" fill="#1e293b"/>
+    <g fill="#334155">
+      <circle cx="310" cy="475" r="16"/>
+      <circle cx="390" cy="475" r="16"/>
+      <circle cx="470" cy="475" r="16"/>
+      <circle cx="550" cy="475" r="16"/>
+      <circle cx="630" cy="475" r="16"/>
+      <circle cx="710" cy="475" r="16"/>
+    </g>
+    <text x="860" y="485" fill="#6ee7b7" font-family="monospace" font-size="22">۳. لایه زهکشی</text>
+  </g>
+
+  <!-- layer 4: deck tiles -->
+  <g>
+    <g fill="url(#woodx)">
+      <rect x="240" y="595" width="120" height="90" rx="8"/>
+      <rect x="370" y="595" width="120" height="90" rx="8"/>
+      <rect x="500" y="595" width="120" height="90" rx="8"/>
+      <rect x="630" y="595" width="130" height="90" rx="8"/>
+    </g>
+    <g stroke="#2a1c0f" stroke-width="4" opacity="0.7">
+      <line x1="240" y1="625" x2="360" y2="625"/>
+      <line x1="240" y1="655" x2="360" y2="655"/>
+      <line x1="370" y1="625" x2="490" y2="625"/>
+      <line x1="370" y1="655" x2="490" y2="655"/>
+      <line x1="500" y1="625" x2="620" y2="625"/>
+      <line x1="500" y1="655" x2="620" y2="655"/>
+      <line x1="630" y1="625" x2="760" y2="625"/>
+      <line x1="630" y1="655" x2="760" y2="655"/>
+    </g>
+    <text x="860" y="655" fill="#6ee7b7" font-family="monospace" font-size="22">۴. تایل کف‌پوش</text>
+  </g>
+</svg>

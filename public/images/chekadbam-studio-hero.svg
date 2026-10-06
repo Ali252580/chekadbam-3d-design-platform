@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0a1512"/>
+      <stop offset="0.55" stop-color="#0d1f1a"/>
+      <stop offset="1" stop-color="#071009"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.72" cy="0.2" r="0.75">
+      <stop offset="0" stop-color="#34d399" stop-opacity="0.5"/>
+      <stop offset="0.35" stop-color="#10b981" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#10b981" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="deck" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6b4a2c"/>
+      <stop offset="1" stop-color="#3a2716"/>
+    </linearGradient>
+    <linearGradient id="leaf" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3e9e5f"/>
+      <stop offset="1" stop-color="#1d5c38"/>
+    </linearGradient>
+    <linearGradient id="leaf2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2f7d4c"/>
+      <stop offset="1" stop-color="#164a2c"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <rect width="1600" height="900" fill="url(#glow)"/>
+
+  <!-- distant skyline -->
+  <g opacity="0.5">
+    <rect x="40" y="360" width="90" height="220" fill="#0e211c"/>
+    <rect x="150" y="300" width="70" height="280" fill="#10251f"/>
+    <rect x="240" y="400" width="110" height="180" fill="#0d1e19"/>
+    <rect x="1250" y="330" width="80" height="250" fill="#10251f"/>
+    <rect x="1350" y="390" width="120" height="190" fill="#0e211c"/>
+    <rect x="1470" y="310" width="70" height="270" fill="#10251f"/>
+  </g>
+
+  <!-- roof deck -->
+  <polygon points="0,620 1600,620 1600,900 0,900" fill="url(#deck)"/>
+  <g stroke="#2a1c0f" stroke-width="6" opacity="0.7">
+    <line x1="0" y1="660" x2="1600" y2="660"/>
+    <line x1="0" y1="710" x2="1600" y2="710"/>
+    <line x1="0" y1="775" x2="1600" y2="775"/>
+    <line x1="0" y1="850" x2="1600" y2="850"/>
+  </g>
+  <polygon points="0,620 1600,620 1600,640 0,640" fill="#8a6a44" opacity="0.5"/>
+
+  <!-- railing -->
+  <line x1="0" y1="618" x2="1600" y2="618" stroke="#1c2b26" stroke-width="10" opacity="0.9"/>
+  <g stroke="#243a32" stroke-width="5" opacity="0.8">
+    <line x1="120" y1="540" x2="120" y2="620"/>
+    <line x1="360" y1="540" x2="360" y2="620"/>
+    <line x1="600" y1="540" x2="600" y2="620"/>
+    <line x1="840" y1="540" x2="840" y2="620"/>
+    <line x1="1080" y1="540" x2="1080" y2="620"/>
+    <line x1="1320" y1="540" x2="1320" y2="620"/>
+    <line x1="1560" y1="540" x2="1560" y2="620"/>
+  </g>
+
+  <!-- pergola silhouette -->
+  <rect x="980" y="300" width="26" height="330" fill="#241a10"/>
+  <rect x="1440" y="300" width="26" height="330" fill="#241a10"/>
+  <rect x="960" y="285" width="530" height="24" fill="#2c2013"/>
+  <rect x="985" y="240" width="480" height="12" fill="#332616" opacity="0.9"/>
+  <rect x="1005" y="205" width="440" height="12" fill="#2c2013" opacity="0.8"/>
+  <rect x="1030" y="172" width="390" height="12" fill="#2c2013" opacity="0.7"/>
+
+  <!-- flower boxes with shrubs -->
+  <rect x="120" y="500" width="220" height="120" rx="10" fill="#4a321f"/>
+  <rect x="120" y="490" width="220" height="16" rx="8" fill="#5c3d23"/>
+  <circle cx="180" cy="470" r="52" fill="url(#leaf)"/>
+  <circle cx="250" cy="455" r="62" fill="url(#leaf2)"/>
+  <circle cx="310" cy="475" r="46" fill="url(#leaf)"/>
+
+  <rect x="420" y="520" width="180" height="100" rx="10" fill="#4a321f"/>
+  <rect x="420" y="510" width="180" height="16" rx="8" fill="#5c3d23"/>
+  <circle cx="475" cy="495" r="42" fill="url(#leaf2)"/>
+  <circle cx="545" cy="485" r="48" fill="url(#leaf)"/>
+
+  <rect x="1180" y="510" width="260" height="110" rx="10" fill="#4a321f"/>
+  <rect x="1180" y="500" width="260" height="16" rx="8" fill="#5c3d23"/>
+  <circle cx="1250" cy="478" r="48" fill="url(#leaf)"/>
+  <circle cx="1330" cy="465" r="58" fill="url(#leaf2)"/>
+  <circle cx="1405" cy="485" r="42" fill="url(#leaf)"/>
+
+  <!-- bench -->
+  <rect x="660" y="560" width="300" height="22" rx="8" fill="#6b4a2c"/>
+  <rect x="672" y="500" width="276" height="14" rx="7" fill="#5c3d23" transform="rotate(-8 672 500)"/>
+  <rect x="680" y="582" width="16" height="40" fill="#1a1a1a"/>
+  <rect x="920" y="582" width="16" height="40" fill="#1a1a1a"/>
+
+  <!-- string lights -->
+  <path d="M 160 330 Q 500 430 840 330" stroke="#3a3a3a" stroke-width="3" fill="none" opacity="0.6"/>
+  <g fill="#ffe699">
+    <circle cx="230" cy="368" r="6" opacity="0.95"/>
+    <circle cx="330" cy="396" r="6" opacity="0.9"/>
+    <circle cx="430" cy="410" r="6" opacity="0.95"/>
+    <circle cx="530" cy="412" r="6" opacity="0.9"/>
+    <circle cx="630" cy="400" r="6" opacity="0.95"/>
+    <circle cx="730" cy="378" r="6" opacity="0.9"/>
+    <circle cx="800" cy="350" r="6" opacity="0.95"/>
+  </g>
+  <g fill="#ffe699" opacity="0.25">
+    <circle cx="230" cy="368" r="16"/>
+    <circle cx="430" cy="410" r="16"/>
+    <circle cx="630" cy="400" r="16"/>
+  </g>
+
+  <!-- firepit glow -->
+  <ellipse cx="760" cy="600" rx="90" ry="26" fill="#f97316" opacity="0.18"/>
+  <ellipse cx="760" cy="596" rx="52" ry="14" fill="#fb923c" opacity="0.3"/>
+</svg>

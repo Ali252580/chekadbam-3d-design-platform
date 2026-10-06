@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>چکادبام استودیو — تست رندر افزونه</title>
+<link rel="stylesheet" href="assets/studio.css?v=2.7.3">
+<style>
+  body { margin: 0; background: #020617; font-family: Tahoma, Vazirmatn, sans-serif; }
+  .test-banner { background: #1e293b; color: #94a3b8; padding: 8px 16px; font-size: 12px; text-align: center; }
+  .viewer-test { max-width: 900px; margin: 30px auto; padding: 0 16px; }
+  .viewer-test h2 { color: #34d399; font-size: 16px; margin: 24px 0 12px; }
+</style>
+</head>
+<body>
+<div class="test-banner">صفحه تست مستقل افزونه چکادبام — بدون وردپرس (داده‌های mock)</div>
+
+<!-- ═════════ Studio (admin-like full screen) ═════════ -->
+<div id="ckb-ws-test" class="ckb-wstudio-container" style="height:78vh;" dir="rtl">
+  <div class="ckb-wstudio-header">
+    <h3><span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;"></span>
+      استودیوی طراحی سه‌بعدی بام من (Chekadbam Studio)</h3>
+    <div class="ckb-plan-badge" id="ckb-ws-test-badge">پلان: در حال بارگذاری...</div>
+  </div>
+  <div class="ckb-wstudio-body">
+    <div class="ckb-wstudio-viewport">
+      <div class="ckb-wstudio-compass"><div class="ckb-n-dot">N</div><span>شمال</span></div>
+      <div class="ckb-wstudio-collision" id="ckb-ws-test-collision-warning">⚠ برخی اقلام روی هم افتاده‌اند — جای‌گذاری را بازبینی کنید</div>
+      <div class="ckb-wstudio-toast" id="ckb-ws-test-toast" role="status"></div>
+    </div>
+    <div class="ckb-wstudio-inspector" id="ckb-ws-test-insp">
+      <div class="ckb-insp-info">
+        <span class="ckb-insp-name" id="ckb-ws-test-insp-title">قلم</span>
+        <span class="ckb-insp-pos" id="ckb-ws-test-insp-pos" dir="ltr"></span>
+      </div>
+      <div class="ckb-insp-nudge" role="group" aria-label="جابه‌جایی ریز قلم (نیم‌متر)">
+        <button type="button" id="ckb-ws-test-btn-nudge-left" title="حرکت به چپ (۰.۵ متر)" aria-label="حرکت به چپ (۰.۵ متر)">→</button>
+        <button type="button" id="ckb-ws-test-btn-nudge-right" title="حرکت به راست (۰.۵ متر)" aria-label="حرکت به راست (۰.۵ متر)">←</button>
+        <button type="button" id="ckb-ws-test-btn-nudge-up" title="حرکت به بالا (۰.۵ متر)" aria-label="حرکت به بالا (۰.۵ متر)">↑</button>
+        <button type="button" id="ckb-ws-test-btn-nudge-down" title="حرکت به پایین (۰.۵ متر)" aria-label="حرکت به پایین (۰.۵ متر)">↓</button>
+      </div>
+      <button type="button" id="ckb-ws-test-btn-rot45">چرخش ۴۵°</button>
+      <button type="button" id="ckb-ws-test-btn-rot90">چرخش ۹۰°</button>
+      <button type="button" id="ckb-ws-test-btn-dup" title="تکثیر قلم" aria-label="تکثیر قلم">⧉ تکثیر</button>
+      <div class="ckb-insp-swatches" id="ckb-ws-test-insp-colors" role="group" aria-label="رنگ چوب‌پلاست این قلم"></div>
+      <button type="button" class="del" id="ckb-ws-test-btn-del">حذف</button>
+      <button type="button" id="ckb-ws-test-btn-desel">✕</button>
+    </div>
+    <div class="ckb-wstudio-dock">
+      <button type="button" class="ckb-wstudio-btn primary" id="ckb-ws-test-btn-save" aria-label="ثبت و ارسال طرح"><span class="ckb-btn-label">ثبت و ارسال طرح</span><span class="ckb-btn-label-sm">ثبت طرح</span></button>
+      <button type="button" class="ckb-wstudio-btn primary" id="ckb-ws-test-btn-add" aria-label="افزودن اقلام به بام">+ <span class="ckb-btn-label">افزودن اقلام</span><span class="ckb-btn-label-sm">افزودن</span></button>
+      <button type="button" class="ckb-wstudio-btn" id="ckb-ws-test-btn-plan-editor" aria-label="نقشه و ابعاد بام">📐 <span class="ckb-btn-label">نقشه و ابعاد بام</span><span class="ckb-btn-label-sm">نقشه بام</span></button>
+      <div class="ckb-wstudio-div ckb-wstudio-divider"></div>
+      <button type="button" class="ckb-wstudio-btn" id="ckb-ws-test-btn-undo" disabled aria-label="برگشت (Undo)">↶ <span class="ckb-btn-label">برگشت</span><span class="ckb-btn-label-sm">برگشت</span></button>
+      <button type="button" class="ckb-wstudio-btn" id="ckb-ws-test-btn-redo" disabled aria-label="جلو (Redo)">↷ <span class="ckb-btn-label">جلو</span><span class="ckb-btn-label-sm">جلو</span></button>
+      <button type="button" class="ckb-wstudio-btn" id="ckb-ws-test-btn-guide" title="راهنمای کار با استودیو" aria-label="راهنمای کار با استودیو">؟ <span class="ckb-btn-label">راهنما</span><span class="ckb-btn-label-sm">راهنما</span></button>
+      <div class="ckb-wstudio-div ckb-wstudio-divider"></div>
+      <button type="button" class="ckb-wstudio-btn" id="ckb-ws-test-btn-day" aria-label="نور روز">☀️ <span class="ckb-btn-label">روز</span><span class="ckb-btn-label-sm">روز</span></button>
+      <button type="button" class="ckb-wstudio-btn active" id="ckb-ws-test-btn-sunset" aria-label="نور غروب">🌇 <span class="ckb-btn-label">غروب</span><span class="ckb-btn-label-sm">غروب</span></button>
+      <button type="button" class="ckb-wstudio-btn" id="ckb-ws-test-btn-night" aria-label="نور شب">🌙 <span class="ckb-btn-label">شب</span><span class="ckb-btn-label-sm">شب</span></button>
+      <div class="ckb-wstudio-div ckb-wstudio-divider"></div>
+      <button type="button" class="ckb-wstudio-btn" id="ckb-ws-test-btn-view" aria-label="تغییر دید دوبعدی/سه‌بعدی">👁 <span class="ckb-btn-label">پلان ۲D</span><span class="ckb-btn-label-sm">پلان</span></button>
+      <button type="button" class="ckb-wstudio-btn" id="ckb-ws-test-btn-cam" aria-label="تنظیم مجدد دوربین" title="تنظیم مجدد دوربین">🔄 <span class="ckb-btn-label">دید اول</span><span class="ckb-btn-label-sm">دید</span></button>
+      <div class="ckb-wstudio-div ckb-wstudio-divider"></div>
+      <button type="button" class="ckb-wstudio-btn ckb-bom-btn" id="ckb-ws-test-btn-bom" aria-label="فهرست اقلام و برآورد">📋 <span class="ckb-btn-label">فهرست اقلام و برآورد</span><span class="ckb-btn-label-sm">برآورد</span><span class="ckb-bom-count" id="ckb-ws-test-bom-count" hidden>۰</span></button>
+      <button type="button" class="ckb-wstudio-btn" id="ckb-ws-test-btn-clear" aria-label="پاک کردن تمام اقلام" title="پاک کردن تمام اقلام" disabled>🧹 <span class="ckb-btn-label">پاک‌کردن اقلام</span><span class="ckb-btn-label-sm">پاک‌کردن</span></button>
+      <button type="button" class="ckb-wstudio-btn ckb-dock-handle" id="ckb-ws-test-btn-dock" aria-label="جمع‌کردن منو" aria-expanded="true" title="جمع‌کردن منو">⌄</button>
+    </div>
+  </div>
+
+  <div class="ckb-wstudio-modal" id="ckb-ws-test-modal-catalog">
+    <div class="ckb-wstudio-modal-box">
+      <div class="ckb-wstudio-modal-head"><h4>کاتالوگ ماژول‌های چکادبام</h4><div class="ckb-wstudio-x" data-close="catalog">✕</div></div>
+      <div class="ckb-catalog-tools">
+        <input type="text" class="ckb-catalog-search" id="ckb-ws-test-catalog-search" placeholder="جستجوی قلم، ابعاد یا کد..." aria-label="جستجو در کاتالوگ">
+        <div class="ckb-catalog-cats" id="ckb-ws-test-catalog-cats" role="group" aria-label="دسته‌بندی اقلام"></div>
+      </div>
+      <div class="ckb-catalog-grid" id="ckb-ws-test-catalog-list"></div>
+    </div>
+  </div>
+  <!-- Studio Guide Modal -->
+  <div class="ckb-wstudio-modal" id="ckb-ws-test-modal-guide">
+    <div class="ckb-wstudio-modal-box ckb-guide-box">
+      <div class="ckb-wstudio-modal-head">
+        <div class="ckb-guide-head">
+          <div class="ckb-guide-ic">؟</div>
+          <div>
+            <h4>راهنمای استودیوی طراحی بام</h4>
+            <p>پنج قدم تا چیدمان کامل روف‌گاردن شما</p>
+          </div>
+        </div>
+        <div class="ckb-wstudio-x" data-close="guide">✕</div>
+      </div>
+      <div class="ckb-guide-body">
+        <ol class="ckb-guide-steps">
+          <li><span class="ckb-guide-num">۱</span><div><b>بام خود را تعریف کنید</b><p>با «ابعاد بام من» شکل، ابعاد و کف‌سازی پشت‌بام را تنظیم کنید یا از پلان‌های آماده بارگذاری کنید.</p></div></li>
+          <li><span class="ckb-guide-num">۲</span><div><b>اقلام را اضافه کنید</b><p>«افزودن اقلام» هر قلم را در امن‌ترین نقطه پلان قرار می‌دهد؛ با جستجو و فیلتر دسته‌بندی، سریع به قلم موردنظر می‌رسید.</p></div></li>
+          <li><span class="ckb-guide-num">۳</span><div><b>جابه‌جایی دقیق</b><p>قلم انتخاب‌شده را با ماوس یا انگشت بکشید، با دکمه‌های جهت‌دار نوار قلم نیم‌متر یک‌جا حرکتش دهید و با کلیدهای جهت‌دار هم همین کار را بکنید. چرخش ۴۵°، ۹۰°، تکثیر و رنگ چوب‌پلاست هم از همان نوار.</p></div></li>
+          <li><span class="ckb-guide-num">۴</span><div><b>دید و نورپردازی</b><p>درگ روی فضای خالی دوربین را می‌چرخاند و اسکرول زوم می‌کند. سه حالت روز، غروب و شب حس فضای واقعی را می‌سازند.</p></div></li>
+          <li><span class="ckb-guide-num">۵</span><div><b>فهرست اقلام و ذخیره</b><p>«فهرست اقلام و برآورد» متراژ اقلام را حساب می‌کند و «ثبت و ارسال طرح» برای مشاوره و اجرا ثبت می‌شود.</p></div></li>
+        </ol>
+        <p class="ckb-guide-hint">دکمه «؟ راهنما» در نوار پایین، همین راهنما را دوباره باز می‌کند.</p>
+      </div>
+      <div class="ckb-guide-foot">
+        <span>استودیو چکادبام — طراحی روف‌گاردن مدولار</span>
+        <button type="button" class="ckb-wstudio-btn primary" id="ckb-ws-test-btn-guide-start">شروع طراحی</button>
+      </div>
+    </div>
+  </div>
+  <div class="ckb-wstudio-modal" id="ckb-ws-test-modal-plan">
+    <div class="ckb-wstudio-modal-box">
+      <div class="ckb-wstudio-modal-head"><h4>نقشه و ابعاد بام</h4>
+        <div class="ckb-wstudio-head-actions">
+          <button type="button" class="ckb-wstudio-btn" id="ckb-ws-test-btn-pe-help" title="راهنمای تصویری این پنجره" aria-label="راهنمای تصویری این پنجره">؟ راهنمای تصویری</button>
+          <div class="ckb-wstudio-x" data-close="plan" role="button" aria-label="بستن" tabindex="0">✕</div>
+        </div>
+      </div>
+      <div class="ckb-plan-tabs" id="ckb-ws-test-plan-tabs">
+        <button type="button" data-ptab="presets" class="active">پلان‌های آماده</button>
+        <button type="button" data-ptab="custom">تنظیم دستی فرم و ابعاد</button>
+      </div>
+      <div class="ckb-ptab" data-ptab-body="presets">
+        <p class="ckb-ptab-hint">یکی از پلان‌های آماده را انتخاب کنید تا نقشه و چیدمان یک‌جا بارگذاری شود.</p>
+        <div class="ckb-plans-grid" id="ckb-ws-test-plans-list"></div>
+      </div>
+      <div class="ckb-ptab" data-ptab-body="custom" style="display:none">
+      <div class="ckb-pe-grid">
+      <div class="ckb-pe-main">
+      <div class="ckb-fgroup"><label>فرم پلان</label>
+        <select id="ckb-ws-test-pe-shape">
+          <option value="rectangular">مستطیلی استاندارد</option>
+          <option value="l_shaped">L شکل (دو زون)</option>
+          <option value="u_shaped">U شکل (حیاط میانی)</option>
+          <option value="central_shaft">با باکس پله / آسانسور مرکزی</option>
+          <option value="narrow_balcony">تراس طولی کشیده</option>
+          <option value="penthouse_split">پنت‌هاوس دوبالکه</option>
+        </select></div>
+      <div class="ckb-grid3">
+        <div class="ckb-fgroup"><label>طول بام (متر)</label><input type="number" step="0.1" id="ckb-ws-test-pe-width" value="10"></div>
+        <div class="ckb-fgroup"><label>عرض بام (متر)</label><input type="number" step="0.1" id="ckb-ws-test-pe-length" value="8"></div>
+        <div class="ckb-fgroup"><label>جان‌پناه (متر)</label><input type="number" step="0.1" id="ckb-ws-test-pe-parapet" value="1.1"></div>
+      </div>
+      <div class="ckb-grid2">
+        <div class="ckb-fgroup"><label>فرورفتگی L/U — طول (متر)</label><input type="number" step="0.1" id="ckb-ws-test-pe-cutw"></div>
+        <div class="ckb-fgroup"><label>فرورفتگی L/U — عرض (متر)</label><input type="number" step="0.1" id="ckb-ws-test-pe-cutl"></div>
+      </div>
+      <div class="ckb-grid2">
+        <div class="ckb-fgroup"><label>باکس پله مرکزی — طول (متر)</label><input type="number" step="0.1" id="ckb-ws-test-pe-shaftw"></div>
+        <div class="ckb-fgroup"><label>باکس پله مرکزی — عرض (متر)</label><input type="number" step="0.1" id="ckb-ws-test-pe-shaftl"></div>
+      </div>
+      <div class="ckb-grid3">
+        <div class="ckb-fgroup"><label>کف‌سازی</label>
+          <select id="ckb-ws-test-pe-flooring">
+            <option value="wpc_wood">دک چوب‌پلاست WPC</option>
+            <option value="artificial_turf">چمن مصنوعی</option>
+            <option value="stone">سنگ</option>
+            <option value="ceramic">سرامیک</option>
+            <option value="mixed">ترکیبی</option>
+          </select></div>
+        <div class="ckb-fgroup"><label>رنگ چوب‌پلاست</label>
+          <select id="ckb-ws-test-pe-wpc">
+            <option value="walnut">گردویی شکلاتی</option>
+            <option value="teak">تیک طبیعی</option>
+            <option value="charcoal">دودی ذغالی</option>
+            <option value="oak">بلوطی روشن</option>
+          </select></div>
+        <div class="ckb-fgroup"><label>رنگ فلز</label>
+          <select id="ckb-ws-test-pe-metal">
+            <option value="black">مشکی مات</option>
+            <option value="charcoal">طوسی متالیک</option>
+            <option value="cream">کرم شنی</option>
+          </select></div>
+      </div>
+      <p style="color:#34d399;font-size:12px;font-weight:bold;margin:8px 0 14px" id="ckb-ws-test-pe-area"></p>
+      </div>
+      <div class="ckb-pe-side">
+      <div class="ckb-pe-blueprint" id="ckb-ws-test-pe-blueprint"></div>
+      <button type="button" class="ckb-catalog-btn" style="width:100%;padding:11px" id="ckb-ws-test-btn-pe-apply">اعمال پلان جدید</button>
+      <button type="button" class="ckb-wstudio-btn" style="width:100%;margin-top:8px;justify-content:center" id="ckb-ws-test-btn-pe-cancel">انصراف</button>
+      </div>
+      </div>
+      </div>
+    </div>
+  </div>
+  <div class="ckb-wstudio-modal" id="ckb-ws-test-modal-bom">
+    <div class="ckb-wstudio-modal-box" style="max-width:820px">
+      <div class="ckb-wstudio-modal-head"><h4>فهرست اقلام و برآورد پروژه</h4>
+        <div class="ckb-wstudio-head-actions">
+          <button type="button" class="ckb-wstudio-btn" id="ckb-ws-test-btn-print" title="چاپ فهرست اقلام" aria-label="چاپ فهرست اقلام">🖨 چاپ</button>
+          <div class="ckb-wstudio-x" data-close="bom">✕</div>
+        </div>
+      </div>
+      <div class="ckb-bom-stats" id="ckb-ws-test-bom-stats"></div>
+      <div class="ckb-bom-wrap">
+      <table class="ckb-bom-table">
+        <thead><tr><th>شرح کالا</th><th>کد</th><th style="text-align:center">تعداد</th><th style="text-align:center">متراژ (م²)</th></tr></thead>
+        <tbody id="ckb-ws-test-bom-body"></tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+  <div class="ckb-wstudio-modal" id="ckb-ws-test-modal-save">
+    <div class="ckb-wstudio-modal-box" style="max-width:480px">
+      <div class="ckb-wstudio-modal-head"><h4>ثبت و ارسال طرح به کارشناسان</h4><div class="ckb-wstudio-x" data-close="save">✕</div></div>
+      <div class="ckb-save-shot" id="ckb-ws-test-save-shot" hidden>
+        <img id="ckb-ws-test-save-shot-img" alt="پیش‌نمایش طرح شما">
+        <button type="button" class="ckb-wstudio-btn" id="ckb-ws-test-btn-download">⬇ دانلود تصویر طرح</button>
+      </div>
+      <div class="ckb-notice" id="ckb-ws-test-save-notice"></div>
+      <div class="ckb-fgroup"><label>نام و نام خانوادگی *</label><input type="text" id="ckb-ws-test-inp-name" placeholder="مثال: مهندس راد"></div>
+      <div class="ckb-grid2">
+        <div class="ckb-fgroup"><label>شماره تماس همراه *</label><input type="tel" id="ckb-ws-test-inp-phone" dir="ltr" placeholder="09120000000"></div>
+        <div class="ckb-fgroup"><label>ایمیل (اختیاری)</label><input type="email" id="ckb-ws-test-inp-email" dir="ltr"></div>
+      </div>
+      <div class="ckb-fgroup"><label>شهر پروژه</label><input type="text" id="ckb-ws-test-inp-city" value="تهران"></div>
+      <div class="ckb-fgroup"><label>توضیحات</label><textarea id="ckb-ws-test-inp-notes" rows="2"></textarea></div>
+      <button type="button" class="ckb-catalog-btn" style="width:100%;padding:11px;font-size:13px;" id="ckb-ws-test-btn-submit">ارسال طرح و دریافت مشاوره</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════ Product viewer test ═════════ -->
+<div class="viewer-test" id="admin-sim">
+  <h2>شبیه‌سازی پنل وردپرس — ویرایشگر قلم با پیش‌نمایش سه‌بعدی زنده</h2>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;background:#0f172a;border:1px solid #334155;border-radius:14px;padding:16px" dir="rtl">
+    <div style="flex:1;min-width:260px">
+      <div style="margin-bottom:8px"><label>نام قلم<br><input id="title" value="قلم آزمایشی"></label></div>
+      <div style="margin-bottom:8px"><label>کد فنی<br><input name="ckb_code" value="CK-TEST-1" dir="ltr"></label></div>
+      <div style="margin-bottom:8px"><label>نوع شکل سه‌بعدی<br>
+        <select name="ckb_shape_type">
+          <option value="box">باکس / فلاورباکس</option>
+          <option value="bench_backrest">نیمکت پشتی‌دار</option>
+          <option value="pergola">پرگولا</option>
+          <option value="water_feature">آبنما</option>
+          <option value="firepit">آتشدان دایره‌ای</option>
+          <option value="umbrella">چتر سایبان</option>
+          <option value="tree">درختچه / گلدان</option>
+        </select></label></div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+        <label>طول (متر)<br><input id="ckb_width" type="number" step="0.1" value="1.6" style="width:80px"></label>
+        <label>عرض (متر)<br><input id="ckb_depth" type="number" step="0.1" value="0.5" style="width:80px"></label>
+        <label>ارتفاع (متر)<br><input id="ckb_height" type="number" step="0.1" value="0.55" style="width:80px"></label>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <label>رنگ چوب‌پلاست<br>
+          <select name="ckb_wpc_color">
+            <option value="walnut">گردویی</option><option value="teak">تیک</option>
+            <option value="charcoal">دودی</option><option value="oak">بلوطی</option>
+          </select></label>
+        <label>رنگ فلز<br>
+          <select name="ckb_metal_color">
+            <option value="black">مشکی</option><option value="charcoal">طوسی</option><option value="cream">کرم</option>
+          </select></label>
+      </div>
+    </div>
+    <div id="ckb-admin-preview" class="ckb-admin-preview" data-product='{"code":"CK-TEST-1","name":"قلم آزمایشی","category":"furniture","w":1.6,"d":0.5,"h":0.55,"shape":"box","wpcColor":"walnut","metalColor":"black"}' style="flex:1;min-width:320px"></div>
+  </div>
+</div>
+
+<div class="viewer-test">
+  <h2>نمایشگر سه‌بعدی محصول — [chekadbam_3d code="CK-PG-DK320"]</h2>
+  <div class="ckb-3d-viewer" id="ckb-3d-viewer-1" style="height:340px;">
+    <span class="ckb-3d-title">پرگولا مدولار با دک کف ۳.۲×۳.۲</span>
+    <span class="ckb-3d-hint">بچرخانید • زوم با اسکرول</span>
+  </div>
+  <h2>نمایشگر — درختچه [chekadbam_3d code="CK-TR-POT"]</h2>
+  <div class="ckb-3d-viewer" id="ckb-3d-viewer-2" style="height:340px;">
+    <span class="ckb-3d-title">درختچه تزیینی در گلدان مدولار</span>
+    <span class="ckb-3d-hint">بچرخانید • زوم با اسکرول</span>
+  </div>
+  <h2>نمایشگر — آبنما [chekadbam_3d code="CK-WF-FRM130"]</h2>
+  <div class="ckb-3d-viewer" id="ckb-3d-viewer-3" style="height:340px;">
+    <span class="ckb-3d-title">آبنمای قاب دوبل با حوضچه ریزش آب</span>
+    <span class="ckb-3d-hint">بچرخانید • زوم با اسکرول</span>
+  </div>
+</div>
+
+<script src="assets/three.min.js?v=2.7.3"></script>
+<script src="assets/ckb-textures.js?v=2.7.3"></script>
+<script src="assets/ckb-foliage.js?v=2.7.3"></script>
+<script src="assets/ckb-models.js?v=2.7.3"></script>
+<script src="assets/ckb-boundary.js?v=2.7.3"></script>
+<script src="assets/ckb-bom.js?v=2.7.3"></script>
+<script src="assets/ckb-blueprint.js?v=2.7.3"></script>
+<script src="assets/studio-app.js?v=2.7.3"></script>
+<script src="assets/viewer.js?v=2.7.3"></script>
+<script src="assets/admin-preview.js?v=2.7.3"></script>
+<script>
+  // Mock WordPress config
+  var mockProducts = [
+    { code: 'CK-FB-160', name: 'فلاورباکس مدولار ۱۶۰ سانتی‌متری عریض', category: 'planting', w: 1.6, d: 0.5, h: 0.55, weight: 58, price: 7900000, shape: 'box', wpcColor: 'walnut', metalColor: 'black', light: false },
+    { code: 'CK-BN-BR140', name: 'نیمکت پشتی‌دار اسلت چوب‌پلاست', category: 'furniture', w: 1.4, d: 0.62, h: 0.88, weight: 38, price: 9800000, shape: 'bench_backrest', wpcColor: 'walnut', metalColor: 'black', light: false },
+    { code: 'CK-BN-INT', name: 'مجموعه نیمکت متصل به دو فلاورباکس', category: 'furniture', w: 2.2, d: 0.5, h: 0.6, weight: 76, price: 11900000, shape: 'bench_integrated', wpcColor: 'walnut', metalColor: 'black', light: true },
+    { code: 'CK-LN-SET04', name: 'ست مبل راحتی ۴ نفره با میز', category: 'furniture', w: 2.2, d: 1.5, h: 0.78, weight: 64, price: 26500000, shape: 'lounge_set', wpcColor: 'walnut', metalColor: 'black', light: false },
+    { code: 'CK-PG-DK320', name: 'پرگولا مدولار با دک کف ۳.۲×۳.۲', category: 'structures', w: 3.2, d: 3.2, h: 2.6, weight: 410, price: 52000000, shape: 'pergola_deck', wpcColor: 'walnut', metalColor: 'black', light: true },
+    { code: 'CK-GW-FP120', name: 'دیوار سبز مدولار قاب‌دار با تراف', category: 'structures', w: 1.2, d: 0.42, h: 1.8, weight: 68, price: 11200000, shape: 'green_wall_planter', wpcColor: 'walnut', metalColor: 'black', light: true },
+    { code: 'CK-WF-FRM130', name: 'آبنمای قاب دوبل با حوضچه ریزش آب', category: 'water_fire', w: 1.3, d: 1.1, h: 1.45, weight: 82, price: 22800000, shape: 'water_feature', wpcColor: 'walnut', metalColor: 'black', light: true },
+    { code: 'CK-FP-SQ110', name: 'میز آتشدان مربعی چوب‌پلاست', category: 'water_fire', w: 1.1, d: 1.1, h: 0.72, weight: 92, price: 21500000, shape: 'firepit_table', wpcColor: 'walnut', metalColor: 'black', light: true },
+    { code: 'CK-UMB-300', name: 'چتر سایبان هیدرولیک پایه‌کنار ۳ متری', category: 'accessories', w: 3.0, d: 3.0, h: 2.65, weight: 85, price: 15400000, shape: 'umbrella', wpcColor: 'walnut', metalColor: 'black', light: false },
+    { code: 'CK-TR-POT', name: 'درختچه تزیینی در گلدان مدولار', category: 'planting', w: 0.9, d: 0.9, h: 2.4, weight: 55, price: 8600000, shape: 'tree', wpcColor: 'walnut', metalColor: 'black', light: false },
+    { code: 'CK-BBQ-180', name: 'باربیکیو و کانتر آشپزخانه بیرونی', category: 'accessories', w: 1.8, d: 0.65, h: 1.1, weight: 120, price: 34800000, shape: 'bbq', wpcColor: 'charcoal', metalColor: 'charcoal', light: false },
+  ];
+
+  var mockPlans = [
+    { id: 1, name: 'پلان مستطیلی پنت‌هاوس (۱۰×۸)', shape: 'rectangular', shapeName: 'مستطیلی استاندارد',
+      width: 10, length: 8, parapetHeight: 1.1, flooringType: 'wpc_wood', wpcColor: 'walnut', metalColor: 'black',
+      cutoutWidth: 0, cutoutLength: 0, shaftWidth: 0, shaftLength: 0,
+      items: [
+        { productId: 'CK-PG-DK320', name: 'پرگولا با دک کف', x: -2.6, z: -1.6, rotation: 0, w: 3.2, d: 3.2, h: 2.6 },
+        { productId: 'CK-WF-FRM130', name: 'آبنمای قاب دوبل', x: 3.2, z: -2.6, rotation: 0, w: 1.3, d: 1.1, h: 1.45 },
+        { productId: 'CK-FB-160', name: 'فلاورباکس ۱۶۰', x: 4.0, z: 0.4, rotation: 90, w: 1.6, d: 0.5, h: 0.55 },
+        { productId: 'CK-LN-SET04', name: 'ست مبل راحتی', x: -1.0, z: 2.2, rotation: 180, w: 2.2, d: 1.5, h: 0.78 },
+        { productId: 'CK-FP-SQ110', name: 'میز آتشدان', x: 1.6, z: 0.6, rotation: 0, w: 1.1, d: 1.1, h: 0.72 },
+      ] },
+    { id: 2, name: 'پلان L شکل پنت‌هاوس (۱۲×۹)', shape: 'l_shaped', shapeName: 'L شکل (دو زون)',
+      width: 12, length: 9, parapetHeight: 1.1, flooringType: 'wpc_wood', wpcColor: 'walnut', metalColor: 'black',
+      cutoutWidth: 5.5, cutoutLength: 4.5, shaftWidth: 0, shaftLength: 0,
+      items: [
+        { productId: 'CK-PG-DK320', name: 'پرگولا با دک کف', x: -3.4, z: -2.0, rotation: 0, w: 3.2, d: 3.2, h: 2.6 },
+        { productId: 'CK-LN-SET04', name: 'ست مبل راحتی', x: 3.2, z: -2.4, rotation: 0, w: 2.2, d: 1.5, h: 0.78 },
+        { productId: 'CK-FB-160', name: 'فلاورباکس ۱۶۰', x: -5.0, z: 1.4, rotation: 90, w: 1.6, d: 0.5, h: 0.55 },
+        { productId: 'CK-BN-BR140', name: 'نیمکت پشتی‌دار', x: -0.6, z: 3.0, rotation: 180, w: 1.4, d: 0.62, h: 0.88 },
+      ] },
+    { id: 3, name: 'پلان تراس طولی (۱۰×۲.۸)', shape: 'narrow_balcony', shapeName: 'تراس طولی کشیده',
+      width: 10, length: 2.8, parapetHeight: 1.1, flooringType: 'wpc_wood', wpcColor: 'walnut', metalColor: 'black',
+      cutoutWidth: 0, cutoutLength: 0, shaftWidth: 0, shaftLength: 0,
+      items: [
+        { productId: 'CK-BN-BR140', name: 'نیمکت پشتی‌دار', x: -2.0, z: -0.7, rotation: 0, w: 1.4, d: 0.62, h: 0.88 },
+        { productId: 'CK-FB-160', name: 'فلاورباکس ۱۶۰', x: 2.4, z: -0.8, rotation: 0, w: 1.6, d: 0.5, h: 0.55 },
+        { productId: 'CK-GW-FP120', name: 'دیوار سبز قاب‌دار', x: 4.0, z: 0.0, rotation: 90, w: 1.2, d: 0.42, h: 1.8 },
+      ] },
+  ];
+
+  // Boot the studio
+  window.CKBStudio.mount('ckb-ws-test', {
+    products: mockProducts,
+    plans: mockPlans,
+    ajaxUrl: 'http://localhost/mock',
+    nonce: 'test',
+  });
+
+  // Boot product viewers
+  window.CKBViewer.mount('ckb-3d-viewer-1', mockProducts[4]);
+  window.CKBViewer.mount('ckb-3d-viewer-2', mockProducts[9]);
+  window.CKBViewer.mount('ckb-3d-viewer-3', mockProducts[6]);
+
+  console.log('Chekadbam test page booted.');
+</script>
+</body>
+</html>

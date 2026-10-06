@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="675" viewBox="0 0 900 675">
+  <defs>
+    <linearGradient id="bgw" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#101d18"/>
+      <stop offset="1" stop-color="#0a120e"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4b5563"/>
+      <stop offset="1" stop-color="#1f2937"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#67e8f9"/>
+      <stop offset="1" stop-color="#0e7490"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="675" fill="url(#bgw)"/>
+  <rect y="540" width="900" height="135" fill="#0d1813"/>
+
+  <!-- water curtain panel -->
+  <rect x="200" y="120" width="500" height="330" fill="url(#steel)"/>
+  <rect x="212" y="132" width="476" height="306" fill="url(#water)" opacity="0.55"/>
+
+  <!-- falling ripple lines -->
+  <g stroke="#a5f3fc" stroke-width="3" opacity="0.5" stroke-linecap="round">
+    <line x1="260" y1="160" x2="260" y2="400"/>
+    <line x1="340" y1="150" x2="340" y2="420"/>
+    <line x1="430" y1="165" x2="430" y2="410"/>
+    <line x1="520" y1="150" x2="520" y2="425"/>
+    <line x1="610" y1="160" x2="610" y2="405"/>
+  </g>
+
+  <!-- top spillway -->
+  <rect x="190" y="104" width="520" height="24" rx="10" fill="#111827"/>
+  <rect x="200" y="120" width="500" height="8" fill="#67e8f9" opacity="0.7"/>
+
+  <!-- base basin -->
+  <rect x="170" y="450" width="560" height="90" rx="12" fill="#111827"/>
+  <rect x="190" y="462" width="520" height="40" rx="8" fill="url(#water)" opacity="0.4"/>
+
+  <!-- splash glow -->
+  <ellipse cx="450" cy="470" rx="200" ry="16" fill="#67e8f9" opacity="0.25"/>
+</svg>
