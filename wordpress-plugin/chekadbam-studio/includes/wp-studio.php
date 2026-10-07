@@ -348,6 +348,8 @@ function ckb_wpstudio_register_assets() {
 	wp_register_script( 'ckb-boundary', CKB_PLUGIN_URL . 'assets/ckb-boundary.js', array(), $ver, true );
 	wp_register_script( 'ckb-bom', CKB_PLUGIN_URL . 'assets/ckb-bom.js', array(), $ver, true );
 	wp_register_script( 'ckb-blueprint', CKB_PLUGIN_URL . 'assets/ckb-blueprint.js', array( 'ckb-three' ), $ver, true );
+	/* همراه طراح (v2.11): ماژول مستقل پنل راهنمای طراحی — بدون وابستگی */
+	wp_register_script( 'ckb-coach', CKB_PLUGIN_URL . 'assets/ckb-coach.js', array(), $ver, true );
 	wp_register_script( 'ckb-viewer', CKB_PLUGIN_URL . 'assets/viewer.js', array( 'ckb-models' ), $ver, true );
 	wp_register_script( 'ckb-studio-app', CKB_PLUGIN_URL . 'assets/studio-app.js', array( 'ckb-models', 'ckb-boundary', 'ckb-bom' ), $ver, true );}
 
@@ -373,6 +375,7 @@ function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen
 	wp_enqueue_script( 'ckb-boundary' );
 	wp_enqueue_script( 'ckb-bom' );
 	wp_enqueue_script( 'ckb-blueprint' );
+	wp_enqueue_script( 'ckb-coach' ); /* همراه طراح — قبل از studio-app تا در لحظه mount آماده باشد (v2.11) */
 	wp_enqueue_script( 'ckb-studio-app' );
 
 	$config = array(

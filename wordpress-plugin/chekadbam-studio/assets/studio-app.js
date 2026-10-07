@@ -521,12 +521,13 @@
 
 		/* ─────────────── Items management ─────────────── */
 		function pushHistory() {
-			var snapshot = JSON.parse(JSON.stringify(items));
+			snapshot = JSON.parse(JSON.stringify(items));
 			history = history.slice(0, historyIndex + 1);
 			history.push(snapshot);
 			if (history.length > 50) history.shift();
 			historyIndex = history.length - 1;
 			updateUndoButtons();
+			coachRefresh(); /* همراه طراح: هر تغییر ثبت‌شده وضعیت (کشیدن، افزودن، حذف) (v2.11) */
 		}
 
 		function undo() {
@@ -635,6 +636,7 @@
 			items.forEach(buildItem);
 			selectItem(selectedId);
 			updateBomBadge();
+			coachRefresh(); /* همراه طراح: تحلیل تازه چیدمان (v2.11) */
 		}
 
 		function selectItem(id) {
@@ -1710,6 +1712,7 @@
 			add: svgIcon('<path d="M12 5v14M5 12h14"/>'),
 			plan: svgIcon('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16M12 4v8"/>'),
 			bom: svgIcon('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>'),
+			coach: svgIcon('<path d="M12 3l1.9 5.4L19.5 10l-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.6z"/><circle cx="18.5" cy="18" r="1.4"/>'),
 			more: svgIcon('<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>'),
 			save: svgIcon('<circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/>'),
 		};
@@ -1733,6 +1736,21 @@
 			buildTab($('btn-add'), 'add', 'افزودن');
 			buildTab($('btn-plan-editor'), 'plan', 'نقشه بام');
 			buildTab($('btn-bom'), 'bom', 'برآورد');
+
+			/* «همراه طراح» (v2.11): تب پنل راهنمای طراحی — پنل را ckb-coach.js
+			   می‌سازد؛ اینجا فقط دکمه تب و درخواست باز/بسته. حالت .on و
+			   aria-expanded را onChange خود ماژول همگام نگه می‌دارد. */
+			var coachBtn = document.createElement('button');
+			coachBtn.type = 'button';
+			coachBtn.className = 'ckb-tab ckb-tab-coach';
+			coachBtn.id = sid + '-btn-coach';
+			coachBtn.setAttribute('aria-label', 'همراه طراح — راهنمای چیدمان بام و تراس');
+			coachBtn.setAttribute('aria-expanded', 'false');
+			coachBtn.innerHTML = TAB_ICONS.coach + '<span class="ckb-tab-label">همراه طراح</span>';
+			coachBtn.addEventListener('click', function () {
+				if (window.CKBCoach) window.CKBCoach.toggle();
+			});
+			bar.appendChild(coachBtn);
 
 			/* «ابزارها»: opens the sheet with everything secondary */
 			var moreBtn = document.createElement('button');
@@ -1793,6 +1811,30 @@
 			});
 		}
 		setupTabbar();
+
+		/* ── v2.11 همراه طراح: پنل «راهنمای چیدمان بام و تراس» ──
+		   ماژول مستقل ckb-coach.js — فقط وضعیت را می‌خواند و پنل خودش را
+		   داخل ویوپورت می‌سازد. sync حالت .on تب هم از همین‌جا انجام
+		   می‌شود تا تک‌منبع حقیقت، خودِ ماژول باشد. */
+		if (window.CKBCoach) {
+			window.CKBCoach.init({
+				vp: rootEl.querySelector('.ckb-wstudio-viewport'),
+				getState: function () { return { space: space, items: items, B: B }; },
+				onChange: function (open) {
+					var c = $('btn-coach');
+					if (c) {
+						c.classList.toggle('on', !!open);
+						c.setAttribute('aria-expanded', open ? 'true' : 'false');
+					}
+				},
+			});
+		}
+
+		/* تازه‌سازی پنل همراه طراح — در نقاط تغییر وضعیت (بازچینی، تاریخچه)
+		   صدا زده می‌شود؛ ماژول خودش بسته/باز بودن پنل را مدیریت می‌کند. */
+		function coachRefresh() {
+			if (window.CKBCoach) window.CKBCoach.refresh();
+		}
 
 		/* Sync the inspector offset with the live bar height
 		   (observes the tab bar — mirrors --ckb-dock-h

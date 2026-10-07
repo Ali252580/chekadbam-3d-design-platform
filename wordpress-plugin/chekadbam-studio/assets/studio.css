@@ -1568,3 +1568,171 @@ body.admin-bar .ckb-studio-full {
 		box-shadow: 0 -10px 20px rgba(15, 23, 42, 0.92);
 	}
 }
+
+/* ══════════════════════════════════════════════════════════════
+   همراه طراح (v2.11) — پنل «راهنمای چیدمان بام و تراس»
+   ماژول مستقل: assets/ckb-coach.js پنل را می‌سازد؛ این بخش فقط استایل.
+   دسکتاپ: پنل شناور سمت راست ویوپورت (پهنا ۳۲۰px).
+   موبایل: بات‌شیت تمام‌عرض بالای نوار تب.
+   z-index 23 = زیر پس‌زمینه شیت ابزارها (۲۴) و خود شیت (۲۷).
+   ══════════════════════════════════════════════════════════════ */
+.ckb-coach {
+	position: absolute;
+	/* زیر ردیف قطب‌نمای «شمال» (بالا-راست ویوپورت) تا روی آن نیفتد */
+	top: 66px;
+	right: 14px;
+	bottom: calc(var(--ckb-dock-h, 68px) + 22px);
+	width: 320px;
+	z-index: 23;
+	display: flex;
+	flex-direction: column;
+	background: rgba(15, 23, 42, 0.97);
+	border: 1px solid #334155;
+	border-radius: 22px;
+	box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+	overflow: hidden;
+	opacity: 0;
+	transform: translateX(12px);
+	pointer-events: none;
+	transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.ckb-coach.open { opacity: 1; transform: none; pointer-events: auto; }
+
+/* سربرگ: آیکن ✦ + عنوان + بستن */
+.ckb-coach-head {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 12px 15px;
+	border-bottom: 1px solid #293548;
+	background: rgba(16, 185, 129, 0.06);
+}
+.ckb-coach-ic {
+	width: 34px;
+	height: 34px;
+	border-radius: 11px;
+	flex: 0 0 auto;
+	background: rgba(16, 185, 129, 0.15);
+	border: 1px solid rgba(16, 185, 129, 0.45);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #34d399;
+	font-size: 17px;
+}
+.ckb-coach-tt { flex: 1; min-width: 0; }
+.ckb-coach-tt b { display: block; color: #fff; font-size: 13.5px; }
+.ckb-coach-tt span { font-size: 10.5px; color: #94a3b8; }
+.ckb-coach-x {
+	background: none;
+	border: 0;
+	color: #94a3b8;
+	font-size: 14px;
+	padding: 4px 8px;
+	cursor: pointer;
+	line-height: 1;
+	font-family: inherit;
+}
+.ckb-coach-x:hover { color: #fff; }
+
+/* بدنه پنل */
+.ckb-coach-body {
+	flex: 1;
+	overflow-y: auto;
+	padding: 13px 15px;
+	scrollbar-width: thin;
+	scrollbar-color: #293548 transparent;
+}
+.ckb-coach-body::-webkit-scrollbar { width: 5px; }
+.ckb-coach-body::-webkit-scrollbar-thumb { background: #293548; border-radius: 3px; }
+.ckb-coach-body::-webkit-scrollbar-track { background: transparent; }
+
+/* بلوک امتیاز: حلقه SVG + برچسب */
+.ckb-coach-score { display: flex; align-items: center; gap: 13px; margin-bottom: 13px; }
+.ckb-coach-ring { position: relative; width: 86px; height: 86px; flex: 0 0 auto; }
+.ckb-coach-ring svg { transform: rotate(-90deg); display: block; }
+.ckb-coach-ringval {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+.ckb-coach-ringval b { color: #6ee7b7; font-size: 19px; line-height: 1; }
+.ckb-coach-ringval span { font-size: 8.5px; color: #64748b; }
+.ckb-coach-scorelbl { font-size: 11px; color: #e2e8f0; }
+.ckb-coach-scorelbl b { color: #fff; font-size: 12px; display: block; }
+.ckb-coach-scorelbl small { display: block; color: #94a3b8; font-size: 10.5px; line-height: 1.7; margin-top: 2px; }
+
+/* چیپ‌های شش‌گانه معیار — سه حالت ok/warn/bad */
+.ckb-coach-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.ckb-coach-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 10.5px;
+	font-weight: 700;
+	border-radius: 999px;
+	padding: 4px 10px;
+	border: 1px solid;
+}
+.ckb-coach-chip.ok { color: #6ee7b7; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.4); }
+.ckb-coach-chip.warn { color: #fde68a; background: rgba(251, 191, 36, 0.09); border-color: rgba(251, 191, 36, 0.4); }
+.ckb-coach-chip.bad { color: #fecaca; background: rgba(251, 113, 133, 0.09); border-color: rgba(251, 113, 133, 0.4); }
+
+/* عنوان بخش‌های داخل پنل */
+.ckb-coach-sec {
+	font-size: 11px;
+	font-weight: 800;
+	color: #34d399;
+	margin: 2px 0 8px;
+}
+
+/* کارت راهنمای زنده */
+.ckb-coach-tip {
+	display: flex;
+	gap: 9px;
+	align-items: flex-start;
+	background: #16223a;
+	border: 1px solid #293548;
+	border-radius: 14px;
+	padding: 9px 11px;
+	margin-bottom: 8px;
+}
+.ckb-coach-tip.warn { border-color: rgba(251, 191, 36, 0.35); }
+.ckb-coach-tip.bad { border-color: rgba(251, 113, 133, 0.4); }
+.ckb-coach-tip.ok { border-color: rgba(16, 185, 129, 0.35); }
+.ckb-coach-tip-ic { font-size: 13px; flex: 0 0 auto; margin-top: 2px; }
+.ckb-coach-tip b { font-size: 11.5px; color: #f1f5f9; display: block; }
+.ckb-coach-tip p { font-size: 10.5px; color: #94a3b8; line-height: 1.8; margin: 2px 0 0; }
+
+/* نکته لحظه‌ای چرخان */
+.ckb-coach-moment {
+	border-radius: 14px;
+	padding: 11px 13px;
+	background: linear-gradient(135deg, rgba(56, 189, 248, 0.09), rgba(16, 185, 129, 0.09));
+	border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.ckb-coach-moment b { font-size: 11px; color: #38bdf8; }
+.ckb-coach-moment-text { font-size: 11px; color: #e2e8f0; margin: 3px 0 0; min-height: 38px; }
+.ckb-coach-dots { display: flex; gap: 4px; margin-top: 8px; }
+.ckb-coach-dots i { width: 6px; height: 6px; border-radius: 50%; background: #334155; }
+.ckb-coach-dots i.on { background: #38bdf8; }
+
+/* موبایل: بات‌شیت تمام‌عرض بالای نوار تب */
+@media (max-width: 768px) {
+	.ckb-coach {
+		top: auto;
+		right: 8px;
+		left: 8px;
+		bottom: calc(var(--ckb-dock-h, 64px) + 8px);
+		width: auto;
+		max-height: 62%;
+		border-radius: 20px;
+	}
+}
+/* صفحه‌های خیلی کوتاه (لپ‌تاپ کوچک): پنل متعادل‌تر */
+@media (min-width: 769px) and (max-height: 560px) {
+	.ckb-coach { top: 62px; bottom: calc(var(--ckb-dock-h, 68px) + 14px); width: 290px; }
+}
