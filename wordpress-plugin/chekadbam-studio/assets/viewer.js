@@ -12,7 +12,44 @@
 (function () {
 	'use strict';
 
+	/* ── v2.12: mount تنبل (lazy) ──
+	   ساخت کامل نمایشگر (رندرر WebGL + مدل + نور) تا وقتی کانتینر به دید
+       نرسیده انجام نمی‌شود؛ صفحات فروشگاه با چند [chekadbam_3d] بسیار سبک‌تر
+       بالا می‌آیند. هندل موقت، update()های پیش از ساخت را در صف نگه می‌دارد
+       (admin-preview و بوت شورت‌کد بی‌تغییر کار می‌کنند). */
 	function mount(containerId, product) {
+		var holder = document.getElementById(containerId);
+		if (!holder || !product) return null;
+		if (typeof THREE === 'undefined' || !window.CKBModels) {
+			holder.innerHTML =
+				'<div style="padding:30px;text-align:center;color:#f87171;direction:rtl;font-weight:bold;">' +
+				'کتابخانه Three.js بارگذاری نشده است.</div>';
+			return null;
+		}
+
+		/* مرورگرهای قدیمی بدون IntersectionObserver: مثل قبل فوری بساز */
+		if (typeof IntersectionObserver === 'undefined') return mountNow(containerId, product);
+
+		var handle = null;   // هندل واقعی پس از ساخت
+		var queued = null;   // آخرین به‌روزرسانی خواسته‌شده پیش از ساخت
+		var io = new IntersectionObserver(function (entries) {
+			entries.forEach(function (en) {
+				if (!en.isIntersecting || handle) return;
+				io.disconnect();
+				handle = mountNow(containerId, queued || product);
+				queued = null;
+			});
+		}, { rootMargin: '260px' }); // کمی قبل از رسیدن به دید بساز
+		io.observe(holder);
+
+		return {
+			update: function (p) { if (handle) handle.update(p); else queued = p; },
+			screenshot: function () { return handle ? handle.screenshot() : ''; },
+			dispose: function () { if (io) io.disconnect(); if (handle) handle.dispose(); },
+		};
+	}
+
+	function mountNow(containerId, product) {
 		var holder = document.getElementById(containerId);
 		if (!holder || !product) return;
 		if (typeof THREE === 'undefined' || !window.CKBModels) {
@@ -56,7 +93,8 @@
 		var renderer = new THREE.WebGLRenderer({
 			antialias: true,
 			alpha: false,
-			preserveDrawingBuffer: true,
+			preserveDrawingBuffer: true, /* برای toDataURL اسکرین‌شات لازم است */
+			powerPreference: 'high-performance', /* v2.12 */
 		});
 		renderer.setSize(width, height);
 		renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, MOBILE ? 1.5 : 2));

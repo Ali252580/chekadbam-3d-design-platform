@@ -1368,7 +1368,11 @@
 
 		function getThumbShared() {
 			if (thumbShared) return thumbShared;
-			var r = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
+			/* رندرر مشترک ریزنقش‌ها (v2.12): بدون antialias و بدون
+			   preserveDrawingBuffer — تصویر بلافاصله بعد از رندر با
+			   drawImage منتقل می‌شود، پس هر دو برای صرفه‌جویی حافظه GPU
+			   غیرضروری‌اند و کاتالوگ سبک‌تر باز می‌شود */
+			var r = new THREE.WebGLRenderer({ antialias: false, alpha: false, preserveDrawingBuffer: false });
 			r.setSize(THUMB_W, THUMB_H);
 			r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 			r.shadowMap.enabled = false;

@@ -325,6 +325,41 @@ function ckb_default_studio_plans() {
 add_action( 'wp_enqueue_scripts', 'ckb_wpstudio_register_assets' );
 add_action( 'admin_enqueue_scripts', 'ckb_wpstudio_register_assets' );
 
+/* ── v2.12: بارگذاری غیرمسدودکننده اسکریپت‌های سنگین چکادبام (فقط فرانت‌اند) ──
+   همه با defer چاپ می‌شوند؛ مرورگرها اسکریپت‌های defer را به ترتیب سند اجرا
+   می‌کنند پس ترتیب وابستگی‌ها حفظ می‌شود. بوت استودیو و بوت شورت‌کد محصول
+   هر دو با پولینگ منتظر وابستگی‌ها می‌مانند، پس امن است. در مدیریت دست
+   نمی‌زنیم تا همگامی admin-preview دست‌نخورده بماند. */
+add_filter( 'script_loader_tag', 'ckb_defer_studio_scripts', 10, 2 );
+function ckb_defer_studio_scripts( $tag, $handle ) {
+	if ( is_admin() ) {
+		return $tag;
+	}
+	$defer_handles = array(
+		'ckb-three', 'ckb-textures', 'ckb-foliage', 'ckb-models',
+		'ckb-boundary', 'ckb-bom', 'ckb-blueprint', 'ckb-coach',
+		'ckb-viewer', 'ckb-studio-app',
+	);
+	if ( in_array( $handle, $defer_handles, true )
+		&& strpos( $tag, 'defer' ) === false
+		&& strpos( $tag, 'async' ) === false ) {
+		$tag = str_replace( ' src=', ' defer src=', $tag );
+	}
+	return $tag;
+}
+
+/* v2.12: preconnect به CDN فونت — دست‌یابی سریع‌تر به وزیرمتن */
+add_action( 'wp_head', 'ckb_preconnect_vazirmatn_cdn', 1 );
+function ckb_preconnect_vazirmatn_cdn() {
+	if ( ! is_singular() ) {
+		return;
+	}
+	$post = get_post();
+	if ( $post && ( has_shortcode( $post->post_content, 'chekadbam_studio' ) || has_shortcode( $post->post_content, 'chekadbam_3d' ) ) ) {
+		echo '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin="anonymous">' . "\n";
+	}
+}
+
 // Load the studio stylesheet in the page head (no unstyled flash) when the
 // current page embeds the full studio via [chekadbam_studio]
 add_action( 'wp_enqueue_scripts', 'ckb_wpstudio_maybe_enqueue_early', 20 );
