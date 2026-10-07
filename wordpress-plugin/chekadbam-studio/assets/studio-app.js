@@ -457,15 +457,17 @@
 			var axisMat = new THREE.LineBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.55, depthWrite: false });
 			envGroup.add(new THREE.LineSegments(axisGeo, axisMat));
 
-			/* ── Rooftop context: the plan must read as the TOP of a building ── */
-			var bldH = 9; // floors of the host building below the roof deck
+			/* ── Site context: a roof reads as the TOP of a building, but a terrace
+			   hangs mid-facade — only a couple of storeys show below it ── */
+			var isTerrace = shape === 'narrow_balcony';
+			var bldH = isTerrace ? 3.2 : 9; // host-building height below the deck (m)
 			var over = 0.7; // facade overhang around the roof slab
 			var facadeMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.92 });
 			var slabMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.9 });
 			// One tiled canvas texture carries the whole facade (windows + slab lines):
 			// looks like a real building and costs a single material instead of ~40 boxes.
 			var facadeTex = makeFacadeTexture();
-			facadeTex.repeat.set(Math.max(2, Math.round((width + over) / 3)), Math.max(2, Math.round(bldH / 2.6)));
+			facadeTex.repeat.set(Math.max(2, Math.round((width + over) / 3)), Math.max(1, Math.round(bldH / 3.2)));
 			facadeMat.map = facadeTex;
 			facadeMat.emissiveMap = facadeTex;
 			facadeMat.emissive = new THREE.Color(0xffca7a);
@@ -478,14 +480,14 @@
 			envGroup.add(facade);
 
 			// Floor ledges → the 3D edge of every storey
-			for (var f = 0; f < bldH; f++) {
+			for (var f = 0; 0.9 + f * 1.05 <= bldH; f++) {
 				var slab = new THREE.Mesh(
 					new THREE.BoxGeometry(width + over + 0.18, 0.16, length + over + 0.18), slabMat);
 				slab.position.set(0, -(0.9 + f * 1.05), 0);
 				envGroup.add(slab);
 			}
 
-			// Neighbouring blocks + distant street grid, all well below the roof
+			// Neighbouring blocks, anchored to the same base as the host building
 			var cityMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.95 });
 			var citySpec = [[-26, 7, 12, 9, -18], [24, 5, 10, 7, 16], [-20, 9, 8, 11, 20],
 			[18, 6, 9, 8, -22], [0, 5, 7, 6, 26], [-6, 4, 6, 5, -27]];
@@ -495,13 +497,13 @@
 				envGroup.add(b);
 			});
 
-			// Street level far below — sells the height
+			// Street level — far below to sell a roof's height, right at the base for a terrace
 			var ground = new THREE.Mesh(
 				new THREE.PlaneGeometry(180, 180),
 				new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.95 })
 			);
 			ground.rotation.x = -Math.PI / 2;
-			ground.position.set(0, -bldH - 8, 0);
+			ground.position.set(0, -bldH - 0.22 - (isTerrace ? 0.05 : 8), 0);
 			envGroup.add(ground);
 
 			// Store the facade material so night mode can light up the windows

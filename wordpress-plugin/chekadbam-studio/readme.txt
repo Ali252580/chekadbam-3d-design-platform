@@ -4,7 +4,7 @@ Tags: roof-garden, 3d-studio, modular, wpc, crm, rest-api, 3d-viewer
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 2.9.1
+Stable tag: 2.9.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -80,6 +80,9 @@ Namespace: /wp-json/chekadbam/v1
 * GET  /designs  — فهرست طرح‌ها با نام فیلدهای Next.js (userName, layoutData, snapshotUrl, estimatedPriceMin/Max, ...) + نام‌های قدیمی (فقط مدیر)
 
 == Changelog ==
+
+= 2.9.2 =
+* فیکس: پلان‌های تراس (تراس طولی) دیگر مثل پشت‌بام روی ساختمان بلند ۹ طبقه نمایش داده نمی‌شدند — برای تراس، ساختمان میزبان با ارتفاع واقعی چند طبقه زیر تراس ساخته می‌شود، خیابان درست در پای ساختمان می‌آید و بلوک‌های اطراف هم‌تراز تنظیم شده‌اند؛ پلان‌های پشت‌بامی بدون تغییر
 
 = 2.9.1 =
 * فیکس (موبایل): پنجره «ثبت و ارسال طرح» فرم را کامل می‌پوشاند و دکمه ارسال دیده نمی‌شد — حالا اندازه پنجره درست محاسبه می‌شود، دکمه ارسال همیشه پایین پنجره ثابت (sticky) است، عنوان و بستن بالای پنجره می‌مانند و پیش‌نمایش طرح در اندازه متعادل نمایش داده می‌شود
