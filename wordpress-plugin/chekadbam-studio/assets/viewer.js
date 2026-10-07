@@ -217,22 +217,47 @@
 			if (pointers.size === 0) isDragging = false;
 		});
 
-		canvas.addEventListener('wheel', function (e) {
-			e.preventDefault();
-			radius = Math.max(maxDim * 1.1, Math.min(maxDim * 6, radius + e.deltaY * 0.02));
-			lastInteraction = performance.now();
-			updateCam();
-		}, { passive: false });
+		/* Mobile v2.8: pointer cancel (browser gesture / palm) must not leave the
+		   canvas in a dragging state — mirrors the pointerup cleanup. */
+		canvas.addEventListener('pointercancel', function (e) {
+			pointers.delete(e.pointerId);
+			if (pointers.size < 2) pinch = null;
+			if (pointers.size === 0) {
+				isDragging = false;
+				try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+			}
+		});
 
-		// Resize handling
+		/* Mobile v2.8: double-tap to reset the view (recentre + fit) —
+		   the most-missed control on phones, where there is no reset button. */
+		var lastTapT = 0, lastTapX = 0, lastTapY = 0;
+		canvas.addEventListener('pointerup', function (e) {
+			var now = performance.now();
+			if (now - lastTapT < 320 && Math.hypot(e.clientX - lastTapX, e.clientY - lastTapY) < 30) {
+				angle = Math.PI / 5;
+				elev = Math.PI / 4.2;
+				radius = maxDim * 2.3 + 1.2;
+				updateCam();
+				try { if (navigator.vibrate) navigator.vibrate(15); } catch (err) {}
+				lastTapT = 0;
+				return;
+			}
+			lastTapT = now; lastTapX = e.clientX; lastTapY = e.clientY;
+		});
+
+		// Resize handling — window resize AND container resize (mobile URL bar)
 		function resize() {
 			var nw = holder.clientWidth || width;
 			var nh = holder.clientHeight || height;
+			if (!nw || !nh) return;
 			camera.aspect = nw / nh;
 			camera.updateProjectionMatrix();
 			renderer.setSize(nw, nh);
 		}
 		window.addEventListener('resize', resize);
+		if (typeof ResizeObserver === 'function') {
+			new ResizeObserver(function () { resize(); }).observe(holder);
+		}
 
 		/* Render loop with idle auto-rotate — paused when offscreen or on a
 		   hidden tab; capped to ~30 fps on mobile (pages can embed several
@@ -259,6 +284,18 @@
 			renderer.render(scene, camera);
 		}
 		animate();
+
+		/* Mobile v2.8: reveal hint once after mount, fade after first touch */
+		try {
+			var hint = holder.querySelector('.ckb-3d-hint');
+			if (hint) {
+				hint.classList.add('ckb-hint-pulse');
+				canvas.addEventListener('pointerdown', function once() {
+					hint.classList.add('ckb-hint-seen');
+					canvas.removeEventListener('pointerdown', once);
+				}, { once: true });
+			}
+		} catch (errHint) {}
 
 		return {
 			update: setProduct,

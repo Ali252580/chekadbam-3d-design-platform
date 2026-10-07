@@ -381,6 +381,8 @@ function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen
 		'ajaxUrl'   => $ajax_url,
 		'nonce'     => $nonce,
 		'autoPlans' => $auto_plans,
+		/* Mobile v2.8: server-side device sniff informs the JS render path */
+		'isMobile'  => (bool) wp_is_mobile(),
 	);
 	// Bracket notation — the studio_id contains dashes, which are illegal in
 	// JavaScript dot access (window.CKB_CONFIG_ckb-ws-1234 is a syntax error).
@@ -411,10 +413,6 @@ function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen
 				<div class="ckb-wstudio-compass">
 					<div class="ckb-n-dot">N</div>
 					<span>شمال</span>
-				</div>
-				<!-- Overlap warning (studio-app.js toggles it via checkCollisions) -->
-				<div class="ckb-wstudio-collision" id="<?php echo esc_attr( $studio_id ); ?>-collision-warning">
-					⚠ برخی اقلام روی هم افتاده‌اند — جای‌گذاری را بازبینی کنید
 				</div>
 				<!-- One-off warning toast (studio-app.js showToast) -->
 				<div class="ckb-wstudio-toast" id="<?php echo esc_attr( $studio_id ); ?>-toast" role="status"></div>
@@ -651,7 +649,7 @@ function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen
 
 		<!-- Save Form Modal -->
 		<div class="ckb-wstudio-modal" id="<?php echo esc_attr( $studio_id ); ?>-modal-save">
-			<div class="ckb-wstudio-modal-box" style="max-width:480px">
+			<div class="ckb-wstudio-modal-box ckb-save-box" style="max-width:480px">
 				<div class="ckb-wstudio-modal-head">
 					<h4>ثبت و ارسال طرح به کارشناسان</h4>
 					<div class="ckb-wstudio-x" data-close="save" role="button" aria-label="بستن" tabindex="0">✕</div>

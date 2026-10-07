@@ -247,6 +247,7 @@
 	background: #0f172a;
 	border: 1px solid #334155;
 	border-radius: 20px;
+	box-sizing: border-box; /* v2.9.1: max-height must include padding+border */
 	width: 100%;
 	max-width: 640px;
 	max-height: 88vh;
@@ -1196,6 +1197,95 @@ body.admin-bar .ckb-studio-full {
 	.ckb-wstudio-dock .ckb-wstudio-btn { padding: 6px 5px; font-size: 15px; min-height: 50px; min-width: 47px; }
 	.ckb-wstudio-dock .ckb-btn-label-sm { font-size: 8px; max-width: 50px; }
 	.ckb-insp-pos { display: none; } /* no room for the coordinate readout */
+	.ckb-wstudio-modal-box { max-height: calc(100dvh - 12px - env(safe-area-inset-bottom, 0px)); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Mobile UX v2.8 — bottom-sheet grab handle, dvh modals, viewer
+   double-tap hint pulse, and long-press-free 44px touch targets.
+   ══════════════════════════════════════════════════════════════ */
+
+/* Bottom-sheet grab bar: modals render as sheets on mobile; a handle makes
+   the affordance obvious and doubles as a tap-to-close strip */
+.ckb-sheet-handle {
+	display: none;
+	width: 42px;
+	height: 4px;
+	border-radius: 999px;
+	background: #334155;
+	margin: 0 auto 10px;
+	padding: 0;
+	border: 0;
+	cursor: pointer;
+}
+.ckb-wstudio-x:active,
+.ckb-wstudio-btn:active,
+.ckb-catalog-btn:active {
+	transform: scale(0.96);
+	transition: transform 0.08s ease;
+}
+
+/* Viewer hint pulse: draws the eye to «بچرخانید • زوم با اسکرول» and tells
+   mobile users rotation works before they try it */
+.ckb-3d-viewer .ckb-3d-hint { transition: opacity 0.5s ease; }
+.ckb-3d-viewer .ckb-hint-pulse { animation: ckb-hint-pulse 2s ease-in-out infinite; }
+.ckb-3d-viewer .ckb-hint-seen { opacity: 0.65; animation: none; }
+@keyframes ckb-hint-pulse {
+	0%, 100% { opacity: 0.85; }
+	50% { opacity: 1; box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.25); }
+}
+
+/* Double-tap resets the viewer — mirror of the studio's «دوربین» button */
+.ckb-3d-viewer::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+@media (max-width: 768px), (max-height: 480px) and (orientation: landscape) {
+	/* dvh: URL-bar-proof modal height (100vh measures the full screen and
+	   leaves the bottom of sheets hidden behind the phone's browser chrome) */
+	@supports (height: 100dvh) {
+		.ckb-wstudio-modal-box {
+			max-height: calc(100dvh - 20px - env(safe-area-inset-bottom, 0px));
+		}
+	}
+
+	/* Bottom-sheet handle visible + closes the modal when tapped */
+	.ckb-wstudio-modal-box .ckb-sheet-handle { display: block; }
+
+	/* Modals become true bottom sheets sliding from below */
+	.ckb-wstudio-modal { padding: 0; align-items: flex-end; }
+	.ckb-wstudio-modal-box {
+		width: 100%;
+		max-width: none;
+		border-radius: 18px 18px 0 0;
+		border-bottom: 0;
+		max-height: 92dvh;
+		animation: ckb-sheet-up 0.25s ease-out;
+	}
+	@keyframes ckb-sheet-up {
+		from { transform: translateY(30px); opacity: 0.6; }
+		to { transform: translateY(0); opacity: 1; }
+	}
+
+	/* Tap outside the sheet closes it (target = backdrop) */
+	.ckb-wstudio-modal { justify-content: stretch; }
+
+	/* Full-bleed dock: no side gaps at the very edge */
+	.ckb-wstudio-dock { left: 0; right: 0; border-radius: 16px 16px 0 0; }
+
+	/* Comfortable 44px touch targets everywhere on phones */
+	.ckb-wstudio-inspector button { min-height: 36px; }
+	.ckb-catalog-btn { min-height: 40px; }
+	.ckb-wstudio-x { width: 34px; height: 34px; }
+}
+
+/* Landscape phones: sheet keeps a small top gap so the close X stays visible */
+@media (max-height: 480px) and (orientation: landscape) {
+	.ckb-wstudio-modal { padding: 8px 0 0; }
+	.ckb-wstudio-modal-box { border-radius: 16px 16px 0 0; }
 }
 
 /* Landscape phones: slim the header so the canvas keeps most of
@@ -1205,4 +1295,207 @@ body.admin-bar .ckb-studio-full {
 	.ckb-wstudio-header h3 { font-size: 10px; }
 	.ckb-wstudio-header .ckb-plan-badge { display: none; }
 	.ckb-wstudio-close { padding: 4px 8px; font-size: 11px; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Mobile UX (v2.9) — Bottom Tab Bar + Tools Sheet
+   Native-style 5-tab navigation (icons + labels) replaces the
+   scrollable dock on phones; secondary tools live in one floating
+   sheet. Elements are built by studio-app.js (setupMobileTabbar)
+   so this CSS is global — the elements only exist on mobile.
+   ══════════════════════════════════════════════════════════════ */
+.ckb-tabbar {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 25;
+	display: flex;
+	align-items: stretch;
+	justify-content: space-around;
+	padding: 6px 4px calc(9px + env(safe-area-inset-bottom, 0px));
+	background: rgba(9, 14, 28, 0.98);
+	border-top: 1px solid rgba(148, 163, 184, 0.14);
+	box-shadow: 0 -8px 26px rgba(0, 0, 0, 0.45);
+}
+.ckb-tab {
+	-webkit-appearance: none;
+	appearance: none;
+	background: none;
+	border: 0;
+	position: relative;
+	flex: 1 1 0;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 3px;
+	padding: 5px 2px;
+	color: #8ea0b8;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+	transition: color 0.15s ease, transform 0.1s ease;
+	font-family: inherit;
+}
+.ckb-tab svg { width: 23px; height: 23px; display: block; }
+.ckb-tab-label {
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.2px;
+	white-space: nowrap;
+	line-height: 1;
+}
+.ckb-tab:active { transform: scale(0.93); }
+.ckb-tab.on { color: #34d399; }
+/* Primary action gets a soft emerald chip behind the icon */
+.ckb-tab.primary { color: #34d399; }
+.ckb-tab.primary svg {
+	width: 28px;
+	height: 28px;
+	padding: 4px;
+	box-sizing: content-box;
+	background: rgba(16, 185, 129, 0.16);
+	border-radius: 13px;
+}
+/* BOM badge re-anchored to the tab (was the dock button corner) */
+.ckb-tab .ckb-bom-count {
+	top: 2px;
+	left: calc(50% + 8px);
+}
+
+/* Dim behind the tools sheet */
+.ckb-more-backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(2, 6, 23, 0.55);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.2s ease;
+	z-index: 24;
+}
+.ckb-more-backdrop.show { opacity: 1; pointer-events: auto; }
+
+/* Floating tools sheet, sits just above the tab bar */
+.ckb-more-sheet {
+	position: absolute;
+	left: 10px;
+	right: 10px;
+	bottom: calc(var(--ckb-dock-h, 64px) + 8px);
+	z-index: 27;
+	background: #0f172a;
+	border: 1px solid #293548;
+	border-radius: 20px;
+	padding: 10px 12px 12px;
+	box-shadow: 0 18px 48px rgba(0, 0, 0, 0.6);
+	transform: translateY(14px) scale(0.98);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.18s ease, transform 0.18s ease;
+	direction: rtl;
+}
+.ckb-more-sheet.open { transform: none; opacity: 1; pointer-events: auto; }
+.ckb-more-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	font-size: 12px;
+	font-weight: 800;
+	color: #e2e8f0;
+	padding: 2px 2px 8px;
+	border-bottom: 1px solid #1e293b;
+	margin-bottom: 9px;
+}
+.ckb-more-close {
+	background: none;
+	border: 0;
+	color: #94a3b8;
+	font-size: 15px;
+	padding: 4px 8px;
+	cursor: pointer;
+	line-height: 1;
+}
+.ckb-more-group { margin-bottom: 9px; }
+.ckb-more-group:last-child { margin-bottom: 0; }
+.ckb-more-cap {
+	display: block;
+	font-size: 9.5px;
+	font-weight: 700;
+	color: #64748b;
+	letter-spacing: 0.3px;
+	margin: 0 2px 5px;
+}
+.ckb-more-row { display: flex; gap: 6px; }
+.ckb-more-row .ckb-wstudio-btn {
+	flex: 1 1 0;
+	justify-content: center;
+	min-height: 42px;
+	padding: 8px 6px;
+	border-radius: 12px;
+	background: #16223a;
+	border-color: #24334d;
+	gap: 4px;
+}
+.ckb-more-row .ckb-wstudio-btn:disabled { opacity: 0.35; }
+.ckb-more-row .ckb-btn-label { display: none; }
+.ckb-more-row .ckb-btn-label-sm {
+	display: inline;
+	font-size: 10.5px;
+	color: #cbd5e1;
+	max-width: none;
+}
+.ckb-more-row .ckb-wstudio-btn.active {
+	background: #312e81;
+	color: #c7d2fe;
+	border-color: #4f46e5;
+}
+
+/* v2.9: --ckb-dock-h now mirrors the full tab-bar height (safe-area
+   included), so the inspector needs no extra env() offset */
+@media (max-width: 768px), (max-height: 480px) and (orientation: landscape) {
+	.ckb-wstudio-inspector { bottom: calc(var(--ckb-dock-h, 64px) + 10px); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Mobile UX (v2.9.1) — save-modal ergonomics
+   The submit form (snapshot + 5 fields + submit) is taller than the
+   92dvh sheet, which buried the submit button below the fold. Now:
+   sticky header (title + ✕), compact snapshot, and a sticky submit
+   button that never leaves the screen while the form scrolls under it.
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px), (max-height: 480px) and (orientation: landscape) {
+	/* v2.9.1: the sheet must size against the studio root (the modal
+	   wrapper), not the browser viewport — when the studio is embedded
+	   shorter than the page, 92dvh pushed the box off the top and the
+	   sticky header/submit ended up off-screen. 100% of the wrapper
+	   (absolute, inset 0) is always exactly right. */
+	.ckb-wstudio-modal { max-height: 100%; padding: 0; }
+	.ckb-wstudio-modal-box {
+		max-height: 100%;
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
+		overscroll-behavior: contain;
+	}
+	/* Title + ✕ stay pinned while the form scrolls */
+	.ckb-wstudio-modal-box > .ckb-wstudio-modal-head {
+		position: sticky;
+		top: 0;
+		z-index: 3;
+		background: #0f172a;
+		margin: -14px -12px 10px;
+		padding: 10px 12px 8px;
+		border-bottom: 1px solid #1e293b;
+	}
+	/* Balanced snapshot: big enough to read the design, small enough
+	   that the form starts on screen (submit is sticky anyway) */
+	.ckb-save-shot { padding: 8px; margin-bottom: 10px; }
+	.ckb-save-shot img { max-height: 190px; }
+	.ckb-save-shot .ckb-wstudio-btn { min-height: 32px; padding: 5px 10px; font-size: 10.5px; }
+	/* The submit CTA never leaves the screen */
+	.ckb-save-box > .ckb-catalog-btn {
+		position: sticky;
+		bottom: 2px;
+		z-index: 3;
+		box-shadow: 0 -10px 20px rgba(15, 23, 42, 0.92);
+	}
 }

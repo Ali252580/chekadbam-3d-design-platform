@@ -32,11 +32,14 @@
 		var Models = window.CKBModels;
 
 		/* Mobile/touch devices get the lighter render path: lower pixel ratio,
-		   smaller shadow maps, capped frame rate (see MOBILE uses below) */
+		   smaller shadow maps, capped frame rate (see MOBILE uses below).
+		   v2.8: the PHP side also sniffs the device (wp_is_mobile) and passes it
+		   in cfg.isMobile — tablets that report pointer:coarse but have desktop
+		   GPUs still get a reasonable pixel ratio that way. */
 		var MOBILE = !!(window.matchMedia && (
 			window.matchMedia('(max-width: 768px)').matches ||
 			window.matchMedia('(pointer: coarse)').matches
-		));
+		)) || !!cfg.isMobile;
 
 		/* ─────────────── State ─────────────── */
 		var products = cfg.products || [];
@@ -54,16 +57,18 @@
 		var selectedId = null;
 		var lightingMode = 'sunset';
 		var viewMode = '3d';
-		var hasCollisions = false;
 
 		/* ─────────────── Three.js scene ─────────────── */
 		var scene = new THREE.Scene();
 		var vp = rootEl.querySelector('.ckb-wstudio-viewport');
+		/* Mobile v2.8: on phones the editor must fill the real visible viewport
+		   (the URL bar problem) — dvh where supported, JS fallback below */
 		var initW = vp.clientWidth || 800;
 		var initH = vp.clientHeight || 600;
 
 		var camera = new THREE.PerspectiveCamera(45, initW / initH, 0.1, 200);
 		var cameraAngle = { theta: Math.PI / 4, phi: Math.PI / 3.2, radius: 18 };
+		var CAM_SENS = MOBILE ? 0.0075 : 0.0055; /* touch orbits need a bit more gain */
 		var lookAtTarget = new THREE.Vector3(0, 0, 0);
 
 		var renderer = new THREE.WebGLRenderer({
@@ -572,7 +577,6 @@
 			pushHistory();
 			buildItem(item);
 			selectItem(item.id);
-			checkCollisions();
 			updateBomBadge();
 			/* The plan is too tight for this product (e.g. a 3.2 m pergola on a
 			   2.8 m balcony) — it is centred best-effort; tell the user clearly */
@@ -628,32 +632,7 @@
 			animatedEffects.length = 0;
 			items.forEach(buildItem);
 			selectItem(selectedId);
-			checkCollisions();
 			updateBomBadge();
-		}
-
-		function checkCollisions() {
-			hasCollisions = false;
-			for (var i = 0; i < items.length; i++) {
-				for (var j = i + 1; j < items.length; j++) {
-					var a = items[i];
-					var b = items[j];
-					var dist = Math.hypot(a.x - b.x, a.z - b.z);
-					var minSafe = (Math.min(a.width, a.depth) + Math.min(b.width, b.depth)) / 3;
-					if (dist < minSafe) {
-						/* An overlap caused by an item that simply cannot fit this
-						   plan (force-centred, already announced by a toast) is
-						   expected on tight plans like the narrow terrace — the
-						   banner is for overlaps the USER creates. So only pairs
-						   where both items actually fit the plan count. */
-						var aFits = B.itemCanFit(a.width, a.depth, space, a.rotation);
-						var bFits = B.itemCanFit(b.width, b.depth, space, b.rotation);
-						if (aFits && bFits) hasCollisions = true;
-					}
-				}
-			}
-			var warn = $('collision-warning');
-			if (warn) warn.style.display = hasCollisions ? 'block' : 'none';
 		}
 
 		function selectItem(id) {
@@ -720,7 +699,6 @@
 			item.z = clamped.z;
 			moveItemVisual(item);
 			pushHistory();
-			checkCollisions();
 			updateInspectorMeta();
 		}
 
@@ -852,6 +830,72 @@
 		function pinchDist() {
 			var pts = Array.from(activePointers.values());
 			return Math.hypot(pts[0].clientX - pts[1].clientX, pts[0].clientY - pts[1].clientY);
+		}
+
+		/* ── Mobile v2.8 helpers ──────────────────────────────────────────
+		   Double-tap: tap-tap on empty deck zooms in, on an item zooms to it.
+		   Haptic feedback: light buzz on pick/select on supporting phones.
+		   Touch wake: the 30 fps mobile cap makes slow drags feel laggy, so the
+		   first 350 ms of any drag scales the delta like a 60 fps stream. */
+		var lastTapTime = 0;
+		var lastTapX = 0, lastTapY = 0;
+		var DBL_TAP_MS = 320;
+		var DBL_TAP_DIST = 30;
+		var zoomAnim = null;
+
+		function buzz(ms) {
+			try {
+				if (navigator.vibrate && MOBILE) navigator.vibrate(ms);
+			} catch (err) {}
+		}
+
+		function animateRadiusTo(targetRadius) {
+			var maxDim = Math.max(space.width, space.length);
+			var from = cameraAngle.radius;
+			targetRadius = Math.max(4, Math.min(maxDim * 3, targetRadius));
+			zoomAnim = { from: from, to: targetRadius, start: performance.now(), dur: 320 };
+		}
+
+		function tickZoomAnim(nowMs) {
+			if (!zoomAnim) return;
+			var k = Math.min(1, (nowMs - zoomAnim.start) / zoomAnim.dur);
+			var e = 1 - Math.pow(1 - k, 3); /* easeOutCubic */
+			cameraAngle.radius = zoomAnim.from + (zoomAnim.to - zoomAnim.from) * e;
+			updateCamera();
+			if (k >= 1) zoomAnim = null;
+		}
+
+		function handleDoubleTap(x, y) {
+			var maxDim = Math.max(space.width, space.length);
+			var now = performance.now();
+			var isDouble = (now - lastTapTime) < DBL_TAP_MS &&
+				Math.hypot(x - lastTapX, y - lastTapY) < DBL_TAP_DIST;
+			lastTapTime = isDouble ? 0 : now;
+			lastTapX = x; lastTapY = y;
+			if (!isDouble) return;
+
+			var hitId = pickItem(x, y);
+			if (hitId) {
+				var item = items.find(function (it) { return it.id === hitId; });
+				if (item) {
+					/* Frame the tapped item: pull target to it and zoom close */
+					lookAtTarget.x = item.x;
+					lookAtTarget.z = item.z;
+					var itemSpan = Math.max(item.width, item.depth) || 1;
+					animateRadiusTo(Math.min(cameraAngle.radius, itemSpan * 3 + 4));
+					selectItem(hitId);
+					buzz(20);
+					return;
+				}
+			}
+			/* Empty deck: toggle between zoomed-out overview and a closer view */
+			var overview = Math.max(14, maxDim * 1.6);
+			if (cameraAngle.radius > overview * 1.15) {
+				animateRadiusTo(overview);
+			} else {
+				animateRadiusTo(overview * 0.55);
+			}
+			buzz(20);
 		}
 
 		function pickItem(clientX, clientY) {
@@ -994,7 +1038,7 @@
 			}
 
 			if (isOrbiting && e.buttons > 0) {
-				var sensitivity = 0.0055;
+				var sensitivity = CAM_SENS;
 				cameraAngle.theta -= dx * sensitivity;
 				cameraAngle.phi = Math.max(0.05, Math.min(Math.PI / 2 - 0.02, cameraAngle.phi + dy * sensitivity));
 				updateCamera();
@@ -1011,6 +1055,30 @@
 			}
 		});
 
+		/* Mobile v2.8: a cancelled touch (incoming call, browser gesture, palm) must
+		   end the drag/orbit cleanly — otherwise the item stuck to the finger and the
+		   dock stayed faded until the next tap. */
+		canvas.addEventListener('pointercancel', function (e) {
+			activePointers.delete(e.pointerId);
+			if (activePointers.size < 2) pinch = null;
+			if (activePointers.size > 0) return;
+			if (isDragging && clickedId && dragLast) {
+				var item = items.find(function (it) { return it.id === clickedId; });
+				if (item) {
+					item.x = dragLast.x;
+					item.z = dragLast.z;
+					pushHistory();
+					updateInspectorMeta();
+				}
+			}
+			isOrbiting = false;
+			isDragging = false;
+			clickedId = null;
+			dragLast = null;
+			rootEl.classList.remove('ckb-dragging');
+			try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+		});
+
 		canvas.addEventListener('pointerup', function (e) {
 			activePointers.delete(e.pointerId);
 			if (activePointers.size < 2) pinch = null; /* pinch ends when fewer than two fingers remain */
@@ -1023,12 +1091,14 @@
 						item.x = dragLast.x;
 						item.z = dragLast.z;
 						pushHistory();
-						checkCollisions();
 						updateInspectorMeta(); /* keep the X/Z readout in sync after a drag */
 					}
 				}
 			} else if (!hasMoved) {
-				selectItem(pickItem(e.clientX, e.clientY));
+				var picked = pickItem(e.clientX, e.clientY);
+				selectItem(picked);
+				if (picked) buzz(12); /* light confirmation on mobile taps */
+				handleDoubleTap(e.clientX, e.clientY);
 			}
 
 			isOrbiting = false;
@@ -1089,6 +1159,13 @@
 			setTimeout(resize, 120);
 			setTimeout(resize, 400);
 		});
+		/* Mobile v2.8: the mobile browser chrome (URL bar) collapsing changes the
+		   viewport size without firing a window resize on some phones — watch the
+		   container itself so the canvas always fills the visible area. */
+		if (typeof ResizeObserver === 'function') {
+			var vpRO = new ResizeObserver(function () { resize(); });
+			vpRO.observe(vp);
+		}
 		setTimeout(resize, 60);
 		setTimeout(resize, 300);
 
@@ -1126,6 +1203,7 @@
 			if (document.hidden) return;
 			if (MOBILE && nowMs - lastFrameMs < 33) return;
 			lastFrameMs = nowMs;
+			tickZoomAnim(nowMs);
 			var t = clock ? clock.getElapsedTime() : nowMs / 1000;
 			updateEffects(t);
 			if (selectionHelper) selectionHelper.update();
@@ -1389,15 +1467,6 @@
 			$('pe-shaftl').value = space.shaftLength || '';
 			updatePlanEditorArea();
 			openModal('plan');
-			/* Visual tour plays on the plan modal's FIRST open from every entry
-			   path (dock button, guide CTA, API) — end users otherwise open the
-			   plans window with no idea what to do. «؟ راهنمای تصویری» replays it. */
-			var tourSeen = true;
-			try { tourSeen = !!window.localStorage.getItem('ckb-plan-tour-seen'); } catch (errTour) {}
-			if (!tourSeen) {
-				try { window.localStorage.setItem('ckb-plan-tour-seen', '1'); } catch (errTour2) {}
-				setTimeout(startPlanTour, 400);
-			}
 		}
 
 		function setPlanTab(t) {
@@ -1624,9 +1693,114 @@
 			if (el) el.addEventListener('click', fn);
 		}
 
-		/* Mobile: sync the inspector offset with the live dock height
-		   (mirrors --ckb-dock-h so wrapping/safe-area changes stay aligned) */
-		var dockEl = rootEl.querySelector('.ckb-wstudio-dock');
+		/* ── Mobile v2.9: bottom tab bar + tools sheet ──
+		   The scrollable 15-button dock becomes a native-style 5-tab bar
+		   (افزودن، نقشه، برآورد، ابزارها، ثبت طرح). Everything secondary
+		   moves into one floating "tools" sheet. Original buttons are MOVED
+		   (not cloned) so every id, click handler, undo/redo disabled state,
+		   lighting .active class and the BOM badge keeps working untouched.
+		   The desktop dock is never modified (same matchMedia as the CSS). */
+		var moreSheetToggle = null;
+		function svgIcon(paths) {
+			return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
+		}
+		var TAB_ICONS = {
+			add: svgIcon('<path d="M12 5v14M5 12h14"/>'),
+			plan: svgIcon('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16M12 4v8"/>'),
+			bom: svgIcon('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>'),
+			more: svgIcon('<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>'),
+			save: svgIcon('<circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/>'),
+		};
+		function setupMobileTabbar() {
+			var mqBar = window.matchMedia && (
+				window.matchMedia('(max-width: 768px)').matches ||
+				window.matchMedia('(max-height: 480px) and (orientation: landscape)').matches
+			);
+			if (!mqBar) return;
+			var vpBar = rootEl.querySelector('.ckb-wstudio-viewport');
+			var dockBar = rootEl.querySelector('.ckb-wstudio-dock');
+			if (!vpBar || !dockBar) return;
+
+			var bar = document.createElement('nav');
+			bar.className = 'ckb-tabbar';
+			bar.setAttribute('aria-label', 'منوی اصلی استودیو');
+
+			function buildTab(btn, iconKey, label, extraClass) {
+				if (!btn) return;
+				var badge = btn.querySelector('.ckb-bom-count');
+				btn.className = 'ckb-tab' + (extraClass ? ' ' + extraClass : '');
+				btn.innerHTML = TAB_ICONS[iconKey] + '<span class="ckb-tab-label">' + label + '</span>';
+				if (badge) btn.appendChild(badge);
+				bar.appendChild(btn);
+			}
+			buildTab($('btn-add'), 'add', 'افزودن');
+			buildTab($('btn-plan-editor'), 'plan', 'نقشه بام');
+			buildTab($('btn-bom'), 'bom', 'برآورد');
+
+			/* «ابزارها»: opens the sheet with everything secondary */
+			var moreBtn = document.createElement('button');
+			moreBtn.type = 'button';
+			moreBtn.className = 'ckb-tab ckb-tab-more';
+			moreBtn.id = sid + '-btn-more';
+			moreBtn.setAttribute('aria-expanded', 'false');
+			moreBtn.innerHTML = TAB_ICONS.more + '<span class="ckb-tab-label">ابزارها</span>';
+			bar.appendChild(moreBtn);
+			buildTab($('btn-save'), 'save', 'ثبت طرح', 'primary');
+
+			/* Tools sheet — original buttons moved in, ids/state intact */
+			var backdrop = document.createElement('div');
+			backdrop.className = 'ckb-more-backdrop';
+			var sheet = document.createElement('div');
+			sheet.className = 'ckb-more-sheet';
+			sheet.innerHTML = '<div class="ckb-more-head"><span>ابزارهای استودیو</span><button type="button" class="ckb-more-close" aria-label="بستن ابزارها">✕</button></div>';
+			function addGroup(caption, ids) {
+				var g = document.createElement('div');
+				g.className = 'ckb-more-group';
+				var cap = document.createElement('span');
+				cap.className = 'ckb-more-cap';
+				cap.innerText = caption;
+				g.appendChild(cap);
+				var row = document.createElement('div');
+				row.className = 'ckb-more-row';
+				ids.forEach(function (id) {
+					var b = $(id);
+					if (b) row.appendChild(b);
+				});
+				g.appendChild(row);
+				sheet.appendChild(g);
+			}
+			addGroup('تاریخچه', ['btn-undo', 'btn-redo', 'btn-clear']);
+			addGroup('نورپردازی', ['btn-day', 'btn-sunset', 'btn-night']);
+			addGroup('نما و راهنما', ['btn-view', 'btn-cam', 'btn-guide']);
+			vpBar.appendChild(backdrop);
+			vpBar.appendChild(sheet);
+			vpBar.appendChild(bar);
+			dockBar.style.display = 'none'; /* the old scroll row retires */
+
+			var moreOpen = false;
+			moreSheetToggle = function (want) {
+				moreOpen = !!want;
+				sheet.classList.toggle('open', moreOpen);
+				backdrop.classList.toggle('show', moreOpen);
+				moreBtn.classList.toggle('on', moreOpen);
+				moreBtn.setAttribute('aria-expanded', moreOpen ? 'true' : 'false');
+			};
+			moreBtn.addEventListener('click', function () { moreSheetToggle(!moreOpen); });
+			backdrop.addEventListener('click', function () { moreSheetToggle(false); });
+			sheet.querySelector('.ckb-more-close').addEventListener('click', function () { moreSheetToggle(false); });
+			/* any tool tap closes the sheet — the effect is visible on the canvas */
+			sheet.addEventListener('click', function (e) {
+				if (e.target.closest && e.target.closest('.ckb-more-row button')) {
+					window.setTimeout(function () { moreSheetToggle(false); }, 180);
+				}
+			});
+		}
+		setupMobileTabbar();
+
+		/* Mobile: sync the inspector offset with the live bar height
+		   (v2.9: observes the tab bar when present — mirrors --ckb-dock-h
+		   so wrapping/safe-area changes stay aligned) */
+		var dockEl = rootEl.querySelector('.ckb-tabbar') || rootEl.querySelector('.ckb-wstudio-dock');
 		if (dockEl && typeof ResizeObserver === 'function') {
 			var ro = new ResizeObserver(function () {
 				rootEl.style.setProperty('--ckb-dock-h', dockEl.offsetHeight + 'px');
@@ -1651,14 +1825,14 @@
 				renderCatalog();
 			});
 		}
-		bindClick('btn-guide', function () { openModal('guide'); });
+		bindClick('btn-guide', startStudioTour);
 		// «شروع طراحی»: first the plans are shown and selected, then the design space — order matters
 		bindClick('btn-guide-start', function () {
 			closeModal('guide');
 			openPlanEditor();
 		});
 		bindClick('btn-plan-editor', function () { openPlanEditor(); });
-		bindClick('btn-pe-help', startPlanTour);
+		bindClick('btn-pe-help', startStudioTour);
 		bindClick('btn-bom', function () { renderBOM(); openModal('bom'); });
 		bindClick('btn-undo', undo);
 		bindClick('btn-redo', redo);
@@ -1716,6 +1890,26 @@
 			});
 		});
 
+		/* Mobile v2.8: bottom-sheet grab handle + tap-on-backdrop close.
+		   The handle is injected here so every modal gets it without touching
+		   markup; the backdrop tap matches standard mobile sheet behaviour. */
+		rootEl.querySelectorAll('.ckb-wstudio-modal').forEach(function (modal) {
+			var name = (modal.id || '').replace(sid + '-modal-', '');
+			if (!name) return;
+			var box = modal.querySelector('.ckb-wstudio-modal-box');
+			if (box && !box.querySelector('.ckb-sheet-handle')) {
+				var handle = document.createElement('button');
+				handle.type = 'button';
+				handle.className = 'ckb-sheet-handle';
+				handle.setAttribute('aria-label', 'بستن پنجره');
+				handle.addEventListener('click', function () { closeModal(name); });
+				box.insertBefore(handle, box.firstChild);
+			}
+			modal.addEventListener('click', function (e) {
+				if (e.target === modal) closeModal(name);
+			});
+		});
+
 		// Plan editor live updates
 		['pe-shape', 'pe-width', 'pe-length', 'pe-cutw', 'pe-cutl', 'pe-shaftw', 'pe-shaftl'].forEach(function (id) {
 			var el = $(id);
@@ -1754,34 +1948,77 @@
 			}
 		}
 
-		/* ─────────────── Plan editor visual tour (spotlight) ─────────────── */
+		/* ─────────────── Full-studio visual tour (spotlight) ───────────────
+		   Plays once on first visit (in place of the static guide modal):
+		   first the plan window, then adding/moving items and every dock tool.
+		   «؟ راهنما» and «؟ راهنمای تصویری» replay it on demand. */
 		var planTourStep = -1;
 		var tourSpot = null;
 		var tourCard = null;
-		var PLAN_TOUR = [
+		var STUDIO_TOUR = [
 			{
 				title: 'دو راه برای شروع',
 				desc: 'پلان آماده را یک‌جا بارگذاری کنید، یا فرم و ابعاد بام خودتان را دستی بسازید.',
 				getEl: function () { return $('plan-tabs'); },
 				ptab: null,
+				modal: 'plan',
 			},
 			{
 				title: 'پلان‌های آماده',
 				desc: 'هر کارت نقشه و چیدمان کامل یک روف‌گاردن است — با یک کلیک روی بوم می‌آید.',
 				getEl: function () { return $('plans-list'); },
 				ptab: 'presets',
+				modal: 'plan',
 			},
 			{
 				title: 'فرم و ابعاد دلخواه',
 				desc: 'شکل هندسی بام را انتخاب و ابعاد را به متر بدهید؛ متراژ زنده همین‌جا محاسبه می‌شود.',
 				getEl: function () { var el = $('pe-shape'); return el ? el.closest('.ckb-fgroup') : null; },
 				ptab: 'custom',
+				modal: 'plan',
 			},
 			{
 				title: 'اعمال روی بوم',
 				desc: 'با «اعمال پلان جدید»، بوم سه‌بعدی با فرم تازه بازسازی می‌شود و اقلام داخل مرزها می‌مانند.',
 				getEl: function () { return $('btn-pe-apply'); },
 				ptab: 'custom',
+				modal: 'plan',
+			},
+			{
+				title: 'افزودن اقلام به بام',
+				desc: 'با «+ افزودن اقلام» کاتالوگ باز می‌شود؛ با جستجو یا فیلتر دسته‌بندی قلم موردنظر را پیدا و اضافه کنید.',
+				getEl: function () { return $('btn-add'); },
+				modal: null,
+			},
+			{
+				title: 'جابه‌جایی و تنظیم قلم',
+				desc: 'قلم انتخاب‌شده را با ماوس یا انگشت بکشید؛ با دکمه‌های جهت‌دار نوار قلم نیم‌متر یک‌جا حرکتش دهید (کلیدهای جهت‌دار هم همین کار را می‌کنند). چرخش ۴۵° و ۹۰°، تکثیر و رنگ چوب‌پلاست هم از همان نوار.',
+				getEl: function () { return rootEl.querySelector('.ckb-wstudio-viewport'); },
+				modal: null,
+			},
+			{
+				title: 'نورپردازی صحنه',
+				desc: 'سه حالت نور روز، غروب و شب — پنجره‌های ساختمان در حالت شب روشن می‌شوند و حس واقعی فضای بام را می‌سازند.',
+				getEl: function () { return $('btn-night'); },
+				modal: null,
+			},
+			{
+				title: 'دید پلان ۲D و بازنشانی دوربین',
+				desc: 'با «👁 پلان ۲D» نمای بالا و دوبعدی بام را ببینید و با «🔄 دید اول» دوربین به نمای اولیه برمی‌گردد.',
+				getEl: function () { return $('btn-view'); },
+				modal: null,
+			},
+			{
+				title: 'فهرست اقلام و برآورد',
+				desc: 'متراژ اقلام، فضای سبز و ایمنی سازه همین‌جا محاسبه می‌شود و با «🖨 چاپ» قابل چاپ است.',
+				getEl: function () { return $('btn-bom'); },
+				modal: null,
+			},
+			{
+				title: 'ثبت و ارسال طرح',
+				desc: 'طرح شما با یک اسکرین‌شات از صحنه ثبت می‌شود؛ تصویر طرح قابل دانلود است و کارشناسان چکادبام با شما تماس می‌گیرند.',
+				getEl: function () { return $('btn-save'); },
+				modal: null,
 			},
 		];
 
@@ -1796,7 +2033,7 @@
 			tourCard.className = 'ckb-tour-card';
 			tourCard.style.display = 'none';
 			tourCard.setAttribute('role', 'dialog');
-			tourCard.setAttribute('aria-label', 'راهنمای تصویری ابعاد بام');
+			tourCard.setAttribute('aria-label', 'راهنمای تصویری استودیو');
 			tourCard.innerHTML =
 				'<div class="ckb-tour-row">' +
 					'<div class="ckb-tour-ic">?</div>' +
@@ -1817,7 +2054,7 @@
 				if (planTourStep > 0) { planTourStep--; showPlanTour(); }
 			});
 			tourCard.querySelector('.ckb-tour-next').addEventListener('click', function () {
-				if (planTourStep >= PLAN_TOUR.length - 1) { endPlanTour(); return; }
+				if (planTourStep >= STUDIO_TOUR.length - 1) { endPlanTour(); return; }
 				planTourStep++;
 				showPlanTour();
 			});
@@ -1825,8 +2062,15 @@
 
 		function showPlanTour() {
 			ensureTourOverlay();
-			var meta = PLAN_TOUR[planTourStep];
-			if (meta.ptab) setPlanTab(meta.ptab);
+			var meta = STUDIO_TOUR[planTourStep];
+			/* Move between the plan window and the main canvas as the tour walks on */
+			if (meta.modal === 'plan') {
+				var pm = $('modal-plan');
+				if (pm && getComputedStyle(pm).display === 'none') openModal('plan');
+				if (meta.ptab) setPlanTab(meta.ptab);
+			} else {
+				closeModal('plan');
+			}
 			requestAnimationFrame(function () {
 				requestAnimationFrame(function () {
 					drawPlanTour(meta);
@@ -1837,7 +2081,12 @@
 		function drawPlanTour(meta) {
 			var el = meta.getEl();
 			if (!el) { endPlanTour(); return; }
-			el.scrollIntoView({ block: 'center' });
+			/* v2.9: a tool highlighted by the tour may live in the mobile sheet */
+			if (el && moreSheetToggle) {
+				var tourSheet = el.closest ? el.closest('.ckb-more-sheet') : null;
+				if (tourSheet && !tourSheet.classList.contains('open')) moreSheetToggle(true);
+			}
+			if (meta.modal === 'plan') el.scrollIntoView({ block: 'center' });
 			var r = el.getBoundingClientRect();
 			var pad = 8;
 			tourSpot.style.display = 'block';
@@ -1849,28 +2098,32 @@
 			tourCard.querySelector('h5').innerText = meta.title;
 			tourCard.querySelector('p').innerText = meta.desc;
 			tourCard.querySelector('.ckb-tour-next').innerText =
-				planTourStep >= PLAN_TOUR.length - 1 ? 'فهمیدم' : 'بعدی';
+				planTourStep >= STUDIO_TOUR.length - 1 ? 'فهمیدم' : 'بعدی';
 			var dots = '';
-			for (var d = 0; d < PLAN_TOUR.length; d++) {
+			for (var d = 0; d < STUDIO_TOUR.length; d++) {
 				dots += '<span class="' + (d === planTourStep ? 'on' : '') + '"></span>';
 			}
 			tourCard.querySelector('.ckb-tour-dots').innerHTML = dots;
 			tourCard.querySelector('.ckb-tour-prev').style.display = planTourStep > 0 ? '' : 'none';
 
-			var cardH = 150;
+			var cardH = 165;
 			var cardW = 330;
-			var below = r.bottom + pad + 12 + cardH < window.innerHeight - 12;
-			var cardTop = below ? r.bottom + pad + 12 : Math.max(12, r.top - pad - 12 - cardH);
+			var huge = r.height > window.innerHeight * 0.55; /* e.g. the canvas step */
+			var below = !huge && r.bottom + pad + 12 + cardH < window.innerHeight - 12;
+			var cardTop = below
+				? r.bottom + pad + 12
+				: (huge
+					? Math.max(12, window.innerHeight - cardH - 120) /* hug the dock, keep the scene visible */
+					: Math.max(12, r.top - pad - 12 - cardH));
 			var cardLeft = Math.min(Math.max(12, r.left + r.width / 2 - cardW / 2), window.innerWidth - cardW - 12);
 			tourCard.style.display = 'block';
 			tourCard.style.top = cardTop + 'px';
 			tourCard.style.left = cardLeft + 'px';
 		}
 
-		function startPlanTour() {
-			openModal('plan');
+		function startStudioTour() {
 			planTourStep = 0;
-			setTimeout(showPlanTour, 80);
+			showPlanTour();
 		}
 
 		function endPlanTour() {
@@ -1903,17 +2156,17 @@
 		setLighting(lightingMode);
 		animate();
 
-		// Guided public flow: the guide always comes up first (before the plan
-		// modal); its «شروع طراحی» CTA then opens the plans selection.
-		if (cfg.autoPlans) {
+		// First visit: the full visual tour (plan → add → move → toolbar) plays
+		// in place of the static guide modal, for admin and public alike.
+		// Public embeds keep the guide modal on LATER visits (its «شروع طراحی»
+		// CTA opens the plan selection directly).
+		var tourSeen = false;
+		try { tourSeen = !!window.localStorage.getItem('ckb-studio-tour-seen'); } catch (err3) { tourSeen = true; }
+		if (!tourSeen) {
+			try { window.localStorage.setItem('ckb-studio-tour-seen', '1'); } catch (err4) {}
+			setTimeout(startStudioTour, 900);
+		} else if (cfg.autoPlans) {
 			setTimeout(function () { openModal('guide'); }, 900);
-		} else {
-			var guideSeen = false;
-			try { guideSeen = !!window.localStorage.getItem('ckb-studio-guide-seen'); } catch (err3) { guideSeen = true; }
-			if (!guideSeen) {
-				try { window.localStorage.setItem('ckb-studio-guide-seen', '1'); } catch (err4) {}
-				setTimeout(function () { openModal('guide'); }, 900);
-			}
 		}
 
 		return {
