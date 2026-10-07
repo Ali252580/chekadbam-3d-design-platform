@@ -1298,11 +1298,12 @@ body.admin-bar .ckb-studio-full {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   Mobile UX (v2.9) — Bottom Tab Bar + Tools Sheet
+   UX v2.9 → v2.10 — Bottom Tab Bar + Tools Sheet (all viewports)
    Native-style 5-tab navigation (icons + labels) replaces the
-   scrollable dock on phones; secondary tools live in one floating
-   sheet. Elements are built by studio-app.js (setupMobileTabbar)
-   so this CSS is global — the elements only exist on mobile.
+   cluttered dock everywhere; secondary tools live in one floating
+   sheet. Elements are built by studio-app.js (setupTabbar).
+   Base rules read as the phone layout; the desktop block below
+   re-dresses the same bar as a floating centered pill.
    ══════════════════════════════════════════════════════════════ */
 .ckb-tabbar {
 	position: absolute;
@@ -1448,6 +1449,74 @@ body.admin-bar .ckb-studio-full {
 	background: #312e81;
 	color: #c7d2fe;
 	border-color: #4f46e5;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Desktop (v2.10) — same tab bar as a floating centered pill,
+   tools sheet as a centered popover with full-label buttons
+   ══════════════════════════════════════════════════════════════ */
+@media (min-width: 769px) {
+	.ckb-tabbar {
+		left: 50%;
+		right: auto;
+		bottom: 16px;
+		transform: translateX(-50%);
+		width: auto;
+		max-width: 94%;
+		justify-content: center;
+		gap: 4px;
+		padding: 7px 10px;
+		background: rgba(15, 23, 42, 0.92);
+		border: 1px solid #334155;
+		border-radius: 20px;
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
+		box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+	}
+	.ckb-tab {
+		flex: 0 1 auto;
+		padding: 7px 24px;
+		border-radius: 14px;
+		transition: color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+	}
+	.ckb-tab:hover { color: #e2e8f0; background: rgba(51, 65, 85, 0.55); }
+	.ckb-tab.on, .ckb-tab.primary { color: #34d399; }
+	.ckb-tab.on:hover, .ckb-tab.primary:hover {
+		color: #6ee7b7;
+		background: rgba(16, 185, 129, 0.14);
+	}
+	.ckb-tab svg { width: 24px; height: 24px; }
+	.ckb-tab-label { font-size: 11.5px; }
+	.ckb-tab.primary svg { width: 30px; height: 30px; border-radius: 15px; }
+	.ckb-tab .ckb-bom-count { top: 1px; left: calc(50% + 10px); }
+
+	/* Tools sheet: centered popover above the pill, roomier rows,
+	   full labels instead of the short mobile ones */
+	.ckb-more-sheet {
+		left: 50%;
+		right: auto;
+		width: 580px;
+		max-width: 94%;
+		bottom: calc(var(--ckb-dock-h, 68px) + 28px);
+		padding: 14px 16px 16px;
+		border-radius: 22px;
+		transform: translateX(-50%) translateY(14px) scale(0.98);
+	}
+	.ckb-more-sheet.open { transform: translateX(-50%); }
+	.ckb-more-cap { font-size: 10.5px; }
+	.ckb-more-row { gap: 8px; }
+	.ckb-more-row .ckb-wstudio-btn {
+		min-height: 46px;
+		padding: 9px 10px;
+		font-size: 12px;
+		border-radius: 13px;
+		gap: 6px;
+	}
+	.ckb-more-row .ckb-btn-label { display: inline; font-size: 12px; color: #e2e8f0; }
+	.ckb-more-row .ckb-btn-label-sm { display: none; }
+
+	/* Inspector floats above the pill */
+	.ckb-wstudio-inspector { bottom: calc(var(--ckb-dock-h, 68px) + 30px); }
 }
 
 /* v2.9: --ckb-dock-h now mirrors the full tab-bar height (safe-area

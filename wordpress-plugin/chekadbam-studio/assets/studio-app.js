@@ -1695,13 +1695,13 @@
 			if (el) el.addEventListener('click', fn);
 		}
 
-		/* ── Mobile v2.9: bottom tab bar + tools sheet ──
-		   The scrollable 15-button dock becomes a native-style 5-tab bar
-		   (افزودن، نقشه، برآورد، ابزارها، ثبت طرح). Everything secondary
-		   moves into one floating "tools" sheet. Original buttons are MOVED
-		   (not cloned) so every id, click handler, undo/redo disabled state,
-		   lighting .active class and the BOM badge keeps working untouched.
-		   The desktop dock is never modified (same matchMedia as the CSS). */
+		/* ── v2.10: bottom tab bar + tools sheet on EVERY viewport ──
+		   The 14-button dock becomes a 5-tab bar (افزودن، نقشه، برآورد،
+		   ابزارها، ثبت طرح). Everything secondary moves into one floating
+		   "tools" sheet. Original buttons are MOVED (not cloned) so every
+		   id, click handler, undo/redo disabled state, lighting .active
+		   class and the BOM badge keeps working untouched. Desktop gets
+		   the same bar as a floating centered pill (studio.css). */
 		var moreSheetToggle = null;
 		function svgIcon(paths) {
 			return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
@@ -1713,12 +1713,7 @@
 			more: svgIcon('<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>'),
 			save: svgIcon('<circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/>'),
 		};
-		function setupMobileTabbar() {
-			var mqBar = window.matchMedia && (
-				window.matchMedia('(max-width: 768px)').matches ||
-				window.matchMedia('(max-height: 480px) and (orientation: landscape)').matches
-			);
-			if (!mqBar) return;
+		function setupTabbar() {
 			var vpBar = rootEl.querySelector('.ckb-wstudio-viewport');
 			var dockBar = rootEl.querySelector('.ckb-wstudio-dock');
 			if (!vpBar || !dockBar) return;
@@ -1797,10 +1792,10 @@
 				}
 			});
 		}
-		setupMobileTabbar();
+		setupTabbar();
 
-		/* Mobile: sync the inspector offset with the live bar height
-		   (v2.9: observes the tab bar when present — mirrors --ckb-dock-h
+		/* Sync the inspector offset with the live bar height
+		   (observes the tab bar — mirrors --ckb-dock-h
 		   so wrapping/safe-area changes stay aligned) */
 		var dockEl = rootEl.querySelector('.ckb-tabbar') || rootEl.querySelector('.ckb-wstudio-dock');
 		if (dockEl && typeof ResizeObserver === 'function') {
