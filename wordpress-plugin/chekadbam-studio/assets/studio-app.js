@@ -343,6 +343,9 @@
 			}
 
 			var shape = space.shape;
+			/* تراس طولی (v2.11.1): موقعیت واقعی آن طبقه میانی ساختمان است،
+			   نه سقف — از همین‌جا برای جان‌پناه و محیط سایت استفاده می‌شود */
+			var isTerrace = shape === 'narrow_balcony';
 
 			if (shape === 'l_shaped') {
 				var mainW = width - (space.cutoutWidth || 4.5);
@@ -406,7 +409,11 @@
 				floorMesh.receiveShadow = true;
 				envGroup.add(floorMesh);
 
-				addParapetSegment(width + wallThick * 2, wallThick, 0, -length / 2 - wallThick / 2);
+				/* تراس: ضلع پشتی جان‌پناه ندارد — دیوار ساختمان (بلوک «بالا»
+				   در بخش محیط سایت) جای آن را می‌گیرد تا مثل طبقه میانی دیده شود */
+				if (!isTerrace) {
+					addParapetSegment(width + wallThick * 2, wallThick, 0, -length / 2 - wallThick / 2);
+				}
 				addParapetSegment(width + wallThick * 2, wallThick, 0, length / 2 + wallThick / 2);
 				addParapetSegment(wallThick, length, width / 2 + wallThick / 2, 0);
 				addParapetSegment(wallThick, length, -width / 2 - wallThick / 2, 0);
@@ -457,9 +464,9 @@
 			var axisMat = new THREE.LineBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.55, depthWrite: false });
 			envGroup.add(new THREE.LineSegments(axisGeo, axisMat));
 
-			/* ── Site context: a roof reads as the TOP of a building, but a terrace
-			   hangs mid-facade — only a couple of storeys show below it ── */
-			var isTerrace = shape === 'narrow_balcony';
+			/* ── Site context (v2.11.1): a roof reads as the TOP of a building;
+			   a terrace shows its REAL position — host floors below it AND the
+			   building continuing behind/above it (mid-storey, never a rooftop) ── */
 			var bldH = isTerrace ? 3.2 : 9; // host-building height below the deck (m)
 			var over = 0.7; // facade overhang around the roof slab
 			var facadeMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.92 });
@@ -485,6 +492,52 @@
 					new THREE.BoxGeometry(width + over + 0.18, 0.16, length + over + 0.18), slabMat);
 				slab.position.set(0, -(0.9 + f * 1.05), 0);
 				envGroup.add(slab);
+			}
+
+			/* ── تراس (v2.11.1): ساختمان میزبان «پشت و بالای» تراس ادامه دارد ──
+			   تراس طبقه میانی است: همان نمای پنجره‌دار از تراس رو به بالا کشیده
+			   می‌شود تا هیچ‌وقت شبیه سقف دیده نشود. دیوار پشتی روی ضلع شمالی
+			   (-z، همان سمت نیمکت و فلاورباکس پلان آماده) قرار می‌گیرد و به
+			   همین دلیل جان‌پناه آن ضلع حذف شده است. */
+			if (isTerrace) {
+				var aboveH = 3.4; // ارتفاع طبقات بالای تراس
+				var backD = 4.0;  // عمق ساختمان پشت تراس (بیرون از پلان)
+				var backZ = -(length / 2 + backD / 2 + wallThick);
+
+				var above = new THREE.Mesh(
+					new THREE.BoxGeometry(width + over, aboveH, backD), facadeMat);
+				above.position.set(0, aboveH / 2, backZ);
+				above.castShadow = true;
+				above.receiveShadow = true;
+				envGroup.add(above);
+
+				/* سقف بتنی تیره روی ساختمان پشتی — وگرنه سطح بالای آن از
+				   دوربین بالا با بافت نمای کش‌شده دیده می‌شد */
+				var roofCap = new THREE.Mesh(
+					new THREE.BoxGeometry(width + over + 0.18, 0.18, backD + 0.18),
+					new THREE.MeshStandardMaterial({ color: 0x4b5a70, roughness: 0.95 })
+				);
+				roofCap.position.set(0, aboveH + 0.09, backZ);
+				roofCap.castShadow = true;
+				roofCap.receiveShadow = true;
+				envGroup.add(roofCap);
+
+				// لبه طبقات بالای تراس — مثل لبه‌های زیر تراس
+				for (var g2 = 0; 0.9 + g2 * 1.05 <= aboveH; g2++) {
+					var slab2 = new THREE.Mesh(
+						new THREE.BoxGeometry(width + over + 0.18, 0.16, backD + 0.18), slabMat);
+					slab2.position.set(0, 0.9 + g2 * 1.05, backZ);
+					slab2.castShadow = true;
+					envGroup.add(slab2);
+				}
+
+				// درب ورودی تراس روی دیوار پشتی — امضای «واحد مسکونی پشت تراس»
+				var tdoor = new THREE.Mesh(
+					new THREE.BoxGeometry(1.0, 2.0, 0.06),
+					new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8 })
+				);
+				tdoor.position.set(0, 1.0, -(length / 2 + wallThick) + 0.04);
+				envGroup.add(tdoor);
 			}
 
 			// Neighbouring blocks, anchored to the same base as the host building
