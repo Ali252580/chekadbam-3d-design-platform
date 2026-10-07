@@ -55,7 +55,7 @@
 		var history = [];
 		var historyIndex = -1;
 		var selectedId = null;
-		var lightingMode = 'sunset';
+		var lightingMode = 'day'; /* v2.12.1: پیش‌فرض روز — غروب با دکمه در دسترس است */
 		var viewMode = '3d';
 
 		/* ─────────────── Three.js scene ─────────────── */
@@ -574,7 +574,9 @@
 
 		/* ─────────────── Items management ─────────────── */
 		function pushHistory() {
-			snapshot = JSON.parse(JSON.stringify(items));
+			/* var الزامی است — فایل strict-mode است و بدون var همین‌جا
+			   «افزودن قلم» و کل تاریخچه می‌شکست (رجگرسی v2.11) */
+			var snapshot = JSON.parse(JSON.stringify(items));
 			history = history.slice(0, historyIndex + 1);
 			history.push(snapshot);
 			if (history.length > 50) history.shift();
@@ -1368,11 +1370,12 @@
 
 		function getThumbShared() {
 			if (thumbShared) return thumbShared;
-			/* رندرر مشترک ریزنقش‌ها (v2.12): بدون antialias و بدون
-			   preserveDrawingBuffer — تصویر بلافاصله بعد از رندر با
-			   drawImage منتقل می‌شود، پس هر دو برای صرفه‌جویی حافظه GPU
-			   غیرضروری‌اند و کاتالوگ سبک‌تر باز می‌شود */
-			var r = new THREE.WebGLRenderer({ antialias: false, alpha: false, preserveDrawingBuffer: false });
+			/* رندرر مشترک ریزنقش‌ها — تنظیمات کارا و امتحان‌پس‌داده:
+			   یک کانتکست برای همه کارت‌ها (به‌جای ~۱۲ کانتکست). پرچم‌های
+			   رندرر را دست نزنید — antialias:false روی این بوم کوچک صرفه
+			   معناداری ندارد و preserveDrawingBuffer برای انتقال drawImage
+			   به بوم دوبعدی لازم است. */
+			var r = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
 			r.setSize(THUMB_W, THUMB_H);
 			r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 			r.shadowMap.enabled = false;
@@ -1440,8 +1443,9 @@
 			tCam.position.set(dist * 0.75, dist * 0.65, dist * 0.9);
 			tCam.lookAt(0, prod.h / 2, 0);
 
-			tScene.add(new THREE.HemisphereLight(0xffffff, 0x334155, 0.9));
-			var key = new THREE.DirectionalLight(0xfff4e0, 1.4);
+			tScene.background = new THREE.Color(0x131e33); /* هم‌راستا با کارت — مدل تیره روی مشکی گم می‌شد */
+			tScene.add(new THREE.HemisphereLight(0xffffff, 0x334155, 1.15));
+			var key = new THREE.DirectionalLight(0xfff4e0, 1.7);
 			key.position.set(4, 6, 4);
 			tScene.add(key);
 

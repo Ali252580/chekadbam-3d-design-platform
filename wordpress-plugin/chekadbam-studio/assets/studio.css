@@ -235,7 +235,8 @@
 .ckb-wstudio-modal {
 	position: absolute;
 	inset: 0;
-	background: rgba(2, 6, 23, 0.85);
+	/* v2.12.1: پرده پشت مودال روشن‌تر شد تا صحنه پشت آن قابل تشخیص بماند */
+	background: rgba(2, 6, 23, 0.62);
 	backdrop-filter: blur(8px);
 	display: none;
 	align-items: center;
@@ -244,8 +245,9 @@
 	padding: 14px;
 }
 .ckb-wstudio-modal-box {
-	background: #0f172a;
-	border: 1px solid #334155;
+	/* v2.12.1: یک پله روشن‌تر از قبل (#0f172a) — پنجره‌ها تاریکِ خفه نباشند */
+	background: #17233b;
+	border: 1px solid #3b4a63;
 	border-radius: 20px;
 	box-sizing: border-box; /* v2.9.1: max-height must include padding+border */
 	width: 100%;
@@ -287,8 +289,9 @@
 	overflow-y: auto;
 }
 .ckb-catalog-card {
-	background: #1e293b;
-	border: 1px solid #334155;
+	/* v2.12.1: کارت‌ها روشن‌تر */
+	background: #26344f;
+	border: 1px solid #3b4a63;
 	border-radius: 12px;
 	padding: 10px;
 	display: flex;
@@ -301,13 +304,13 @@
 	width: 100%;
 	height: 110px;
 	border-radius: 8px;
-	background: #0f172a;
+	background: #1b2740;
 	overflow: hidden;
 	position: relative;
 }
 .ckb-catalog-3d canvas { width: 100% !important; height: 100% !important; display: block; }
 .ckb-catalog-card h5 { margin: 0; font-size: 12px; color: #f8fafc; font-weight: bold; }
-.ckb-catalog-card small { color: #64748b; font-size: 10px; font-family: monospace; }
+.ckb-catalog-card small { color: #93a5bd; font-size: 10px; font-family: monospace; }
 .ckb-catalog-btn {
 	background: #10b981;
 	color: #022c22;
@@ -325,8 +328,8 @@
 .ckb-catalog-tools { margin-bottom: 12px; }
 .ckb-catalog-search {
 	width: 100%;
-	background: #1e293b;
-	border: 1px solid #334155;
+	background: #26344f;
+	border: 1px solid #3b4a63;
 	border-radius: 10px;
 	color: #f1f5f9;
 	padding: 9px 12px;
@@ -348,9 +351,9 @@
 .ckb-catalog-cats::-webkit-scrollbar { height: 4px; }
 .ckb-catalog-cats::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
 .ckb-catalog-cats button {
-	background: #1e293b;
-	border: 1px solid #334155;
-	color: #94a3b8;
+	background: #26344f;
+	border: 1px solid #3b4a63;
+	color: #a9b8cc;
 	padding: 5px 10px;
 	border-radius: 9px;
 	font-size: 10.5px;

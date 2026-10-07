@@ -492,8 +492,8 @@ function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen
 				<button type="button" class="ckb-wstudio-btn" id="<?php echo esc_attr( $studio_id ); ?>-btn-redo" disabled aria-label="جلو (Redo)">↷ <span class="ckb-btn-label">جلو</span><span class="ckb-btn-label-sm">جلو</span></button>
 				<button type="button" class="ckb-wstudio-btn" id="<?php echo esc_attr( $studio_id ); ?>-btn-guide" title="راهنمای کار با استودیو" aria-label="راهنمای کار با استودیو">؟ <span class="ckb-btn-label">راهنما</span><span class="ckb-btn-label-sm">راهنما</span></button>
 				<div class="ckb-wstudio-div ckb-wstudio-divider"></div>
-				<button type="button" class="ckb-wstudio-btn" id="<?php echo esc_attr( $studio_id ); ?>-btn-day" aria-label="نور روز">☀️ <span class="ckb-btn-label">روز</span><span class="ckb-btn-label-sm">روز</span></button>
-				<button type="button" class="ckb-wstudio-btn active" id="<?php echo esc_attr( $studio_id ); ?>-btn-sunset" aria-label="نور غروب">🌇 <span class="ckb-btn-label">غروب</span><span class="ckb-btn-label-sm">غروب</span></button>
+				<button type="button" class="ckb-wstudio-btn active" id="<?php echo esc_attr( $studio_id ); ?>-btn-day" aria-label="نور روز">☀️ <span class="ckb-btn-label">روز</span><span class="ckb-btn-label-sm">روز</span></button>
+				<button type="button" class="ckb-wstudio-btn" id="<?php echo esc_attr( $studio_id ); ?>-btn-sunset" aria-label="نور غروب">🌇 <span class="ckb-btn-label">غروب</span><span class="ckb-btn-label-sm">غروب</span></button>
 				<button type="button" class="ckb-wstudio-btn" id="<?php echo esc_attr( $studio_id ); ?>-btn-night" aria-label="نور شب">🌙 <span class="ckb-btn-label">شب</span><span class="ckb-btn-label-sm">شب</span></button>
 				<div class="ckb-wstudio-div ckb-wstudio-divider"></div>
 				<button type="button" class="ckb-wstudio-btn" id="<?php echo esc_attr( $studio_id ); ?>-btn-view" aria-label="تغییر دید دوبعدی/سه‌بعدی">👁 <span class="ckb-btn-label">پلان ۲D</span><span class="ckb-btn-label-sm">پلان</span></button>
