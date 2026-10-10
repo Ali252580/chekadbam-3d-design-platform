@@ -1897,6 +1897,35 @@
 			if (window.CKBCoach) window.CKBCoach.refresh();
 		}
 
+		/* ── v2.13 گالری الهام: ماژول مستقل ckb-inspiration.js ──
+		   کارت‌های پروژه‌های اجراشده را در تب «پلان‌های آماده» می‌سازد؛
+		   هیچ منطق موجودی تغییر نمی‌کند — فقط خواندن پلان‌ها و بارگذاری آن‌ها. */
+		if (window.CKBInspiration) {
+			window.CKBInspiration.init({
+				root: rootEl,
+				projects: cfg.inspiration || [],
+				getPlans: function () { return plans; },
+				loadPlan: function (p) { loadPlan(p); closeModal('plan'); },
+				planArea: function (p) { return B.calculatePlanArea(toSpace(p)); },
+			});
+		}
+
+		/* ── v2.13 سه نقطه شروع: کارت‌های سربرگ مودال نقشه ──
+		   هر کارت کاربر را به مسیر درست می‌برد — پروژه اجراشده، پلان آماده، از صفر. */
+		rootEl.querySelectorAll('[data-start]').forEach(function (card) {
+			card.addEventListener('click', function () {
+				var target = card.getAttribute('data-start');
+				if (target === 'projects') {
+					setPlanTab('presets');
+					if (window.CKBInspiration) window.CKBInspiration.focus();
+				} else if (target === 'scratch') {
+					setPlanTab('custom');
+				} else {
+					setPlanTab('presets');
+				}
+			});
+		});
+
 		/* Sync the inspector offset with the live bar height
 		   (observes the tab bar — mirrors --ckb-dock-h
 		   so wrapping/safe-area changes stay aligned) */

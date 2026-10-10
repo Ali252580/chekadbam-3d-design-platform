@@ -190,6 +190,44 @@ function ckb_repair_fa_text( $s ) {
 	return is_string( $decoded ) ? $decoded : $s;
 }
 
+/**
+ * v2.13 گالری الهام: پروژه‌های اجراشده چکادبام به‌عنوان نقطه شروع طراحی.
+ * هر پروژه به یک پلان آماده گره خورده است؛ کلیک روی «بارگذاری این چیدمان»
+ * همان پلان را روی بوم می‌آورد تا کاربر از یک نمونه واقعی ویرایش کند.
+ * تصویر اختیاری است (آدرس از کتابخانه رسانه) — بدون تصویر، گرادیان برند
+ * همان پروژه نمایش داده می‌شود. با فیلتر زیر قابل سفارشی‌سازی است:
+ * add_filter( 'ckb_studio_inspiration_projects', function ( $p ) { ... } );
+ */
+function ckb_get_inspiration_projects() {
+	$projects = array(
+		array(
+			'title'     => 'روف‌گاردن ویلای لواسان',
+			'desc'      => 'پرگولا + آبنمای قاب + کاشت چندلایه',
+			'planName'  => 'پلان مستطیلی | پنت‌هاوس نیاوران (۱۰ × ۸ متر | ۸۰ م²)',
+			'planShape' => 'rectangular',
+			'gradient'  => 'linear-gradient(140deg,#134e2f,#1e293b)',
+			'image'     => '',
+		),
+		array(
+			'title'     => 'تراس طولی سعادت‌آباد',
+			'desc'      => 'چیدمان خطی + دیوار سبز حریم',
+			'planName'  => 'پلان تراس طولی کشیده (۱۰ × ۲.۸ متر | ۲۸ م²)',
+			'planShape' => 'narrow_balcony',
+			'gradient'  => 'linear-gradient(140deg,#7c2d12,#1e293b)',
+			'image'     => '',
+		),
+		array(
+			'title'     => 'بام مسکونی با باکس پله',
+			'desc'      => 'دورگرد باکس پله + نیمکت‌های متصل',
+			'planName'  => 'پلان بام با باکس پله مرکزی (۱۱ × ۱۰ متر | ۹۸.۵ م²)',
+			'planShape' => 'central_shaft',
+			'gradient'  => 'linear-gradient(140deg,#1e3a5f,#1e293b)',
+			'image'     => '',
+		),
+	);
+	return apply_filters( 'ckb_studio_inspiration_projects', $projects );
+}
+
 /** Fallback plans (matches seed.php). */
 function ckb_default_studio_plans() {
 	return array(
@@ -338,7 +376,7 @@ function ckb_defer_studio_scripts( $tag, $handle ) {
 	$defer_handles = array(
 		'ckb-three', 'ckb-textures', 'ckb-foliage', 'ckb-models',
 		'ckb-boundary', 'ckb-bom', 'ckb-blueprint', 'ckb-coach',
-		'ckb-viewer', 'ckb-studio-app',
+		'ckb-inspiration', 'ckb-viewer', 'ckb-studio-app',
 	);
 	if ( in_array( $handle, $defer_handles, true )
 		&& strpos( $tag, 'defer' ) === false
@@ -385,6 +423,8 @@ function ckb_wpstudio_register_assets() {
 	wp_register_script( 'ckb-blueprint', CKB_PLUGIN_URL . 'assets/ckb-blueprint.js', array( 'ckb-three' ), $ver, true );
 	/* همراه طراح (v2.11): ماژول مستقل پنل راهنمای طراحی — بدون وابستگی */
 	wp_register_script( 'ckb-coach', CKB_PLUGIN_URL . 'assets/ckb-coach.js', array(), $ver, true );
+	/* گالری الهام (v2.13): ماژول مستقل پروژه‌های اجراشده — بدون وابستگی */
+	wp_register_script( 'ckb-inspiration', CKB_PLUGIN_URL . 'assets/ckb-inspiration.js', array(), $ver, true );
 	wp_register_script( 'ckb-viewer', CKB_PLUGIN_URL . 'assets/viewer.js', array( 'ckb-models' ), $ver, true );
 	wp_register_script( 'ckb-studio-app', CKB_PLUGIN_URL . 'assets/studio-app.js', array( 'ckb-models', 'ckb-boundary', 'ckb-bom' ), $ver, true );}
 
@@ -411,16 +451,40 @@ function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen
 	wp_enqueue_script( 'ckb-bom' );
 	wp_enqueue_script( 'ckb-blueprint' );
 	wp_enqueue_script( 'ckb-coach' ); /* همراه طراح — قبل از studio-app تا در لحظه mount آماده باشد (v2.11) */
+	wp_enqueue_script( 'ckb-inspiration' ); /* گالری الهام — قبل از studio-app تا در لحظه mount آماده باشد (v2.13) */
 	wp_enqueue_script( 'ckb-studio-app' );
 
+	/* v2.13 گالری الهام: شناسه پلانِ هر پروژه همین‌جا سمت سرور حل می‌شود
+	   (اول تطبیق نام، بعد تطبیق فرم پلان) تا ماژول JS به داده DB وابسته نباشد. */
+	$inspiration = ckb_get_inspiration_projects();
+	foreach ( $inspiration as $idx => $prj ) {
+		$resolved = '';
+		foreach ( $plans as $pl ) {
+			if ( isset( $prj['planName'] ) && $prj['planName'] === $pl['name'] ) {
+				$resolved = $pl['id'];
+				break;
+			}
+		}
+		if ( '' === $resolved && isset( $prj['planShape'] ) ) {
+			foreach ( $plans as $pl ) {
+				if ( $prj['planShape'] === $pl['shape'] ) {
+					$resolved = $pl['id'];
+					break;
+				}
+			}
+		}
+		$inspiration[ $idx ]['planId'] = $resolved;
+	}
+
 	$config = array(
-		'products'  => $products,
-		'plans'     => $plans,
-		'ajaxUrl'   => $ajax_url,
-		'nonce'     => $nonce,
-		'autoPlans' => $auto_plans,
+		'products'    => $products,
+		'plans'       => $plans,
+		'inspiration' => $inspiration,
+		'ajaxUrl'     => $ajax_url,
+		'nonce'       => $nonce,
+		'autoPlans'   => $auto_plans,
 		/* Mobile v2.8: server-side device sniff informs the JS render path */
-		'isMobile'  => (bool) wp_is_mobile(),
+		'isMobile'    => (bool) wp_is_mobile(),
 	);
 	// Bracket notation — the studio_id contains dashes, which are illegal in
 	// JavaScript dot access (window.CKB_CONFIG_ckb-ws-1234 is a syntax error).
@@ -559,6 +623,27 @@ function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen
 						<button type="button" class="ckb-wstudio-btn" id="<?php echo esc_attr( $studio_id ); ?>-btn-pe-help" title="راهنمای تصویری این پنجره" aria-label="راهنمای تصویری این پنجره">؟ راهنمای تصویری</button>
 						<div class="ckb-wstudio-x" data-close="plan" role="button" aria-label="بستن" tabindex="0">✕</div>
 					</div>
+				</div>
+				<!-- v2.13 سه نقطه شروع (الگوی TimberTech): کاربر اول انتخاب می‌کند
+				     چطور شروع کند — الهام از پروژه واقعی، پلان آماده، یا از صفر.
+				     سوییچ تب‌ها در studio-app.js به [data-start] وصل است. -->
+				<div class="ckb-start-grid">
+					<button type="button" class="ckb-start-card" data-start="projects">
+						<span class="ckb-start-tag">جدید</span>
+						<span class="ckb-sic" aria-hidden="true">📷</span>
+						<b>از پروژه‌های اجراشده</b>
+						<p>عکس پروژه واقعی چکادبام را ببینید و همان چیدمان را روی بام خودتان ویرایش کنید.</p>
+					</button>
+					<button type="button" class="ckb-start-card" data-start="presets">
+						<span class="ckb-sic" aria-hidden="true">📐</span>
+						<b>از پلان‌های آماده</b>
+						<p>پلان‌های مهندسی‌شده با چیدمان کامل — یک کلیک، همه‌چیز روی بوم.</p>
+					</button>
+					<button type="button" class="ckb-start-card" data-start="scratch">
+						<span class="ckb-sic" aria-hidden="true">✏️</span>
+						<b>شروع از صفر</b>
+						<p>شکل و ابعاد دقیق بام خودتان را بدهید و قدم‌به‌قدم با راهنمای همراه طراح بچینید.</p>
+					</button>
 				</div>
 				<div class="ckb-plan-tabs" id="<?php echo esc_attr( $studio_id ); ?>-plan-tabs">
 					<button type="button" data-ptab="presets" class="active">پلان‌های آماده</button>
@@ -719,6 +804,28 @@ function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen
 				<div class="ckb-fgroup">
 					<label>توضیحات</label>
 					<textarea id="<?php echo esc_attr( $studio_id ); ?>-inp-notes" rows="2" placeholder="توضیحات اختیاری..."></textarea>
+				</div>
+				<!-- v2.13 اعتمادسازی: دیسکلیمر مهندسی + سفارش نمونه رایگان رنگ.
+				     کارت‌های ایستا هستند؛ دکمه سفارش نمونه در ckb-inspiration.js
+				     به فرم همین پنجره وصل می‌شود. -->
+				<div class="ckb-trust-row">
+					<div class="ckb-disclaimer">
+						<span class="ckb-di" aria-hidden="true">🛡</span>
+						<div>
+							<b>نقش مهندس تأییدکننده</b>
+							<p>این طرح صرفاً برای بصری‌سازی و برآورد اولیه است؛ اجرا پس از بازدید کارشناس و تأیید سازه انجام می‌شود.</p>
+						</div>
+					</div>
+					<div class="ckb-sample">
+						<div class="ckb-swatches" aria-hidden="true">
+							<i style="background:#4a321f"></i><i style="background:#9b683e"></i><i style="background:#2b2a29"></i><i style="background:#c59d6f"></i>
+						</div>
+						<div class="ckb-sample-txt">
+							<b>رنگ‌ها را از نزدیک ببینید</b>
+							<p>نمونه رایگان چوب‌پلاست درب منزل شما</p>
+						</div>
+						<button type="button" class="ckb-catalog-btn" data-sample-order>سفارش نمونه</button>
+					</div>
 				</div>
 				<button type="button" class="ckb-catalog-btn" style="width:100%;padding:11px;font-size:13px;" id="<?php echo esc_attr( $studio_id ); ?>-btn-submit">
 					ارسال طرح و دریافت مشاوره

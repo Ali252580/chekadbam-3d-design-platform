@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>چکادبام استودیو — تست رندر افزونه</title>
-<link rel="stylesheet" href="assets/studio.css?v=2.12.1">
+<link rel="stylesheet" href="assets/studio.css?v=2.13.0">
 <style>
   body { margin: 0; background: #020617; font-family: Tahoma, Vazirmatn, sans-serif; }
   .test-banner { background: #1e293b; color: #94a3b8; padding: 8px 16px; font-size: 12px; text-align: center; }
@@ -114,6 +114,25 @@
           <div class="ckb-wstudio-x" data-close="plan" role="button" aria-label="بستن" tabindex="0">✕</div>
         </div>
       </div>
+      <!-- v2.13 سه نقطه شروع (الگوی TimberTech) -->
+      <div class="ckb-start-grid">
+        <button type="button" class="ckb-start-card" data-start="projects">
+          <span class="ckb-start-tag">جدید</span>
+          <span class="ckb-sic" aria-hidden="true">📷</span>
+          <b>از پروژه‌های اجراشده</b>
+          <p>عکس پروژه واقعی چکادبام را ببینید و همان چیدمان را روی بام خودتان ویرایش کنید.</p>
+        </button>
+        <button type="button" class="ckb-start-card" data-start="presets">
+          <span class="ckb-sic" aria-hidden="true">📐</span>
+          <b>از پلان‌های آماده</b>
+          <p>پلان‌های مهندسی‌شده با چیدمان کامل — یک کلیک، همه‌چیز روی بوم.</p>
+        </button>
+        <button type="button" class="ckb-start-card" data-start="scratch">
+          <span class="ckb-sic" aria-hidden="true">✏️</span>
+          <b>شروع از صفر</b>
+          <p>شکل و ابعاد دقیق بام خودتان را بدهید و قدم‌به‌قدم با راهنمای همراه طراح بچینید.</p>
+        </button>
+      </div>
       <div class="ckb-plan-tabs" id="ckb-ws-test-plan-tabs">
         <button type="button" data-ptab="presets" class="active">پلان‌های آماده</button>
         <button type="button" data-ptab="custom">تنظیم دستی فرم و ابعاد</button>
@@ -213,6 +232,26 @@
       </div>
       <div class="ckb-fgroup"><label>شهر پروژه</label><input type="text" id="ckb-ws-test-inp-city" value="تهران"></div>
       <div class="ckb-fgroup"><label>توضیحات</label><textarea id="ckb-ws-test-inp-notes" rows="2"></textarea></div>
+      <!-- v2.13 اعتمادسازی: دیسکلیمر مهندسی + سفارش نمونه رنگ -->
+      <div class="ckb-trust-row">
+        <div class="ckb-disclaimer">
+          <span class="ckb-di" aria-hidden="true">🛡</span>
+          <div>
+            <b>نقش مهندس تأییدکننده</b>
+            <p>این طرح صرفاً برای بصری‌سازی و برآورد اولیه است؛ اجرا پس از بازدید کارشناس و تأیید سازه انجام می‌شود.</p>
+          </div>
+        </div>
+        <div class="ckb-sample">
+          <div class="ckb-swatches" aria-hidden="true">
+            <i style="background:#4a321f"></i><i style="background:#9b683e"></i><i style="background:#2b2a29"></i><i style="background:#c59d6f"></i>
+          </div>
+          <div class="ckb-sample-txt">
+            <b>رنگ‌ها را از نزدیک ببینید</b>
+            <p>نمونه رایگان چوب‌پلاست درب منزل شما</p>
+          </div>
+          <button type="button" class="ckb-catalog-btn" data-sample-order>سفارش نمونه</button>
+        </div>
+      </div>
       <button type="button" class="ckb-catalog-btn" style="width:100%;padding:11px;font-size:13px;" id="ckb-ws-test-btn-submit">ارسال طرح و دریافت مشاوره</button>
     </div>
   </div>
@@ -274,15 +313,16 @@
   </div>
 </div>
 
-<script src="assets/three.min.js?v=2.7.3"></script>
-<script src="assets/ckb-textures.js?v=2.7.3"></script>
-<script src="assets/ckb-foliage.js?v=2.7.3"></script>
-<script src="assets/ckb-models.js?v=2.7.3"></script>
-<script src="assets/ckb-boundary.js?v=2.7.3"></script>
-<script src="assets/ckb-bom.js?v=2.7.3"></script>
-    <script src="assets/ckb-blueprint.js?v=2.7.3"></script>
-    <script src="assets/ckb-coach.js?v=2.11.0"></script>
-    <script src="assets/studio-app.js?v=2.12.1"></script>
+<script src="assets/three.min.js?v=2.13.0"></script>
+<script src="assets/ckb-textures.js?v=2.13.0"></script>
+<script src="assets/ckb-foliage.js?v=2.13.0"></script>
+<script src="assets/ckb-models.js?v=2.13.0"></script>
+<script src="assets/ckb-boundary.js?v=2.13.0"></script>
+<script src="assets/ckb-bom.js?v=2.13.0"></script>
+    <script src="assets/ckb-blueprint.js?v=2.13.0"></script>
+    <script src="assets/ckb-coach.js?v=2.13.0"></script>
+    <script src="assets/ckb-inspiration.js?v=2.13.0"></script>
+    <script src="assets/studio-app.js?v=2.13.0"></script>
 <script src="assets/viewer.js?v=2.12.0"></script>
 <script src="assets/admin-preview.js?v=2.7.3"></script>
 <script>
@@ -331,10 +371,21 @@
       ] },
   ];
 
+  // v2.13 گالری الهام — پروژه‌های اجراشده (هر پروژه به یک پلان گره خورده است)
+  var mockInspiration = [
+    { title: 'روف‌گاردن ویلای لواسان', desc: 'پرگولا + آبنمای قاب + کاشت چندلایه',
+      planName: 'پلان مستطیلی پنت‌هاوس (۱۰×۸)', gradient: 'linear-gradient(140deg,#134e2f,#1e293b)', image: '' },
+    { title: 'تراس طولی سعادت‌آباد', desc: 'چیدمان خطی + دیوار سبز حریم',
+      planName: 'پلان تراس طولی (۱۰×۲.۸)', gradient: 'linear-gradient(140deg,#7c2d12,#1e293b)', image: '' },
+    { title: 'بام مسکونی با باکس پله', desc: 'دورگرد باکس پله + نیمکت‌های متصل',
+      planName: 'پلان L شکل پنت‌هاوس (۱۲×۹)', gradient: 'linear-gradient(140deg,#1e3a5f,#1e293b)', image: '' },
+  ];
+
   // Boot the studio
   window.CKBStudio.mount('ckb-ws-test', {
     products: mockProducts,
     plans: mockPlans,
+    inspiration: mockInspiration,
     ajaxUrl: 'http://localhost/mock',
     nonce: 'test',
   });

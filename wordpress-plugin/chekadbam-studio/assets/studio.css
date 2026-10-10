@@ -1739,3 +1739,142 @@ body.admin-bar .ckb-studio-full {
 @media (min-width: 769px) and (max-height: 560px) {
 	.ckb-coach { top: 62px; bottom: calc(var(--ckb-dock-h, 68px) + 14px); width: 290px; }
 }
+
+/* ═══════════════ v2.13 — سه نقطه شروع + گالری الهام + اعتمادسازی ═══════════════ */
+
+/* ── سه نقطه شروع: سربرگ مودال «نقشه و ابعاد بام» ── */
+.ckb-start-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 8px;
+	padding: 12px 14px 0;
+}
+.ckb-start-card {
+	position: relative;
+	text-align: right;
+	background: rgba(30, 41, 59, 0.6);
+	border: 1px solid rgba(71, 85, 105, 0.6);
+	border-radius: 14px;
+	padding: 10px 12px;
+	cursor: pointer;
+	font-family: inherit;
+	color: inherit;
+	transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+.ckb-start-card:hover {
+	border-color: rgba(52, 211, 153, 0.55);
+	background: rgba(30, 41, 59, 0.9);
+	transform: translateY(-1px);
+}
+.ckb-start-card b { display: block; color: #f8fafc; font-size: 12px; margin: 6px 0 3px; }
+.ckb-start-card p { margin: 0; color: #94a3b8; font-size: 10.5px; line-height: 1.7; }
+.ckb-sic { font-size: 16px; line-height: 1; }
+.ckb-start-tag {
+	position: absolute;
+	top: 8px;
+	left: 8px;
+	background: #10b981;
+	color: #022c22;
+	font-size: 9px;
+	font-weight: bold;
+	padding: 2px 7px;
+	border-radius: 7px;
+}
+
+/* ── گالری الهام: ردیف کارت‌های پروژه اجراشده، تب «پلان‌های آماده» ── */
+.ckb-insp-row { margin: 2px 0 12px; border-radius: 16px; }
+.ckb-insp-row.flash { animation: ckb-insp-flash 1.6s ease; }
+@keyframes ckb-insp-flash {
+	0%, 60% { box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.55); }
+	100% { box-shadow: 0 0 0 2px transparent; }
+}
+.ckb-insp-head { display: flex; align-items: baseline; gap: 8px; margin: 0 2px 8px; }
+.ckb-insp-head b { color: #34d399; font-size: 12.5px; }
+.ckb-insp-head span { color: #64748b; font-size: 10.5px; }
+.ckb-insp-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 10px;
+}
+.ckb-insp-card {
+	background: rgba(30, 41, 59, 0.6);
+	border: 1px solid rgba(71, 85, 105, 0.6);
+	border-radius: 16px;
+	overflow: hidden;
+	transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.ckb-insp-card:hover { border-color: rgba(52, 211, 153, 0.5); transform: translateY(-1px); }
+.ckb-insp-cover {
+	position: relative;
+	aspect-ratio: 16 / 9;
+	background: linear-gradient(140deg, #134e2f, #1e293b);
+	border-bottom: 1px solid rgba(71, 85, 105, 0.6);
+}
+.ckb-insp-cover img {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+.ckb-insp-badge {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	background: rgba(2, 6, 23, 0.75);
+	color: #34d399;
+	padding: 3px 9px;
+	border-radius: 8px;
+	font-size: 10.5px;
+	font-weight: bold;
+	backdrop-filter: blur(4px);
+}
+.ckb-insp-meta { padding: 10px 12px 12px; }
+.ckb-insp-meta b { display: block; color: #f8fafc; font-size: 12px; }
+.ckb-insp-meta > span { display: block; color: #94a3b8; font-size: 10.5px; margin: 3px 0 9px; }
+.ckb-insp-load { width: 100%; padding: 8px; font-size: 11.5px; }
+
+/* ── اعتمادسازی: دیسکلیمر مهندسی + سفارش نمونه رنگ (مودال ثبت طرح) ── */
+.ckb-trust-row { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 12px; }
+.ckb-disclaimer {
+	display: flex;
+	gap: 10px;
+	align-items: flex-start;
+	background: rgba(2, 6, 23, 0.5);
+	border: 1px solid rgba(71, 85, 105, 0.55);
+	border-radius: 14px;
+	padding: 10px 12px;
+}
+.ckb-di { font-size: 16px; line-height: 1.4; }
+.ckb-disclaimer b { display: block; color: #e2e8f0; font-size: 11.5px; }
+.ckb-disclaimer p { margin: 2px 0 0; color: #94a3b8; font-size: 10.5px; line-height: 1.8; }
+.ckb-sample {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(2, 6, 23, 0.4));
+	border: 1px solid rgba(52, 211, 153, 0.35);
+	border-radius: 14px;
+	padding: 10px 12px;
+}
+.ckb-swatches { display: flex; gap: 4px; }
+.ckb-swatches i {
+	display: block;
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	border: 2px solid rgba(255, 255, 255, 0.25);
+}
+.ckb-sample-txt { flex: 1; min-width: 0; }
+.ckb-sample-txt b { display: block; color: #e2e8f0; font-size: 11.5px; }
+.ckb-sample-txt p { margin: 2px 0 0; color: #94a3b8; font-size: 10px; }
+.ckb-sample .ckb-catalog-btn { padding: 7px 14px; font-size: 11.5px; flex-shrink: 0; }
+
+/* موبایل: کارت شروع فشرده و گالری تک‌ستونه */
+@media (max-width: 768px) {
+	.ckb-start-grid { grid-template-columns: 1fr 1fr; padding: 10px 10px 0; }
+	.ckb-start-card p { display: none; }
+	/* کارت سوم (شروع از صفر) تمام‌عرض تا ردیف دوم نیمه‌خالی نماند */
+	.ckb-start-card:last-child { grid-column: 1 / -1; }
+	.ckb-insp-grid { grid-template-columns: 1fr; }
+}
