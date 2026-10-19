@@ -172,6 +172,7 @@ function ckb_rest_get_products() {
 			),
 			'model3D'        => array(
 				'shapeType'     => get_post_meta( $p->ID, '_ckb_shape_type', true ) ?: 'box',
+				'glbUrl'        => esc_url_raw( get_post_meta( $p->ID, '_ckb_glb_url', true ) ),
 				'primaryColor'  => $wpc_hex,
 				'secondaryColor' => $metal_hex,
 				'hasLighting'   => '1' === get_post_meta( $p->ID, '_ckb_has_lighting', true ),
@@ -189,6 +190,7 @@ function ckb_rest_get_products() {
 			'weight'         => $weight,
 			'price'          => (int) get_post_meta( $p->ID, '_ckb_price', true ),
 			'shape'          => get_post_meta( $p->ID, '_ckb_shape_type', true ) ?: 'box',
+			'glbUrl'         => esc_url_raw( get_post_meta( $p->ID, '_ckb_glb_url', true ) ),
 			'wpcColor'       => $wpc_id,
 			'metalColor'     => $metal_id,
 			'light'          => '1' === get_post_meta( $p->ID, '_ckb_has_lighting', true ),

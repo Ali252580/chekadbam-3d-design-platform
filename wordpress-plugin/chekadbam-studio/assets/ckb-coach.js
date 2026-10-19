@@ -49,8 +49,7 @@
 	};
 
 	/** شکل‌هایی که هر معیار را برآورده می‌کنند (هم‌نام shapeType اقلام) */
-	var SHAPES = {
-		shade:   ['pergola', 'pergola_deck', 'umbrella'],
+	var SHAPES = {shade: ['pergola', 'pergola_deck', 'umbrella'],
 		focal:   ['water_feature', 'firepit', 'firepit_table'],
 		privacy: ['green_wall', 'green_wall_planter', 'partition'],
 	};

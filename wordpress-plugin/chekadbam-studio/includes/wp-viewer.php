@@ -214,11 +214,31 @@ function ckb_render_3d_preview_metabox( $post ) {
 
 /* ============================ AJAX: save design v2 ============================ */
 
+/* v2.13.8 — گیرنده nonce تازه برای صفحات کَش‌شده (WP Rocket/LiteSpeed).
+   صفحات HTML کش‌شده nonce منقضی دارند؛ این endpoint همیشه از admin-ajax
+   (خارج از کش صفحه) nonce تازه می‌دهد. */
+add_action( 'wp_ajax_ckb_get_nonce', 'ckb_wpstudio_get_nonce' );
+add_action( 'wp_ajax_nopriv_ckb_get_nonce', 'ckb_wpstudio_get_nonce' );
+function ckb_wpstudio_get_nonce() {
+	wp_send_json_success( array( 'nonce' => wp_create_nonce( 'ckb_wpstudio' ) ) );
+}
+
 add_action( 'wp_ajax_ckb_save_design', 'ckb_wpstudio_save_design_v2' );
 add_action( 'wp_ajax_nopriv_ckb_save_design', 'ckb_wpstudio_save_design_v2' );
 function ckb_wpstudio_save_design_v2() {
+	/* v2.13.4 — اگر post_max_size/host سمت سرور، بدنه POST را کامل نپذیرد،
+	   PHP کل $_POST را خالی می‌کند و کاربر «خطای امنیتی» می‌بیند؛ پیام دقیق بده. */
+	if ( empty( $_POST ) ) {
+		wp_send_json_error( 'داده فرم به سرور نرسید (محدودیت حجم POST هاست). لطفاً snapshot کمتری ارسال شود یا طرح را بدون تصویر ثبت کنید.' );
+	}
 	if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'ckb_wpstudio' ) ) {
-		wp_send_json_error( 'خطای امنیتی در ارسال فرم.' );
+		/* nonce معمولاً به‌خاطر کش صفحه (LiteSpeed/WP Rocket) منقضی/جایگزین شده —
+		   به JS نشانه nonce_seed می‌دهیم تا فرم را با nonce تازه خطا براندازد. */
+		wp_send_json_error( array(
+			'message'   => 'اعتبار فرم منقضی شده (کش صفحه). لطفاً صفحه را تازه‌سازی (F5) و دوباره تلاش کنید.',
+			'code'      => 'stale_nonce',
+			'freshNonce' => wp_create_nonce( 'ckb_wpstudio' ),
+		) );
 	}
 
 	$name   = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
@@ -236,6 +256,19 @@ function ckb_wpstudio_save_design_v2() {
 	$items  = isset( $_POST['itemsJson'] ) ? wp_unslash( $_POST['itemsJson'] ) : '[]';
 	$plan   = isset( $_POST['planJson'] ) ? wp_unslash( $_POST['planJson'] ) : '{}';
 	$bom    = isset( $_POST['bomJson'] ) ? wp_unslash( $_POST['bomJson'] ) : '{}';
+
+	/* کد تایید پیامکی — فقط برای بازدیدکنندگان عمومی؛ کارمندان واردشده
+	   (با دسترسی ویرایش) طرح را از پیشخوان بدون تأیید موبایل ثبت می‌کنند. */
+	if ( ckb_smsotp_available() && ! current_user_can( 'edit_posts' ) ) {
+		$otp = isset( $_POST['otp'] ) ? sanitize_text_field( wp_unslash( $_POST['otp'] ) ) : '';
+		$ok  = ckb_smsotp_verify( $phone, $otp );
+		if ( true !== $ok ) {
+			wp_send_json_error( array(
+				'message' => is_string( $ok ) ? $ok : 'کد تایید پیامکی نامعتبر است.',
+				'code'    => 'otp_invalid',
+			) );
+		}
+	}
 
 	$items_arr = json_decode( (string) $items, true );
 	if ( ! is_array( $items_arr ) ) {
@@ -266,11 +299,22 @@ function ckb_wpstudio_save_design_v2() {
 				$name,
 				wp_date( 'Y/m/d' )
 			),
-		)
+		),
+		true
 	);
 
-	if ( is_wp_error( $pid ) ) {
-		wp_send_json_error( 'خطای ذخیره‌سازی در دیتابیس.' );
+	/* v2.13.5 — hardening: wp_insert_post گاهی 0 یا WP_Error برمی‌گرداند؛
+	   پیش‌تر فقط WP_Error چک می‌شد و خطای quietly رد می‌شد. حالا جزئیات دقیق
+	   دیتابیس هم برگردانده می‌شود تا ریشه مشکل قابل‌تشخیص باشد. */
+	if ( is_wp_error( $pid ) || ! $pid ) {
+		$detail = is_wp_error( $pid ) ? $pid->get_error_message() : ( isset( $wpdb ) ? $wpdb->last_error : '' );
+		if ( function_exists( 'error_log' ) ) {
+			error_log( '[Chekadbam Studio] save_design insert failed: ' . print_r( $detail, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions
+		}
+		wp_send_json_error( array(
+			'message' => 'خطای ذخیره‌سازی در دیتابیس.',
+			'detail'  => (string) $detail,
+		) );
 	}
 
 	update_post_meta( $pid, '_ckb_customer_name', $name );
@@ -300,11 +344,42 @@ function ckb_wpstudio_save_design_v2() {
 		}
 	}
 
-	do_action( 'ckb_design_created', $pid );
 
-	wp_send_json_success( array( 'id' => $pid ) );
+do_action( 'ckb_design_created', $pid );
+
+/* v2.13.6 — snapshot دیگر همراه metadata ارسال نمی‌شود؛
+   پس از موفقیت ثبت، کلاینت call داخلی ckb_save_snapshot می‌کند.
+   این دو-مرحله‌ای post_max_size هاست را دور می‌زند و حتی اگر snapshot
+   نرسد، ثبت اصلی موفق می‌ماند. */
+wp_send_json_success( array( 'id' => $pid ) );
 }
 
+/* ============================ AJAX: snapshot جداگانه ============================ */
+
+add_action( 'wp_ajax_ckb_save_snapshot', 'ckb_wpstudio_save_snapshot_endpoint' );
+add_action( 'wp_ajax_nopriv_ckb_save_snapshot', 'ckb_wpstudio_save_snapshot_endpoint' );
+function ckb_wpstudio_save_snapshot_endpoint() {
+	if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'ckb_wpstudio' ) ) {
+		wp_send_json_error( array(
+			'message'   => 'اعتبار فرم منقضی شده. طرح ثبت شده است؛ برای ذخیره تصویر صفحه را تازه‌سازی کنید.',
+			'code'      => 'stale_nonce',
+			'freshNonce' => wp_create_nonce( 'ckb_wpstudio' ),
+		) );
+	}
+	$design_id = isset( $_POST['designId'] ) ? absint( $_POST['designId'] ) : 0;
+	if ( ! $design_id || 'ckb_design' !== get_post_type( $design_id ) ) {
+		wp_send_json_error( 'شناسه طرح نامعتبر است.' );
+	}
+	if ( empty( $_POST['snapshot'] ) || ! is_string( $_POST['snapshot'] ) ) {
+		wp_send_json_error( 'تصویر دریافت نشد.' );
+	}
+	$thumb = ckb_save_design_snapshot( wp_unslash( $_POST['snapshot'] ), $design_id ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- validated inside
+	if ( ! $thumb ) {
+		wp_send_json_error( 'ذخیره تصویر ناموفق (احتمالاً محدودیت حجم یا حافظه هاست) — ثبتِ خودِ طرح انجام شده است.' );
+	}
+	update_post_meta( $design_id, '_ckb_snapshot', $thumb );
+	wp_send_json_success( array( 'url' => $thumb ) );
+}
 /** Saves a base64 JPEG data URL into uploads and returns the URL (or false). */
 function ckb_save_design_snapshot( $data_url, $post_id ) {
 	if ( 0 !== strpos( (string) $data_url, 'data:image/jpeg;base64,' ) ) {

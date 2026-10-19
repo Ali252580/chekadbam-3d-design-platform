@@ -3,7 +3,7 @@
  * Plugin Name: چکادبام استودیو منیجر (Chekadbam Studio Manager)
  * Plugin URI:  https://chekadbam.com
  * Description: استودیوی طراحی سه‌بعدی واقع‌گرایانه روف‌گاردن با مدل‌های واقعی محصولات (پرگولا، آبنما، درخت، ...)، مدیریت اقلام مدولار WPC، پلان‌های روف‌گاردن، CRM طرح‌ها، REST API هم‌خوان با Next.js، نمایشگر سه‌بعدی محصول و کد کوتاه فرم.
- * Version:     2.13.0
+ * Version:     2.16.0
  * Author:      Chekadbam Engineering
  * Author URI:  https://chekadbam.com
  * Text Domain: chekadbam
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CKB_VERSION', '2.13.0' );
+define( 'CKB_VERSION', '2.16.0' );
 define( 'CKB_PLUGIN_FILE', __FILE__ );
 define( 'CKB_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CKB_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -31,6 +31,7 @@ require_once CKB_PLUGIN_DIR . 'includes/shortcodes.php';
 require_once CKB_PLUGIN_DIR . 'includes/seed.php';
 require_once CKB_PLUGIN_DIR . 'includes/wp-studio.php';
 require_once CKB_PLUGIN_DIR . 'includes/wp-viewer.php';
+require_once CKB_PLUGIN_DIR . 'includes/sms-otp.php';
 require_once CKB_PLUGIN_DIR . 'includes/panel-sync.php';
 
 /* ------------------------------ Activation ------------------------------ */
@@ -208,6 +209,7 @@ function ckb_render_settings() {
 		update_option( 'ckb_studio_url', esc_url_raw( wp_unslash( $_POST['ckb_studio_url'] ?? '' ) ) );
 		update_option( 'ckb_company_phone', sanitize_text_field( wp_unslash( $_POST['ckb_company_phone'] ?? '' ) ) );
 		update_option( 'ckb_notify_email', sanitize_email( wp_unslash( $_POST['ckb_notify_email'] ?? get_option( 'admin_email' ) ) ) );
+		update_option( 'ckb_otp_disabled', isset( $_POST['ckb_otp_disabled'] ) ? '1' : '0' );
 		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'تنظیمات ذخیره شد.', 'chekadbam' ) . '</p></div>';
 	}
 
@@ -217,6 +219,8 @@ function ckb_render_settings() {
 	$panel_url   = get_option( 'ckb_panel_api_url', '' );
 	$panel_token = get_option( 'ckb_panel_api_token', '' );
 	$sync_disabled = '1' === get_option( 'ckb_panel_sync_disabled', '0' );
+	$otp_disabled  = '1' === get_option( 'ckb_otp_disabled', '0' );
+	$sms_plugin_on = function_exists( 'wp_sms_send' );
 	?>
 	<div class="wrap ckb-wrap" dir="rtl">
 		<h1><?php esc_html_e( 'تنظیمات و اتصال استودیو', 'chekadbam' ); ?></h1>
@@ -268,6 +272,32 @@ function ckb_render_settings() {
 					</td>
 				</tr>
 				<tr>
+					<th><?php esc_html_e( 'کد تایید پیامکی (OTP)', 'chekadbam' ); ?></th>
+					<td>
+						<?php if ( $sms_plugin_on ) : ?>
+							<p style="color:#059669;font-weight:700;margin:0 0 6px">✓ افزونه پیامک (WP SMS / WSMS) فعال است — کد تایید پیامکی در فرم ثبت طرح کار می‌کند.</p>
+						<?php else : ?>
+							<p style="color:#dc2626;font-weight:700;margin:0 0 6px">✕ افزونه پیامک نصب نیست — کد تایید پیامکی غیرفعال است.</p>
+							<p class="description" style="margin:0 0 6px">برای فعال‌سازی، افزونه رایگان <b>WP SMS</b> را از «افزونه‌ها ← افزودن» (جستجوی <code dir="ltr">wp-sms</code>) نصب کنید و در تنظیمات آن یک درگاه ایرانی (کاوه‌نگار، ملی‌پیامک، فراپیامک و…) را با کلید API پنل پیامک خود پیکربندی کنید.</p>
+						<?php endif; ?>
+						<label>
+							<input type="checkbox" name="ckb_otp_disabled" value="1" <?php checked( $otp_disabled ); ?> />
+							<?php esc_html_e( 'غیرفعال کردن کد تایید پیامکی (فرم بدون تأیید موبایل ارسال می‌شود)', 'chekadbam' ); ?>
+						</label>
+					</td>
+				</tr>
+				<?php if ( $sms_plugin_on ) : ?>
+				<tr>
+					<th><?php esc_html_e( 'تست ارسال پیامک', 'chekadbam' ); ?></th>
+					<td>
+						<input type="tel" id="ckb_sms_test_phone" value="" placeholder="09121234567" dir="ltr" style="width:160px" />
+						<button type="button" class="button button-secondary" id="ckb-sms-test-btn"><?php esc_html_e( 'ارسال پیامک آزمایشی', 'chekadbam' ); ?></button>
+						<span id="ckb-sms-test-result" style="margin-inline-start:12px;font-weight:700"></span>
+						<p class="description"><?php esc_html_e( 'برای اطمینان از پیکربندی درگاه، یک پیامک آزمایشی به شماره خودتان ارسال کنید.', 'chekadbam' ); ?></p>
+					</td>
+				</tr>
+				<?php endif; ?>
+				<tr>
 					<th><?php esc_html_e( 'کد کوتاه فرم ثبت طرح', 'chekadbam' ); ?></th>
 					<td><code dir="ltr">[chekadbam_form]</code> <span class="description"><?php esc_html_e( 'برای نمایش فرم ساده ثبت طرح در هر صفحه/پست از این کد استفاده کنید.', 'chekadbam' ); ?></span></td>
 				</tr>
@@ -278,32 +308,61 @@ function ckb_render_settings() {
 		<script>
 			(function () {
 				var btn = document.getElementById('ckb-panel-test-btn');
-				if (!btn) return;
-				btn.addEventListener('click', function () {
-					var result = document.getElementById('ckb-panel-test-result');
-					var apiUrl = document.getElementById('ckb_panel_api_url').value;
-					var apiToken = document.getElementById('ckb_panel_api_token').value;
-					btn.disabled = true;
-					result.textContent = 'در حال بررسی…';
-					result.style.color = '#64748b';
-					var fd = new FormData();
-					fd.append('action', 'ckb_panel_sync_test');
-					fd.append('nonce', '<?php echo esc_js( wp_create_nonce( 'ckb_panel_sync_test' ) ); ?>');
-					fd.append('apiUrl', apiUrl);
-					fd.append('apiToken', apiToken);
-					fetch('<?php echo esc_url_raw( admin_url( 'admin-ajax.php' ) ); ?>', { method: 'POST', body: fd, credentials: 'same-origin' })
-						.then(function (r) { return r.json(); })
-						.then(function (res) {
-							btn.disabled = false;
-							result.textContent = (res && res.data) ? res.data : 'پاسخ نامشخص';
-							result.style.color = (res && res.success) ? '#059669' : '#dc2626';
-						})
-						.catch(function () {
-							btn.disabled = false;
-							result.textContent = 'خطای شبکه';
-							result.style.color = '#dc2626';
-						});
-				});
+				if (btn) {
+					btn.addEventListener('click', function () {
+						var result = document.getElementById('ckb-panel-test-result');
+						var apiUrl = document.getElementById('ckb_panel_api_url').value;
+						var apiToken = document.getElementById('ckb_panel_api_token').value;
+						btn.disabled = true;
+						result.textContent = 'در حال بررسی…';
+						result.style.color = '#64748b';
+						var fd = new FormData();
+						fd.append('action', 'ckb_panel_sync_test');
+						fd.append('nonce', '<?php echo esc_js( wp_create_nonce( 'ckb_panel_sync_test' ) ); ?>');
+						fd.append('apiUrl', apiUrl);
+						fd.append('apiToken', apiToken);
+						fetch('<?php echo esc_url_raw( admin_url( 'admin-ajax.php' ) ); ?>', { method: 'POST', body: fd, credentials: 'same-origin' })
+							.then(function (r) { return r.json(); })
+							.then(function (res) {
+								btn.disabled = false;
+								result.textContent = (res && res.data) ? res.data : 'پاسخ نامشخص';
+								result.style.color = (res && res.success) ? '#059669' : '#dc2626';
+							})
+							.catch(function () {
+								btn.disabled = false;
+								result.textContent = 'خطای شبکه';
+								result.style.color = '#dc2626';
+							});
+					});
+				}
+
+				var smsBtn = document.getElementById('ckb-sms-test-btn');
+				if (smsBtn) {
+					smsBtn.addEventListener('click', function () {
+						var result = document.getElementById('ckb-sms-test-result');
+						var phone = document.getElementById('ckb_sms_test_phone').value.trim();
+						smsBtn.disabled = true;
+						result.textContent = 'در حال ارسال…';
+						result.style.color = '#64748b';
+						var fd = new FormData();
+						fd.append('action', 'ckb_test_sms');
+						fd.append('nonce', '<?php echo esc_js( wp_create_nonce( 'ckb_test_sms' ) ); ?>');
+						fd.append('phone', phone);
+						fetch('<?php echo esc_url_raw( admin_url( 'admin-ajax.php' ) ); ?>', { method: 'POST', body: fd, credentials: 'same-origin' })
+							.then(function (r) { return r.json(); })
+							.then(function (res) {
+								smsBtn.disabled = false;
+								var d = res && res.data;
+								result.textContent = (d && d.message) ? d.message : (typeof d === 'string' ? d : 'پاسخ نامشخص');
+								result.style.color = (res && res.success) ? '#059669' : '#dc2626';
+							})
+							.catch(function () {
+								smsBtn.disabled = false;
+								result.textContent = 'خطای شبکه';
+								result.style.color = '#dc2626';
+							});
+					});
+				}
 			})();
 		</script>
 	</div>
@@ -468,7 +527,8 @@ function ckb_admin_assets( $hook ) {
 	if ( 'ckb_product' === $typenow && in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
 		wp_enqueue_script( 'ckb-textures', CKB_PLUGIN_URL . 'assets/ckb-textures.js', array( 'ckb-three' ), CKB_VERSION, true );
 		wp_enqueue_script( 'ckb-foliage', CKB_PLUGIN_URL . 'assets/ckb-foliage.js', array( 'ckb-three' ), CKB_VERSION, true );
-		wp_enqueue_script( 'ckb-models', CKB_PLUGIN_URL . 'assets/ckb-models.js', array( 'ckb-textures', 'ckb-foliage' ), CKB_VERSION, true );
+		wp_enqueue_script( 'ckb-gltfloader', CKB_PLUGIN_URL . 'assets/ckb-gltfloader.js', array( 'ckb-three' ), CKB_VERSION, true );
+		wp_enqueue_script( 'ckb-models', CKB_PLUGIN_URL . 'assets/ckb-models.js', array( 'ckb-textures', 'ckb-foliage', 'ckb-gltfloader' ), CKB_VERSION, true );
 		wp_enqueue_script( 'ckb-viewer', CKB_PLUGIN_URL . 'assets/viewer.js', array( 'ckb-models' ), CKB_VERSION, true );
 		wp_enqueue_script( 'ckb-admin-preview', CKB_PLUGIN_URL . 'assets/admin-preview.js', array( 'ckb-viewer' ), CKB_VERSION, true );
 	}

@@ -78,7 +78,52 @@
 	position: relative;
 	height: 100%;
 	width: 100%;
+}.ckb-wstudio-viewport { position: relative; }
+
+/* ─────────────── لودینگ گرافیکی (v2.13.2) ───────────────
+   پوشش برند روی ویوپورت تا اولین رندر کامل صحنه؛ سپس محو و حذف.
+   جفت این کلاس‌ها با JS در studio-app.js (تابع addLoadingOverlay) است:
+   .ckb-wstudio-loader         ← پوشش تمام‌صفحه (گرادیان تیره، z-25)
+   .ckb-loader-track / -arc    ← دایره SVG چرخان (تراک خاکستری / کمان سبز)
+   .ckb-loader-core span       ← چیپ برند سبز پالس‌دار
+   .ckb-loader-brand / -dot    ← نام استودیو + نقطه چشمک‌زن
+   .ckb-loader-note            ← خط وضعیت
+   .done                       ← پس از آماده شدن صحنه (محو ۶۵۰ms) */
+.ckb-wstudio-loader {
+	position: absolute; inset: 0; z-index: 25;
+	display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+	background: linear-gradient(180deg, #020617 0%, #0f172a 55%, #020617 100%);
+	pointer-events: none;
+	transition: opacity .65s ease;
+	opacity: 1;
+	direction: rtl;
 }
+.ckb-wstudio-loader.done { opacity: 0; }
+/* سرور-رندر ولی بدون JS: پوشش می‌ماند تا کاربر صفحه‌ی خالی نبیند؛
+   رفتار فلش سریع (۴۵۰ms) حتی با JS هم تداخل با مراحل بعدی ندارد. */
+.ckb-wstudio-loader.is-server { opacity: 1; }
+.ckb-loader-ring { position: relative; width: 84px; height: 84px; }
+.ckb-loader-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; animation: ckb-loader-spin 1.4s linear infinite; }
+.ckb-loader-track { stroke: rgba(51, 65, 85, .7); }
+.ckb-loader-arc { stroke: #34d399; }
+@keyframes ckb-loader-spin { to { transform: rotate(360deg); } }
+.ckb-loader-core {
+	position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+	animation: ckb-loader-pulse 1.8s ease-in-out infinite;
+}
+.ckb-loader-core span {
+	width: 36px; height: 36px; border-radius: 14px;
+	background: rgba(16, 185, 129, .1); border: 1.5px solid rgba(52, 211, 153, .5);
+	display: flex; align-items: center; justify-content: center;
+	box-shadow: 0 8px 30px rgba(6, 78, 59, .45);
+}
+.ckb-loader-core span::after { content: ''; width: 10px; height: 10px; border-radius: 50%; background: #34d399; }
+@keyframes ckb-loader-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+.ckb-loader-brand { display: flex; align-items: center; gap: 8px; color: #fff; font-size: 13px; }
+.ckb-loader-dot { width: 8px; height: 8px; border-radius: 50%; background: #34d399; animation: ckb-loader-blink 1.2s ease-in-out infinite; }
+@keyframes ckb-loader-blink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+.ckb-loader-note { color: #94a3b8; font-size: 11px; }
+
 .ckb-wstudio-viewport canvas {
 	display: block;
 	width: 100% !important;
@@ -242,7 +287,14 @@
 	align-items: center;
 	justify-content: center;
 	z-index: 40;
-	padding: 14px;
+	/* v2.13.10: پنجره‌ها زیر نوار تب تمام نشوند تا زیر قرصِ تب پنهان نشوند */
+	padding: 14px 14px calc(var(--ckb-dock-h, 68px) + 18px);
+}
+/* v2.13.12: در نما تمام‌صفحه مودال‌ها به ویوپورت قفل شوند تا حتی اگر تودرتوی
+   HTML به‌هم بریزد (مودال بیرون کانتینر بیفتد) پشت بوم سه‌بعدی پنهان نشوند */
+.ckb-studio-full .ckb-wstudio-modal {
+	position: fixed;
+	z-index: 99999;
 }
 .ckb-wstudio-modal-box {
 	/* v2.12.1: یک پله روشن‌تر از قبل (#0f172a) — پنجره‌ها تاریکِ خفه نباشند */
@@ -548,6 +600,27 @@
 .ckb-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .ckb-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 
+/* ═══════════════ OTP (کد تایید پیامکی) ═══════════════ */
+.ckb-otp-row { display: flex; gap: 8px; align-items: stretch; }
+.ckb-otp-row input { flex: 1; min-width: 0; }
+.ckb-otp-send-btn {
+	flex-shrink: 0;
+	white-space: nowrap;
+	background: #064e3b;
+	color: #6ee7b7;
+	border: 1px solid #10b981;
+	border-radius: 10px;
+	padding: 8px 14px;
+	font-size: 11px;
+	font-weight: bold;
+	cursor: pointer;
+}
+.ckb-otp-send-btn:hover:not(:disabled) { background: #065f46; }
+.ckb-otp-send-btn:disabled { opacity: 0.55; cursor: wait; }
+.ckb-otp-hint { display: block; margin-top: 5px; font-size: 10px; color: #94a3b8; line-height: 1.7; }
+.ckb-otp-code-input { letter-spacing: 4px; text-align: center; font-size: 15px; }
+input.ckb-otp-bad { border-color: #dc2626 !important; background: #450a0a !important; }
+
 /* ═══════════════ BOM Table ═══════════════ */
 .ckb-bom-table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .ckb-bom-table th {
@@ -735,6 +808,137 @@
 .ckb-tour-next { background: #059669; color: #fff; font-weight: bold; }
 .ckb-tour-next:hover { background: #10b981; }
 .ckb-wstudio-head-actions { display: flex; align-items: center; gap: 8px; }
+
+/* ─────────────── راهنمای درون‌پلان (v2.14 — ckb-hints.js) ───────────────
+   کارت بالای بوم + نشانگر حرکت روی همان نقطه‌ای که کاربر باید لمس کند.
+   z-index 20: زیر توست هشدار (۲۱) و همهٔ نوارها/مودال‌ها. */
+.ckb-hint-card {
+	position: absolute; top: 14px; left: 50%; z-index: 20; box-sizing: border-box;
+	width: min(300px, calc(100% - 24px));
+	transform: translate(-50%, -8px); opacity: 0; visibility: hidden;
+	transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+	direction: rtl; text-align: right;
+	background: rgba(15, 23, 42, 0.94); backdrop-filter: blur(8px);
+	border: 1px solid rgba(52, 211, 153, 0.45); border-radius: 16px;
+	box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+	padding: 11px 14px 10px;
+}
+.ckb-hint-card.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+.ckb-hint-top { display: flex; align-items: center; gap: 10px; }
+.ckb-hint-step { color: #34d399; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.ckb-hint-bar { flex: 1; height: 4px; border-radius: 4px; background: #1e293b; overflow: hidden; }
+.ckb-hint-bar i { display: block; height: 100%; width: 0; background: #10b981; border-radius: 4px; transition: width 0.35s ease; }
+.ckb-hint-x {
+	background: none; border: none; color: #64748b; cursor: pointer;
+	font-size: 12px; line-height: 1; padding: 4px;
+}
+.ckb-hint-x:hover { color: #e2e8f0; }
+.ckb-hint-title { color: #fff; font-size: 13px; margin-left: 6px; }
+.ckb-hint-desc { display: inline; margin: 0; color: #cbd5e1; font-size: 12px; line-height: 1.8; }
+.ckb-hint-msg { margin-top: 6px; }
+.ckb-hint-foot { display: flex; justify-content: flex-start; gap: 8px; margin-top: 6px; }
+.ckb-hint-foot button {
+	border: none; cursor: pointer; border-radius: 8px; font-size: 11px; padding: 5px 12px;
+	font-family: inherit;
+}
+.ckb-hint-skip { background: none; color: #94a3b8; padding: 5px 0 !important; }
+.ckb-hint-skip:hover { color: #fff; }
+.ckb-hint-tour { background: #1e293b; color: #cbd5e1; }
+.ckb-hint-tour:hover { background: #334155; }
+.ckb-hint-ok { background: #059669; color: #fff; font-weight: 700; }
+.ckb-hint-ok:hover { background: #10b981; }
+.ckb-hint-card:not(.is-done) .ckb-hint-tour,
+.ckb-hint-card:not(.is-done) .ckb-hint-ok,
+.ckb-hint-card.is-done .ckb-hint-skip { display: none; }
+
+/* z-index 46: روی نوار تب (۴۵) تا حلقهٔ «+ افزودن» دیده شود؛ وقتی مودالی باز
+   است استودیو anchor را null می‌دهد و نشانگر با .off پنهان می‌شود */
+.ckb-hint-mark {
+	position: absolute; z-index: 46; width: 0; height: 0;
+	pointer-events: none; opacity: 0; transition: opacity 0.25s ease;
+}
+.ckb-hint-mark.show { opacity: 1; }
+.ckb-hint-mark.off,
+.ckb-dragging .ckb-hint-mark { opacity: 0; }
+.ckb-hint-ring, .ckb-hint-hand, .ckb-hint-hand2 {
+	position: absolute; left: 0; top: 0; display: none; border-radius: 50%;
+}
+.ckb-hint-ring {
+	width: 64px; height: 64px; margin: -32px 0 0 -32px;
+	border: 2px solid #34d399;
+}
+.ckb-hint-hand, .ckb-hint-hand2 {
+	width: 24px; height: 24px; margin: -12px 0 0 -12px;
+	background: rgba(255, 255, 255, 0.92); border: 2px solid #10b981;
+	box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.25), 0 6px 14px rgba(0, 0, 0, 0.4);
+}
+
+/* ↔ کشیدن روی فضای خالی = چرخش دید */
+.ckb-hint-mark.g-swipe .ckb-hint-hand { display: block; animation: ckb-hint-swipe 2.2s ease-in-out infinite; }
+.ckb-hint-mark.g-swipe::before {
+	content: ''; position: absolute; left: -80px; top: -1px; width: 160px; height: 2px;
+	background: linear-gradient(90deg, transparent, rgba(52, 211, 153, 0.7), transparent);
+}
+@keyframes ckb-hint-swipe {
+	0%, 100% { transform: translateX(-70px); }
+	50% { transform: translateX(70px); }
+}
+
+/* زوم: دسکتاپ = ماوس با چرخ متحرک، لمسی = دو انگشت باز و بسته */
+.ckb-hint-mark.g-zoom:not(.is-touch) .ckb-hint-hand {
+	display: block; width: 26px; height: 40px; margin: -20px 0 0 -13px;
+	border-radius: 13px; background: rgba(15, 23, 42, 0.75); border: 2px solid #fff;
+}
+.ckb-hint-mark.g-zoom:not(.is-touch) .ckb-hint-hand::after {
+	content: ''; position: absolute; left: 50%; top: 7px; width: 4px; height: 8px;
+	margin-left: -2px; border-radius: 2px; background: #34d399;
+	animation: ckb-hint-wheel 1.3s ease-in-out infinite;
+}
+@keyframes ckb-hint-wheel {
+	0% { transform: translateY(0); opacity: 1; }
+	80% { transform: translateY(10px); opacity: 0; }
+	100% { transform: translateY(0); opacity: 0; }
+}
+.ckb-hint-mark.g-zoom.is-touch .ckb-hint-hand,
+.ckb-hint-mark.g-zoom.is-touch .ckb-hint-hand2 { display: block; }
+.ckb-hint-mark.g-zoom.is-touch .ckb-hint-hand { animation: ckb-hint-pinch-a 1.8s ease-in-out infinite; }
+.ckb-hint-mark.g-zoom.is-touch .ckb-hint-hand2 { animation: ckb-hint-pinch-b 1.8s ease-in-out infinite; }
+@keyframes ckb-hint-pinch-a {
+	0%, 100% { transform: translate(-12px, 12px); }
+	50% { transform: translate(-48px, 48px); }
+}
+@keyframes ckb-hint-pinch-b {
+	0%, 100% { transform: translate(12px, -12px); }
+	50% { transform: translate(48px, -48px); }
+}
+
+/* ضربه روی دکمه/نوار: حلقهٔ تپنده */
+.ckb-hint-mark.g-tap .ckb-hint-ring { display: block; animation: ckb-hint-pulse 1.6s ease-out infinite; }
+.ckb-hint-mark.g-tap .ckb-hint-hand { display: block; animation: ckb-hint-tap 1.6s ease-out infinite; }
+@keyframes ckb-hint-pulse {
+	0% { transform: scale(0.5); opacity: 0.9; }
+	100% { transform: scale(1.6); opacity: 0; }
+}
+@keyframes ckb-hint-tap {
+	0%, 100% { transform: scale(1); }
+	15% { transform: scale(0.75); }
+	35% { transform: scale(1); }
+}
+
+/* گرفتن و کشیدن قلم */
+.ckb-hint-mark.g-drag .ckb-hint-ring { display: block; animation: ckb-hint-pulse 2.4s ease-out infinite; }
+.ckb-hint-mark.g-drag .ckb-hint-hand { display: block; animation: ckb-hint-drag 2.4s ease-in-out infinite; }
+@keyframes ckb-hint-drag {
+	0% { transform: translate(0, 0) scale(1); opacity: 0; }
+	12% { transform: translate(0, 0) scale(1); opacity: 1; }
+	22% { transform: translate(0, 0) scale(0.75); }
+	70% { transform: translate(60px, -34px) scale(0.75); opacity: 1; }
+	85%, 100% { transform: translate(60px, -34px) scale(1); opacity: 0; }
+}
+
+@media (max-width: 768px) {
+	.ckb-hint-card { top: 10px; width: min(300px, calc(100% - 20px)); padding: 9px 12px 7px; }
+}
 
 /* Keyboard focus affordance */
 .ckb-wstudio-container button:focus-visible,
@@ -1259,7 +1463,11 @@ body.admin-bar .ckb-studio-full {
 	.ckb-wstudio-modal-box .ckb-sheet-handle { display: block; }
 
 	/* Modals become true bottom sheets sliding from below */
-	.ckb-wstudio-modal { padding: 0; align-items: flex-end; }
+	/* v2.13.10: ورق‌ها بالای نوار تب تمام شوند — تب‌ها همیشه در دسترس‌اند */
+	.ckb-wstudio-modal {
+		padding: 0 0 calc(var(--ckb-dock-h, 64px) + 6px);
+		align-items: flex-end;
+	}
 	.ckb-wstudio-modal-box {
 		width: 100%;
 		max-width: none;
@@ -1287,7 +1495,7 @@ body.admin-bar .ckb-studio-full {
 
 /* Landscape phones: sheet keeps a small top gap so the close X stays visible */
 @media (max-height: 480px) and (orientation: landscape) {
-	.ckb-wstudio-modal { padding: 8px 0 0; }
+	.ckb-wstudio-modal { padding: 8px 0 calc(var(--ckb-dock-h, 64px) + 6px); }
 	.ckb-wstudio-modal-box { border-radius: 16px 16px 0 0; }
 }
 
@@ -1313,7 +1521,9 @@ body.admin-bar .ckb-studio-full {
 	left: 0;
 	right: 0;
 	bottom: 0;
-	z-index: 25;
+	/* v2.13.10: بالاتر از مودال‌ها (z-index 40) — وقتی پنجره‌ای باز است
+	   کلیک «ثبت طرح» و بقیه تب‌ها زیر پردهٔ مودال گم نمی‌شود */
+	z-index: 45;
 	display: flex;
 	align-items: stretch;
 	justify-content: space-around;
@@ -1740,7 +1950,7 @@ body.admin-bar .ckb-studio-full {
 	.ckb-coach { top: 62px; bottom: calc(var(--ckb-dock-h, 68px) + 14px); width: 290px; }
 }
 
-/* ═══════════════ v2.13 — سه نقطه شروع + گالری الهام + اعتمادسازی ═══════════════ */
+/* ═══════════════ v2.13 — اعتمادسازی (مودال ثبت طرح) ═══════════════ */
 
 /* ── سه نقطه شروع: سربرگ مودال «نقشه و ابعاد بام» ── */
 .ckb-start-grid {
@@ -1781,60 +1991,7 @@ body.admin-bar .ckb-studio-full {
 	border-radius: 7px;
 }
 
-/* ── گالری الهام: ردیف کارت‌های پروژه اجراشده، تب «پلان‌های آماده» ── */
-.ckb-insp-row { margin: 2px 0 12px; border-radius: 16px; }
-.ckb-insp-row.flash { animation: ckb-insp-flash 1.6s ease; }
-@keyframes ckb-insp-flash {
-	0%, 60% { box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.55); }
-	100% { box-shadow: 0 0 0 2px transparent; }
-}
-.ckb-insp-head { display: flex; align-items: baseline; gap: 8px; margin: 0 2px 8px; }
-.ckb-insp-head b { color: #34d399; font-size: 12.5px; }
-.ckb-insp-head span { color: #64748b; font-size: 10.5px; }
-.ckb-insp-grid {
-	display: grid;
-	grid-template-columns: repeat(3, 1fr);
-	gap: 10px;
-}
-.ckb-insp-card {
-	background: rgba(30, 41, 59, 0.6);
-	border: 1px solid rgba(71, 85, 105, 0.6);
-	border-radius: 16px;
-	overflow: hidden;
-	transition: border-color 0.15s ease, transform 0.15s ease;
-}
-.ckb-insp-card:hover { border-color: rgba(52, 211, 153, 0.5); transform: translateY(-1px); }
-.ckb-insp-cover {
-	position: relative;
-	aspect-ratio: 16 / 9;
-	background: linear-gradient(140deg, #134e2f, #1e293b);
-	border-bottom: 1px solid rgba(71, 85, 105, 0.6);
-}
-.ckb-insp-cover img {
-	position: absolute;
-	inset: 0;
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-}
-.ckb-insp-badge {
-	position: absolute;
-	top: 8px;
-	right: 8px;
-	background: rgba(2, 6, 23, 0.75);
-	color: #34d399;
-	padding: 3px 9px;
-	border-radius: 8px;
-	font-size: 10.5px;
-	font-weight: bold;
-	backdrop-filter: blur(4px);
-}
-.ckb-insp-meta { padding: 10px 12px 12px; }
-.ckb-insp-meta b { display: block; color: #f8fafc; font-size: 12px; }
-.ckb-insp-meta > span { display: block; color: #94a3b8; font-size: 10.5px; margin: 3px 0 9px; }
-.ckb-insp-load { width: 100%; padding: 8px; font-size: 11.5px; }
-
-/* ── اعتمادسازی: دیسکلیمر مهندسی + سفارش نمونه رنگ (مودال ثبت طرح) ── */
+/* ── اعتمادسازی: دیسکلیمر مهندسی (مودال ثبت طرح) ── */
 .ckb-trust-row { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 12px; }
 .ckb-disclaimer {
 	display: flex;
@@ -1848,33 +2005,11 @@ body.admin-bar .ckb-studio-full {
 .ckb-di { font-size: 16px; line-height: 1.4; }
 .ckb-disclaimer b { display: block; color: #e2e8f0; font-size: 11.5px; }
 .ckb-disclaimer p { margin: 2px 0 0; color: #94a3b8; font-size: 10.5px; line-height: 1.8; }
-.ckb-sample {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(2, 6, 23, 0.4));
-	border: 1px solid rgba(52, 211, 153, 0.35);
-	border-radius: 14px;
-	padding: 10px 12px;
-}
-.ckb-swatches { display: flex; gap: 4px; }
-.ckb-swatches i {
-	display: block;
-	width: 16px;
-	height: 16px;
-	border-radius: 50%;
-	border: 2px solid rgba(255, 255, 255, 0.25);
-}
-.ckb-sample-txt { flex: 1; min-width: 0; }
-.ckb-sample-txt b { display: block; color: #e2e8f0; font-size: 11.5px; }
-.ckb-sample-txt p { margin: 2px 0 0; color: #94a3b8; font-size: 10px; }
-.ckb-sample .ckb-catalog-btn { padding: 7px 14px; font-size: 11.5px; flex-shrink: 0; }
 
-/* موبایل: کارت شروع فشرده و گالری تک‌ستونه */
-@media (max-width: 768px) {
-	.ckb-start-grid { grid-template-columns: 1fr 1fr; padding: 10px 10px 0; }
-	.ckb-start-card p { display: none; }
-	/* کارت سوم (شروع از صفر) تمام‌عرض تا ردیف دوم نیمه‌خالی نماند */
-	.ckb-start-card:last-child { grid-column: 1 / -1; }
-	.ckb-insp-grid { grid-template-columns: 1fr; }
-}
+/* موبایل: پنل ثبت فشرده */
+	@media (max-width: 768px) {
+		.ckb-start-grid { grid-template-columns: 1fr 1fr; padding: 10px 10px 0; }
+		.ckb-start-card p { display: none; }
+		/* کارت سوم (شروع از صفر) تمام‌عرض تا ردیف دوم نیمه‌خالی نماند */
+		.ckb-start-card:last-child { grid-column: 1 / -1; }
+	}

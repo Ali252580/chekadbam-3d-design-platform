@@ -45,6 +45,155 @@
 	 * @param {object} item {id, width, depth, height, shapeType, wpcColor, metalColor, category, hasLighting}
 	 * @param {object} opts  {isNight:boolean, wpcColor:string, metalColor:string}
 	 */
+	/* ───────────── GLB اختصاصی از پنل وردپرس (v2.13.3) ─────────────
+	   اگر قلم فیلد «مدل GLB اختصاصی» داشته باشد (item.glbUrl)، مدل واقعی GLB
+	   بارگذاری و به‌جای مدل procedural در همان گروه جاگذاری می‌شود:
+	   ۱) بلافاصله یک باکس خام به‌اندازه‌ی قلم رندر می‌شود (بدون هنگ کردن UI)
+	   ۲) در پس‌زمینه GLB کش-محور (per-URL cache) بارگذاری می‌شود
+	   ۳) پس از موفقیت: باکس خام حذف و مدل با اسکیل دقیق به طول/عرض/ارتفاع پلان جایگزین می‌شود
+	   روی خطا: مدل procedural سر جایش می‌ماند (بدون شکست صحنه) */
+	var glbCache = {}; /* URL -> { gltf(scene cloneable) } */
+	var gltfLoaderSingleton = null;
+
+	function getGLTFLoader() {
+		if (gltfLoaderSingleton) return gltfLoaderSingleton;
+		if (typeof window.GLTFLoader === 'function') {
+			gltfLoaderSingleton = new window.GLTFLoader();
+		}
+		return gltfLoaderSingleton;
+	}
+
+	function disposeGroupDeep(root) {
+		root.traverse(function (o) {
+			if (o.geometry) o.geometry.dispose();
+			if (o.material) {
+				var mats = Array.isArray(o.material) ? o.material : [o.material];
+				for (var mi = 0; mi < mats.length; mi++) {
+					var m = mats[mi];
+					for (var key in m) {
+						var v = m[key];
+						if (v && v.isTexture) v.dispose();
+					}
+					m.dispose();
+				}
+			}
+		});
+	}
+
+	/* متریال GLB بدون تکسچر → رنگ‌های چوب‌پلاست/فلز پنل جایشان را می‌گیرند.
+	   مدل تکسچر‌دار دست‌نخورده می‌ماند (تشخیص: has map در متریال). */
+	function applyFallbackColors(gltfScene, wpcHex, metalColorHexVal) {
+		var tints = [0x9b683e, 0x2b2a29, 0xc59d6f, 0x4a321f]; /* برای ری‌رنگ‌کردن متریال‌های بدون تکسچر بر اساس ایندکس */
+		var i = 0;
+		gltfScene.traverse(function (o) {
+			if (!o.isMesh || !o.material) return;
+			var mats = Array.isArray(o.material) ? o.material : [o.material];
+			for (var mi = 0; mi < mats.length; mi++) {
+				var m = mats[mi];
+				if (m.map || m.aoMap || m.normalMap) continue; /* تکسچر خودش دارد — تشخیص خودکار GLB */
+				/* بدون تکسچر → رنگ پنل را می‌گیرد (چوب‌پلاست برای نیم‌زوج‌ها، فلز برای جمع) */
+				if (i % 2 === 0) {
+					m.color = new THREE.Color(wpcHex);
+					m.roughness = 0.55; m.metalness = 0.05;
+				} else {
+					m.color = new THREE.Color(metalColorHexVal);
+					m.roughness = 0.35; m.metalness = 0.85;
+				}
+				m.needsUpdate = true;
+			}
+			i++;
+		});
+	}
+
+	function buildGlbBaseplate(item) {
+		/* جای‌گیر خام تا لحظه‌ی رسیدن GLB — بدون پیچیدگی، فقط فرم کلی قلم */
+		var w = Math.max(item.width || item.w || 1, 0.3);
+		var d = Math.max(item.depth || item.d || 1, 0.3);
+		var h = Math.max(item.height || item.h || 0.5, 0.3);
+		var g = new THREE.BoxGeometry(w, h, d);
+		var m = new THREE.MeshStandardMaterial({ color: 0x6b7280, roughness: 0.8, metalness: 0.1 });
+		var mesh = new THREE.Mesh(g, m);
+		mesh.position.set(0, h / 2, 0);
+		mesh.castShadow = true; mesh.receiveShadow = true;
+		var grp = new THREE.Group(); grp.add(mesh);
+		grp.userData.isGlbPlaceholder = true;
+		return grp;
+	}
+
+	function fitGlbToItem(gltfScene, item) {
+		var w = Math.max(item.width || item.w || 1, 0.3);
+		var d = Math.max(item.depth || item.d || 1, 0.3);
+		var h = Math.max(item.height || item.h || 0.5, 0.3);
+		var box = new THREE.Box3().setFromObject(gltfScene);
+		var size = new THREE.Vector3(); box.getSize(size);
+		var center = new THREE.Vector3(); box.getCenter(center);
+		var sw = size.x || 1, sh_ = size.y || 1, sd = size.z || 1;
+		/* اسکیل غیر یکنواخت به ابعاد پلان — مدل دقیقاً همان متراژ تعریف‌شده را اشغال می‌کند */
+		var sx = w / sw, sy = h / sh_, sz = d / sd;
+		var wrap = new THREE.Group();
+		gltfScene.position.sub(center); /* مرکز در پایه */
+		gltfScene.scale.set(sx, sy, sz);
+		gltfScene.position.x = -center.x * sx;
+		gltfScene.position.z = -center.z * sz;
+		wrap.add(gltfScene);
+		return wrap;
+	}
+
+	function swapGlbInto(slot, gltfScene, item) {
+		/* placeholder حذف، GLB جایگزین — موقعیت/چرخش همان slot را دارا می‌شود */
+		var parent = slot.parent;
+		if (!parent) return;
+		var idx = parent.children.indexOf(slot);
+		if (idx === -1) return;
+
+		/* متریال GLB بدون تکسچر → رنگ‌های پنل */
+		applyFallbackColors(gltfScene, wpcColorHexStr(item.wpcColor), metalColorHex(item.metalColor || 'black'));
+
+		var fitted = fitGlbToItem(gltfScene, item);
+		fitted.traverse(function (o) {
+			if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; }
+		});
+		fitted.rotation.y = slot.rotation.y;
+		parent.remove(slot);
+		disposeGroupDeep(slot);
+		parent.add(fitted);
+		if (idx !== -1 && parent.children[idx] !== fitted) {
+			parent.remove(fitted);
+			parent.children.splice(idx, 0, fitted);
+		}
+	}
+
+	function attachGlbIfAny(item, itemGroup) {
+		if (!item.glbUrl) return false;
+		var loader = getGLTFLoader();
+		if (!loader) return false; /* فایل loader نیامده — procedural تمام‌مقاوم می‌ماند */
+		var proto = null;
+
+		/* ۱) placeholder بلافاصله رندر می‌شود (UI هرگز قفل نمی‌شود) */
+		var slot = buildGlbBaseplate(item);
+		itemGroup.add(slot);
+
+		/* ۲) cache hit → تعویض فوری بدون fetch */
+		if (glbCache[item.glbUrl]) {
+			proto = glbCache[item.glbUrl];
+			var clone = proto.clone(true);
+			swapGlbInto(slot, clone, item);
+			return true;
+		}
+
+		/* ۳) fetch async + cache probe */
+		loader.load(item.glbUrl, function (gltf) {
+			glbCache[item.glbUrl] = gltf.scene;
+			if (!itemGroup.parent) return; /* از صحنه خارج شده — کش را نگه می‌داریم */
+			var target = itemGroup.getObjectByProperty('userData', 'isGlbPlaceholder', true) || slot;
+			if (target && target.parent) swapGlbInto(target, gltf.scene.clone(true), item);
+		}, undefined, function (err) {
+			/* خطا → placeholder ساوت procedural می‌ماند (سکوت امن) */
+			if (window.console && console.warn) console.warn('Chekadbam GLB load failed:', item.glbUrl, err);
+		});
+		return true;
+	}
+
 	function buildItemModel(item, opts) {
 		opts = opts || {};
 		var itemGroup = new THREE.Group();
@@ -1516,6 +1665,9 @@
 				break;
 			}
 		}
+
+		/* GLB واقعی اختصاصی از پنل؟ اگر بود بلافاصله جای‌گیر خام + درخواست async */
+		attachGlbIfAny(item, itemGroup);
 
 		itemGroup.position.set(item.x || 0, item.y || 0, item.z || 0);
 		itemGroup.rotation.y = THREE.MathUtils.degToRad(item.rotation || 0);

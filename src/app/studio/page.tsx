@@ -3,7 +3,7 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { SpaceConfig, StudioItem } from "@/lib/studio-types";
-import { PRESET_DESIGNS, calculateBillOfMaterials, PresetDesign } from "@/lib/studio-presets";
+import { PRESET_DESIGNS, calculateBillOfMaterials } from "@/lib/studio-presets";
 import { clampItemToPlan, findSafeSpawnPosition } from "@/lib/plan-boundary";
 import { ChekadbamProduct } from "@/lib/products-data";
 import { Chekadbam3DCanvas, Chekadbam3DCanvasRef } from "@/components/studio/Chekadbam3DCanvas";
@@ -235,23 +235,16 @@ export default function ChekadbamStudioPage() {
     pushHistory(reClampedItems);
   };
 
-  // Load a ready-made preset plan (shape + dimensions + layout items)
-  const handleApplyPreset = (preset: PresetDesign) => {
-    setSpaceConfig(preset.spaceConfig);
-    const clampedItems = preset.items.map((it) => {
-      const clamped = clampItemToPlan(it.x, it.z, it.width, it.depth, preset.spaceConfig, it.rotation);
-      return { ...it, x: clamped.x, z: clamped.z };
-    });
-    setItems(clampedItems);
-    pushHistory(clampedItems);
-    setSelectedItemId(null);
-  };
-
   // Open Save Modal with fresh screenshot
   const handleOpenSave = () => {
-    if (canvasRef.current) {
-      const dataUrl = canvasRef.current.takeScreenshot();
-      setScreenshotDataUrl(dataUrl);
+    try {
+      if (canvasRef.current) {
+        const dataUrl = canvasRef.current.takeScreenshot();
+        setScreenshotDataUrl(dataUrl);
+      }
+    } catch (err) {
+      console.warn("Screenshot capture failed, opening modal without image:", err);
+      setScreenshotDataUrl("");
     }
     setIsSaveModalOpen(true);
   };
@@ -294,29 +287,7 @@ export default function ChekadbamStudioPage() {
         </div>
       </div>
 
-      {/* Floating Tools & Quick Item Selector (Top Right) */}
-      <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
-        {/* Quick Placed Item Selector Dropdown */}
-        {items.length > 0 && (
-          <div className="relative">
-            <select
-              value={selectedItemId || ""}
-              onChange={(e) => setSelectedItemId(e.target.value ? e.target.value : null)}
-              className="bg-slate-900/85 hover:bg-slate-900 border border-slate-700/80 text-emerald-300 font-bold rounded-xl px-3 py-1.5 text-xs shadow-lg backdrop-blur-md focus:outline-none focus:border-emerald-500 cursor-pointer"
-            >
-              <option value="" className="bg-slate-900 text-slate-400">
-                {selectedItemId ? "انتخاب اقلام دیگر..." : `انتخاب اقلام (${items.length} عدد)`}
-              </option>
-              {items.map((it, idx) => (
-                <option key={it.id} value={it.id} className="bg-slate-900 text-slate-200">
-                  {idx + 1}. {it.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
 
-      </div>
 
       {/* Selected Item Floating Inspector Bar (Floats comfortably above bottom toolbar) */}
       <ItemInspectorBar
@@ -357,7 +328,6 @@ export default function ChekadbamStudioPage() {
         onClose={() => setIsPlanSpaceOpen(false)}
         spaceConfig={spaceConfig}
         onApplySpace={handleApplySpace}
-        onApplyPreset={handleApplyPreset}
       />
 
       <ProductDrawer

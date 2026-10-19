@@ -2,17 +2,16 @@
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { SpaceConfig, FloorPlanShape } from "@/lib/studio-types";
-import { PRESET_DESIGNS, PresetDesign } from "@/lib/studio-presets";
+
 import { PlanBlueprintThumbnail } from "./PlanBlueprintThumbnail";
 import { calculatePlanArea } from "@/lib/plan-boundary";
-import { LayoutTemplate, Ruler, Check, X, Sparkles, HelpCircle } from "lucide-react";
+import { LayoutTemplate, Ruler, Check, X, HelpCircle } from "lucide-react";
 
 interface PlanSpaceModalProps {
   isOpen: boolean;
   onClose: () => void;
   spaceConfig: SpaceConfig;
   onApplySpace: (cfg: SpaceConfig) => void;
-  onApplyPreset: (preset: PresetDesign) => void;
 }
 
 const PLAN_SHAPES: Array<{ id: FloorPlanShape; name: string; desc: string; iconSvg: string }> = [
@@ -27,39 +26,23 @@ interface TourStepMeta {
   icon: React.ElementType;
   title: string;
   desc: string;
-  tab: "presets" | "custom" | null;
 }
 
 // Pure caption data (refs live separately in the component)
 const TOUR_META: TourStepMeta[] = [
   {
-    icon: LayoutTemplate,
-    title: "دو راه برای شروع",
-    desc: "پلان آماده را یک‌جا بارگذاری کنید، یا فرم و ابعاد بام خودتان را دستی بسازید.",
-    tab: null,
-  },
-  {
-    icon: Sparkles,
-    title: "پلان‌های آماده",
-    desc: "هر کارت، نقشه و چیدمان کامل یک روف‌گاردن است — با یک کلیک روی بوم سه‌بعدی می‌آید.",
-    tab: "presets",
-  },
-  {
     icon: Ruler,
     title: "فرم و ابعاد دلخواه",
     desc: "شکل هندسی بام را انتخاب و عرض و طول را به متر بدهید؛ نقشه دوبعدی همین‌جا زنده به‌روز می‌شود.",
-    tab: "custom",
   },
   {
     icon: Check,
     title: "اعمال روی بوم",
     desc: "با «اعمال»، پلان روی بوم سه‌بعدی ساخته می‌شود و اقلام چیده‌شده خودکار داخل مرزها بازچینی می‌شوند.",
-    tab: "custom",
   },
 ];
 
-export function PlanSpaceModal({ isOpen, onClose, spaceConfig, onApplySpace, onApplyPreset }: PlanSpaceModalProps) {
-  const [tab, setTab] = useState<"presets" | "custom">("presets");
+export function PlanSpaceModal({ isOpen, onClose, spaceConfig, onApplySpace }: PlanSpaceModalProps) {
   const [formData, setFormData] = useState<SpaceConfig>({
     ...spaceConfig,
     flooringType: "wpc_wood",
@@ -68,12 +51,10 @@ export function PlanSpaceModal({ isOpen, onClose, spaceConfig, onApplySpace, onA
   // ── Visual guided tour (spotlight + caption card) ──────────────────────────
   const [tourStep, setTourStep] = useState<number | null>(null);
   const [spot, setSpot] = useState<{ top: number; left: number; width: number; height: number; cardTop: number; cardLeft: number } | null>(null);
-  const tabsRef = useRef<HTMLDivElement>(null);
-  const presetsRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
   const applyRef = useRef<HTMLButtonElement>(null);
   const tourTargets = useMemo<Array<React.RefObject<HTMLElement | null>>>(
-    () => [tabsRef, presetsRef, formRef, applyRef],
+    () => [formRef, applyRef],
     []
   );
 
@@ -118,7 +99,7 @@ export function PlanSpaceModal({ isOpen, onClose, spaceConfig, onApplySpace, onA
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", onResize);
     };
-  }, [tourStep, tab, isOpen, measureSpot, tourTargets]);
+  }, [tourStep, isOpen, measureSpot, tourTargets]);
 
   // Auto-start once, the first time the plan window opens
   useEffect(() => {
@@ -144,10 +125,6 @@ export function PlanSpaceModal({ isOpen, onClose, spaceConfig, onApplySpace, onA
   const goToStep = useCallback(
     (idx: number | null) => {
       setTourStep(idx);
-      if (idx !== null) {
-        const targetTab = TOUR_META[idx]?.tab;
-        if (targetTab) setTab(targetTab);
-      }
     },
     []
   );
@@ -181,8 +158,7 @@ export function PlanSpaceModal({ isOpen, onClose, spaceConfig, onApplySpace, onA
   const activeTour = tourStep !== null ? TOUR_META[tourStep] : null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn text-right" dir="rtl">
-      <div className="relative w-full max-w-4xl bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn text-right" dir="rtl">      <div className="relative w-full max-w-4xl bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
           <div className="flex items-center gap-3">
@@ -191,7 +167,7 @@ export function PlanSpaceModal({ isOpen, onClose, spaceConfig, onApplySpace, onA
             </div>
             <div>
               <h3 className="text-base font-bold text-white">نقشه و ابعاد بام</h3>
-              <p className="text-xs text-slate-400">یک پلان آماده بارگذاری کنید یا فرم و ابعاد دلخواه بام خود را تنظیم کنید.</p>
+              <p className="text-xs text-slate-400">فرم و ابعاد دلخواه بام خود را تنظیم کنید.</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -216,73 +192,10 @@ export function PlanSpaceModal({ isOpen, onClose, spaceConfig, onApplySpace, onA
           </div>
         </div>
 
-        {/* Tabs */}
-        <div ref={tabsRef} className="px-6 pt-4 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setTab("presets")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
-              tab === "presets"
-                ? "bg-emerald-600 text-white shadow"
-                : "bg-slate-800 text-slate-300 hover:text-white"
-            }`}
-          >
-            <LayoutTemplate className="w-4 h-4" />
-            <span>پلان‌های آماده</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab("custom")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
-              tab === "custom"
-                ? "bg-emerald-600 text-white shadow"
-                : "bg-slate-800 text-slate-300 hover:text-white"
-            }`}
-          >
-            <Ruler className="w-4 h-4" />
-            <span>تنظیم دستی فرم و ابعاد</span>
-          </button>
-        </div>
 
         {/* Body */}
         <div className="p-6 overflow-y-auto flex-1 text-slate-200 text-xs">
-          {tab === "presets" ? (
-            <div ref={presetsRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {PRESET_DESIGNS.map((preset) => (
-                <div
-                  key={preset.id}
-                  className="group bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 hover:border-emerald-500/50 rounded-2xl overflow-hidden flex flex-col justify-between transition-all"
-                >
-                  <div className="relative aspect-[16/10] overflow-hidden bg-[#080d1a] border-b border-slate-700/60">
-                    <PlanBlueprintThumbnail presetId={preset.id} spaceConfig={preset.spaceConfig} />
-                    {preset.badge && (
-                      <span className="absolute top-2.5 right-2.5 bg-emerald-500 text-slate-950 text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow">
-                        {preset.badge}
-                      </span>
-                    )}
-                  </div>
-                  <div className="p-3.5 space-y-2.5">
-                    <h4 className="font-bold text-xs text-white group-hover:text-emerald-300 transition-colors leading-snug">
-                      {preset.name}
-                    </h4>
-                    <p className="text-[11px] text-slate-300 line-clamp-2 leading-relaxed">{preset.description}</p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onApplyPreset(preset);
-                        onClose();
-                      }}
-                      className="w-full px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95"
-                    >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>بارگذاری این نقشه و چیدمان</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Shape + dimensions */}
               <div ref={formRef} className="lg:col-span-7 space-y-5">
                 {/* Shape cards */}
@@ -461,12 +374,9 @@ export function PlanSpaceModal({ isOpen, onClose, spaceConfig, onApplySpace, onA
                   <Check className="w-4 h-4" />
                   <span>اعمال فرم و ابعاد روی نقشه فعلی</span>
                 </button>
-                <p className="text-[10px] text-slate-500 leading-relaxed">
-                  با اعمال ابعاد جدید، اقلام چیده‌شده به‌صورت خودکار داخل مرزهای نقشه بازچینی می‌شوند.
-                </p>
+
               </div>
             </div>
-          )}
         </div>
       </div>
 

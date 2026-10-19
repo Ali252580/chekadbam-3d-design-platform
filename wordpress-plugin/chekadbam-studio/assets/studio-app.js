@@ -59,10 +59,10 @@
 		var viewMode = '3d';
 
 		/* ─────────────── Three.js scene ─────────────── */
-		var scene = new THREE.Scene();
-		var vp = rootEl.querySelector('.ckb-wstudio-viewport');
 		/* Mobile v2.8: on phones the editor must fill the real visible viewport
 		   (the URL bar problem) — dvh where supported, JS fallback below */
+		var vp = rootEl.querySelector('.ckb-wstudio-viewport');
+		var scene = new THREE.Scene();
 		var initW = vp.clientWidth || 800;
 		var initH = vp.clientHeight || 600;
 
@@ -71,6 +71,7 @@
 		var CAM_SENS = MOBILE ? 0.0075 : 0.0055; /* touch orbits need a bit more gain */
 		var lookAtTarget = new THREE.Vector3(0, 0, 0);
 
+		//Timing consistency: 
 		var renderer = new THREE.WebGLRenderer({
 			antialias: true,
 			alpha: false,
@@ -84,6 +85,39 @@
 		renderer.toneMapping = THREE.ACESFilmicToneMapping;
 		renderer.toneMappingExposure = 1.1;
 		vp.appendChild(renderer.domElement);
+
+		/* ── لودینگ برند (v2.13.2) — پوشش گرافیکی روی ویوپورت ──
+		   تا صحنه کاملاً بسازد (محیط + اقلام + نور) و اولین فریم رندر شود،
+		   به‌جای صفحه خالی، حلقهٔ چرخان SVG سبز + برند پالس‌دار دیده می‌شود.
+		   بعد از ۴۵۰ میلی‌ثانیه با opacity محو و سپس از DOM حذف می‌شود.
+		   استایل‌ها در studio.css (کلاس ckb-wstudio-loader و ckb-loader-*). */		(function addLoadingOverlay() {
+			if (!vp) return;
+			/* v2.13.2: overlay is server-rendered inside the viewport HTML.
+			   JS only reuses it (fades + removes after first frame) — no build step. */
+			var ov = $('loader');
+			if (!ov) {
+				/* Legacy installs (cached HTML without the server-rendered div):
+				   build it on the fly so old pages still show the brand loader */
+				ov = document.createElement('div');
+				ov.innerHTML =
+					'<div class="ckb-loader-ring">' +
+						'<svg viewBox="0 0 64 64" fill="none"><circle class="ckb-loader-track" cx="32" cy="32" r="27" stroke-width="3" fill="none"/>' +
+						'<circle class="ckb-loader-arc" cx="32" cy="32" r="27" stroke-width="3" stroke-linecap="round" fill="none" stroke-dasharray="42 128"/></svg>' +
+						'<div class="ckb-loader-core"><span></span></div>' +
+					'</div>' +
+					'<div class="ckb-loader-brand"><span class="ckb-loader-dot"></span><b>چکادبام استودیو</b></div>' +
+					'<div class="ckb-loader-note">در حال آماده‌سازی صحنه سه‌بعدی</div>';
+				ov.className = 'ckb-wstudio-loader';
+				ov.setAttribute('aria-hidden', 'true'); /* تزئینی — روی اسکرین‌ریدر پخش نشود */
+				vp.appendChild(ov);
+			}
+			ov.classList.remove('is-server'); /* اطمینان: جدول‌بندی CSS یکسان */
+			/* زمان‌بندی: بعد از ۴۵۰ms کلاس done (محو ۶۵۰ms) + حذف از DOM */
+			window.setTimeout(function () {
+				ov.classList.add('done');
+				window.setTimeout(function () { if (ov.parentNode) ov.parentNode.removeChild(ov); }, 700);
+			}, 450);
+		})();
 
 		var lightsGroup = new THREE.Group();
 		var envGroup = new THREE.Group();
@@ -627,6 +661,7 @@
 				wpcColor: prod.wpcColor || space.wpcColor,
 				metalColor: prod.metalColor || space.metalColor,
 				shapeType: prod.shape || 'box',
+				glbUrl: prod.glbUrl || '',
 				priceEst: prod.price || 0,
 				weightKg: prod.weight || 0,
 				hasLighting: !!prod.light,
@@ -636,6 +671,7 @@
 			buildItem(item);
 			selectItem(item.id);
 			updateBomBadge();
+			hintSignal('add');
 			/* The plan is too tight for this product (e.g. a 3.2 m pergola on a
 			   2.8 m balcony) — it is centred best-effort; tell the user clearly */
 			if (spawn && spawn.fits === false) {
@@ -759,6 +795,7 @@
 			moveItemVisual(item);
 			pushHistory();
 			updateInspectorMeta();
+			hintSignal('fine');
 		}
 
 		/* Copy the selected item 0.6 m away (clamped), like the Next.js studio */
@@ -823,6 +860,7 @@
 			item.rotation = ((item.rotation || 0) + deg) % 360;
 			pushHistory();
 			rebuildItems();
+			hintSignal('fine');
 		}
 
 		/* ─────────────── Load plan ─────────────── */
@@ -848,6 +886,7 @@
 					wpcColor: prod ? prod.wpcColor || space.wpcColor : space.wpcColor,
 					metalColor: prod ? prod.metalColor || space.metalColor : space.metalColor,
 					shapeType: src.shapeType || (prod && prod.shape) || 'box',
+					glbUrl: src.glbUrl || (prod && prod.glbUrl) || '',
 					priceEst: src.priceEst || (prod && prod.price) || 0,
 					weightKg: src.weightKg || (prod && prod.weight) || 0,
 					hasLighting: src.hasLighting || !!(prod && prod.light),
@@ -932,6 +971,7 @@
 			lastTapTime = isDouble ? 0 : now;
 			lastTapX = x; lastTapY = y;
 			if (!isDouble) return;
+			hintSignal('zoom');
 
 			var hitId = pickItem(x, y);
 			if (hitId) {
@@ -1036,7 +1076,12 @@
 			var pressId = pickItem(e.clientX, e.clientY);
 			clickedId = pressId;
 
-			if (pressId && pressId === selectedId) {
+			if (pressId) {
+				/* v2.13.4 — اصلاح حس «میپره»: درگ روی هر قلمی که زیر نشانگر است،
+				   حتی اگر هنوز انتخاب‌نشده، همان قلم را بی‌درنگ انتخاب می‌کند و
+				   درگ همان قلم شروع می‌شود (قبلاً روی قلم انتخاب‌نشده،
+				   چرخش دوربین اجرا می‌شد و صحنه ناپایدار به نظر می‌رسید). */
+				selectItem(pressId);
 				isOrbiting = false;
 				var pt = floorPoint(e.clientX, e.clientY);
 				var item = items.find(function (it) { return it.id === pressId; });
@@ -1044,6 +1089,7 @@
 					dragOffset = { x: item.x - pt.x, z: item.z - pt.z };
 				}
 			} else {
+				/* فقط فضای خالی → چرخش دوربین */
 				isOrbiting = true;
 			}
 
@@ -1062,6 +1108,7 @@
 					var maxDim = Math.max(space.width, space.length);
 					cameraAngle.radius = Math.max(4, Math.min(maxDim * 3, pinch.startRadius * (pinch.startDist / dist)));
 					updateCamera();
+					hintSignal('zoom');
 				}
 				return; /* suspend orbit/drag while pinching */
 			}
@@ -1072,7 +1119,10 @@
 
 			if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 6) hasMoved = true;
 
-			if (clickedId && clickedId === selectedId && hasMoved) {
+			/* v2.13.5: درگ فقط وقتی روی قلم واقعی شروع شود — شرط قبلی
+			   clickedId=null با selectedId=null هم true می‌شد و درگِ خالی
+			   چرخش دوربین را هم می‌خفه (دکمه‌ها فقط قفل می‌شدند با ckb-dragging) */
+			if (clickedId === selectedId && clickedId && hasMoved) {
 				isDragging = true;
 				isOrbiting = false;
 				/* fade the dock/inspector while dragging — they were covering the deck */
@@ -1151,8 +1201,11 @@
 						item.z = dragLast.z;
 						pushHistory();
 						updateInspectorMeta(); /* keep the X/Z readout in sync after a drag */
+						hintSignal('drag');
 					}
 				}
+			} else if (isOrbiting && hasMoved) {
+				hintSignal('orbit');
 			} else if (!hasMoved) {
 				var picked = pickItem(e.clientX, e.clientY);
 				selectItem(picked);
@@ -1173,6 +1226,7 @@
 			var maxDim = Math.max(space.width, space.length);
 			cameraAngle.radius = Math.max(4, Math.min(maxDim * 3, cameraAngle.radius + e.deltaY * 0.015));
 			updateCamera();
+			hintSignal('zoom');
 		}, { passive: false });
 
 		// Keyboard shortcuts
@@ -1277,7 +1331,20 @@
 		}
 		function closeModal(name) {
 			var m = $('modal-' + name);
-			if (m) m.style.display = 'none';
+			if (!m) return;
+			m.style.display = 'none';
+		}
+
+		/* v2.13.10 — همه لایه‌های روی صحنه را می‌بندد (مودال‌ها، تور راهنما،
+		   ورق ابزارها، پنل همراه طراح). هر تبِ بازکنندهٔ پنجره اول این را صدا
+		   می‌زند تا پنجره‌ها روی هم انباشته نشوند و نوار تب — که حالا بالاتر
+		   از مودال‌هاست — کلیک‌های زیر پردهٔ مودالِ باز را از دست ندهد. */
+		function resetOverlays() {
+			if (planTourStep >= 0) endPlanTour();
+			if (moreSheetToggle) moreSheetToggle(false);
+			if (window.CKBCoach) window.CKBCoach.toggle(false);
+			closeModal('catalog'); closeModal('plan');
+			closeModal('bom'); closeModal('save'); closeModal('guide');
 		}
 
 		/* Catalog with live 3D thumbnails + search & category filter (like ProductDrawer) */
@@ -1493,32 +1560,9 @@
 				.replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 		}
 
-		/* Plans modal */
-		function renderPlansModal() {
-			var el = $('plans-list');
-			el.innerHTML = '';
-			var BP = window.CKBBlueprint || null;
-			plans.forEach(function (plan) {
-				var card = document.createElement('div');
-				card.className = 'ckb-pcard' + (currentPlan.id === plan.id ? ' selected' : '');
-				var thumb = BP ? '<div class="ckb-pcard-thumb">' + BP.svg(plan) + '</div>' : '';
-				card.innerHTML = thumb +
-					'<div class="ckb-pcard-meta"><h5>' + escapeHtml(plan.name || '') + '</h5>' +
-					'<p>ابعاد: ' + plan.width + ' × ' + plan.length + ' متر | متراژ: ' +
-					B.calculatePlanArea(toSpace(plan)) + ' م²</p></div>' +
-					'<span class="ckb-pcard-badge">' + escapeHtml(plan.shapeName || 'پلان') + '</span>';
-				card.onclick = function () {
-					loadPlan(plan);
-					closeModal('plan');
-				};
-				el.appendChild(card);
-			});
-		}
-
 		/* Plan editor modal */
 		function openPlanEditor() {
-			renderPlansModal();
-			setPlanTab('presets');
+			setPlanTab('custom');
 			$('pe-width').value = space.width;
 			$('pe-length').value = space.length;
 			$('pe-parapet').value = space.parapetHeight;
@@ -1603,6 +1647,7 @@
 					return {
 						productId: it.productId, name: it.name, x: it.x, z: it.z,
 						rotation: it.rotation, w: it.width, d: it.depth, h: it.height,
+						glbUrl: it.glbUrl || '',
 					};
 				}),
 			};
@@ -1657,6 +1702,8 @@
 
 		/* Opening the save modal captures a live preview the user can download */
 		function prepareSaveModal() {
+			resetOverlays(); /* v2.13.10: پنجرهٔ باز قبلی مانع «ثبت طرح» نشود */
+			otpResetUI();    /* وضعیت کد تایید پیامکی را برای هر بار باز شدن صفر کن */
 			lastSaveShot = captureShot();
 			var box = $('save-shot');
 			var img = $('save-shot-img');
@@ -1681,6 +1728,143 @@
 			a.remove();
 		}
 
+		/* ─────────────── کد تایید پیامکی (OTP) ───────────────
+		   وقتی cfg.otpEnabled فعال باشد (افزونه WP SMS + درگاه پیامک)،
+		   ثبت طرح فقط با کد ۵ رقمی پیامکی که به موبایل کاربر ارسال می‌شود
+		   انجام می‌شود. سمت سرور در ckb_save_design کد بررسی می‌شود. */
+		var otp = { sent: false, phone: '', timer: null };
+
+		function otpDigits(raw) {
+			var s = String(raw || '');
+			var fa = '۰۱۲۳۴۵۶۷۸۹', ar = '٠١٢٣٤٥٦٧٨٩';
+			for (var i = 0; i < 10; i++) {
+				s = s.split(fa.charAt(i)).join(String(i)).split(ar.charAt(i)).join(String(i));
+			}
+			return s.replace(/\D+/g, '');
+		}
+
+		function otpNormalizePhone(raw) {
+			var p = String(raw || '').replace(/[\s\-()]/g, '');
+			var fa = '۰۱۲۳۴۵۶۷۸۹', ar = '٠١٢٣٤٥٦٧٨٩';
+			for (var i = 0; i < 10; i++) {
+				p = p.split(fa.charAt(i)).join(String(i)).split(ar.charAt(i)).join(String(i));
+			}
+			var m = /^(?:\+98|0098|98)(9\d{9})$/.exec(p);
+			if (m) p = '0' + m[1];
+			else if (/^9\d{9}$/.test(p)) p = '0' + p;
+			return /^09\d{9}$/.test(p) ? p : '';
+		}
+
+		function otpResetUI() {
+			otp.sent = false;
+			otp.phone = '';
+			if (otp.timer) { clearInterval(otp.timer); otp.timer = null; }
+			var sendBtn = $('btn-otp-send');
+			var resendBtn = $('btn-otp-resend');
+			var group = $('otp-group');
+			var hint = $('otp-hint');
+			var inp = $('inp-otp');
+			if (sendBtn) { sendBtn.hidden = !cfg.otpEnabled; sendBtn.disabled = false; sendBtn.innerText = 'ارسال کد تایید'; }
+			if (resendBtn) { resendBtn.hidden = true; resendBtn.disabled = false; resendBtn.innerText = 'ارسال مجدد'; }
+			if (group) group.hidden = true;
+			if (hint) hint.textContent = '';
+			if (inp) { inp.value = ''; inp.classList.remove('ckb-otp-bad'); }
+		}
+
+		function otpSend(btn) {
+			var notice = $('save-notice');
+			function showNotice(type, msg) {
+				notice.className = 'ckb-notice ' + type;
+				notice.innerHTML = msg;
+			}
+			var phone = otpNormalizePhone($('inp-phone').value);
+			if (!phone) {
+				showNotice('error', 'شماره موبایل معتبر نیست. نمونه: 09121234567');
+				$('inp-phone').focus();
+				return;
+			}
+			$('inp-phone').value = phone;
+			var label = btn.innerText;
+			btn.disabled = true;
+			btn.innerText = 'در حال ارسال...';
+			showNotice('', '');
+
+			function go(nonce) {
+				var fd = new FormData();
+				fd.append('action', 'ckb_send_otp');
+				fd.append('nonce', nonce);
+				fd.append('phone', phone);
+				fetch(cfg.ajaxUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
+					.then(function (r) { return r.json(); })
+					.then(function (res) {
+						if (res && !res.success && res.data && res.data.code === 'stale_nonce' && res.data.freshNonce) {
+							cfg.nonce = res.data.freshNonce;
+							go(res.data.freshNonce); /* یک‌بار با nonce تازه تکرار */
+							return;
+						}
+						btn.disabled = false;
+						btn.innerText = label;
+						if (!res || !res.success) {
+							var d = res && res.data;
+							var msg = (d && d.message) ? d.message : (typeof d === 'string' ? d : 'خطای سرور');
+							showNotice('error', msg);
+							return;
+						}
+						otpOnSent(res.data || {});
+					})
+					.catch(function () {
+						btn.disabled = false;
+						btn.innerText = label;
+						showNotice('error', 'خطای شبکه؛ دوباره تلاش کنید.');
+					});
+			}
+			/* nonce تازه از admin-ajax — مثل submit، برای دور زدن کش صفحه */
+			var preFd = new FormData();
+			preFd.append('action', 'ckb_get_nonce');
+			fetch(cfg.ajaxUrl, { method: 'POST', body: preFd, credentials: 'same-origin' })
+				.then(function (r) { return r.json(); })
+				.then(function (nr) {
+					var fresh = (nr && nr.success && nr.data && nr.data.nonce) ? nr.data.nonce : cfg.nonce;
+					cfg.nonce = fresh;
+					go(fresh);
+				})
+				.catch(function () { go(cfg.nonce); });
+		}
+
+		function otpOnSent(data) {
+			otp.sent = true;
+			otp.phone = otpNormalizePhone($('inp-phone').value);
+			var group = $('otp-group');
+			var resendBtn = $('btn-otp-resend');
+			var hint = $('otp-hint');
+			var inp = $('inp-otp');
+			if (group) group.hidden = false;
+			if (inp) {
+				inp.value = '';
+				inp.classList.remove('ckb-otp-bad');
+				try { inp.focus(); } catch (e) {}
+			}
+			if (hint) hint.textContent = 'کد تایید به شماره ' + otp.phone + ' پیامک شد (اعتبار ۵ دقیقه).';
+			var cooldown = data && data.cooldown ? parseInt(data.cooldown, 10) : 120;
+			if (otp.timer) clearInterval(otp.timer);
+			if (resendBtn) {
+				resendBtn.hidden = false;
+				resendBtn.disabled = true;
+				resendBtn.innerText = 'ارسال مجدد (' + cooldown + ')';
+				otp.timer = setInterval(function () {
+					cooldown--;
+					if (cooldown <= 0) {
+						clearInterval(otp.timer);
+						otp.timer = null;
+						resendBtn.disabled = false;
+						resendBtn.innerText = 'ارسال مجدد';
+					} else {
+						resendBtn.innerText = 'ارسال مجدد (' + cooldown + ')';
+					}
+				}, 1000);
+			}
+		}
+
 		function submitDesign() {
 			var name = $('inp-name').value.trim();
 			var phone = $('inp-phone').value.trim();
@@ -1699,58 +1883,174 @@
 				return;
 			}
 
+			/* OTP: کد پیامکی باید برای همین شماره دریافت و وارد شده باشد */
+			var otpCode = '';
+			if (cfg.otpEnabled) {
+				var norm = otpNormalizePhone(phone);
+				var inpOtp = $('inp-otp');
+				otpCode = otpDigits(inpOtp ? inpOtp.value : '');
+				if (!norm) {
+					showNotice('error', 'شماره موبایل معتبر نیست. نمونه: 09121234567');
+					return;
+				}
+				if (!otp.sent) {
+					showNotice('error', 'ابتدا با دکمه «ارسال کد تایید» کنار شماره موبایل، کد پیامکی را دریافت کنید.');
+					return;
+				}
+				if (norm !== otp.phone) {
+					showNotice('error', 'شماره موبایل تغییر کرده است؛ برای این شماره دوباره «ارسال کد تایید» را بزنید.');
+					return;
+				}
+				if (otpCode.length !== 5) {
+					showNotice('error', 'کد تایید ۵ رقمی که پیامک شد را وارد کنید.');
+					if (inpOtp) inpOtp.focus();
+					return;
+				}
+			}
+
 			var btn = $('btn-submit');
 			btn.disabled = true;
 			btn.innerText = 'در حال ارسال...';
 			showNotice('', '');
 
 			// Capture screenshot (render once more to be safe)
-			var dataUrl = lastSaveShot || captureShot();
+			var dataUrl = lastSaveShot || captureShot();			var bom = window.CKBBom.calculateBillOfMaterials(space, items);
+			var submitData = { name: name, phone: phone, email: email, city: city, notes: notes,
+				shape: space.shape, width: space.width, length: space.length, parapet: space.parapetHeight,
+				flooring: space.flooringType, wpcColor: space.wpcColor, metalColor: space.metalColor,
+				itemsJson: JSON.stringify(items), planJson: JSON.stringify(space), bomJson: JSON.stringify(bom),
+				snapshot: dataUrl };
 
-			var bom = window.CKBBom.calculateBillOfMaterials(space, items);
-
-			var fd = new FormData();
-			fd.append('action', 'ckb_save_design');
-			fd.append('nonce', cfg.nonce);
-			fd.append('name', name);
-			fd.append('phone', phone);
-			fd.append('email', email);
-			fd.append('city', city);
-			fd.append('shape', space.shape);
-			fd.append('width', space.width);
-			fd.append('length', space.length);
-			fd.append('parapet', space.parapetHeight);
-			fd.append('flooring', space.flooringType);
-			fd.append('wpcColor', space.wpcColor);
-			fd.append('metalColor', space.metalColor);
-			fd.append('notes', notes);
-			fd.append('itemsJson', JSON.stringify(items));
-			fd.append('planJson', JSON.stringify(space));
-			fd.append('bomJson', JSON.stringify(bom));
-			fd.append('snapshot', dataUrl);
-
-			fetch(cfg.ajaxUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
+			/* v2.13.8 — قبل از هر submit یک nonce تازه از admin-ajax (خارج از کش صفحه)
+			   بگیر؛ stale_nonce صفحه‌های کَش‌شده (WP Rocket/LiteSpeed) را همیشه دور می‌زند. */
+			var preFd = new FormData();
+			preFd.append('action', 'ckb_get_nonce');
+			fetch(cfg.ajaxUrl, { method: 'POST', body: preFd, credentials: 'same-origin' })
 				.then(function (r) { return r.json(); })
-				.then(function (res) {
-					btn.disabled = false;
-					btn.innerText = 'ارسال طرح و دریافت مشاوره';
-					if (res.success) {
-						var trackId = res && res.data && res.data.id ? 'کد پیگیری طرح: CK-' + res.data.id : '';
-						showNotice('success', '✓ طرح شما با موفقیت ثبت شد و کارشناسان چکادبام به‌زودی با شما تماس می‌گیرند.' + (trackId ? '<br><b dir="ltr">' + trackId + '</b>' : ''));
-						setTimeout(function () {
-							closeModal('save');
-							notice.className = 'ckb-notice';
-						}, 6000);
-					} else {
-						showNotice('error', 'خطا در ثبت طرح: ' + (res.data || 'خطای سرور'));
-					}
+				.then(function (nr) {
+					var fresh = nr && nr.success && nr.data && nr.data.nonce ? nr.data.nonce : cfg.nonce;
+					cfg.nonce = fresh;
+					doSubmit(fresh);
 				})
 				.catch(function () {
+					doSubmit(cfg.nonce);
+				});
+
+			function doSubmit(nonce) {
+				var fd = new FormData();
+				fd.append('action', 'ckb_save_design');
+				fd.append('nonce', nonce);
+				fd.append('haveSnapshot', submitData.snapshot ? '1' : '');
+				fd.append('name', submitData.name);
+				fd.append('phone', submitData.phone);
+				fd.append('email', submitData.email);
+				fd.append('city', submitData.city);
+				fd.append('shape', submitData.shape);
+				fd.append('width', submitData.width);
+				fd.append('length', submitData.length);
+				fd.append('parapet', submitData.parapet);
+				fd.append('flooring', submitData.flooring);
+				fd.append('wpcColor', submitData.wpcColor);
+				fd.append('metalColor', submitData.metalColor);
+				fd.append('notes', submitData.notes);
+				fd.append('itemsJson', submitData.itemsJson);
+				fd.append('planJson', submitData.planJson);
+				fd.append('bomJson', submitData.bomJson);
+				if (cfg.otpEnabled) fd.append('otp', otpCode);
+
+				fetch(cfg.ajaxUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
+				.then(function (r) {
+					/* v2.13.7 — اگر پاسخ JSON نبود (مثل صفحه 500/CDN/block یا HTML)، متن raw را بگیر */
+					return r.text().then(function (txt) {
+						var parsed = null;
+						try { parsed = JSON.parse(txt); } catch (e) {}
+						return { status: r.status, ok: r.ok, json: parsed, raw: txt };
+					});
+				})
+				.then(function (r) {
+					var res = r.json;
+					if (!res || !res.success) {
+						btn.disabled = false;
+						btn.innerText = 'ارسال طرح و دریافت مشاوره';
+						var d = res && res.data;
+						var msg = (d && d.message) ? d.message : (typeof d === 'string' ? d : 'خطای سرور');
+						if (d && d.detail && !d.code) msg += '<br><small>' + escapeHtml(String(d.detail)) + '</small>';
+						if (d && d.code === 'stale_nonce' && d.freshNonce) {
+							cfg.nonce = d.freshNonce;
+							lastNonceRefreshed = true;
+						}
+						/* کد تایید اشتباه — فیلد کد را قرمز و متمرکز کن */
+						if (d && d.code === 'otp_invalid') {
+							var io2 = $('inp-otp');
+							if (io2) {
+								io2.classList.add('ckb-otp-bad');
+								try { io2.focus(); } catch (e) {}
+							}
+						}
+						/* v2.13.7 — اگر پاسخ اصلاً JSON نبود، متن raw و status را نشان بده */
+						if (!res) {
+							var head = (r.raw || '').replace(/\s+/g, ' ').slice(0, 160);
+							msg = 'پاسخ JSON نبود (HTTP ' + r.status + '): ' + head || '(خالی)';
+						}
+						showNotice('error', 'خطا در ثبت طرح: ' + msg);
+						return;
+					}
+					/* metadata ذخیره شد؛ حالا snapshot جداگانه (بدون بار سنگین روی همان فرم) */
+					var trackId = 'کد پیگیری طرح: CK-' + (res.data.id || '?');
+
+					function finish(ok, extra) {
+						btn.disabled = false;
+						btn.innerText = 'ارسال طرح و دریافت مشاوره';
+						if (ok) {
+							showNotice('success', '✓ طرح شما با موفقیت ثبت شد و کارشناسان چکادبام به‌زودی با شما تماس می‌گیرند.<br><b dir="ltr">' + trackId + '</b>' + (extra || ''));
+							setTimeout(function () {
+								closeModal('save');
+								notice.className = 'ckb-notice';
+							}, 6000);
+						} else {
+							showNotice('error', 'خطا در ثبت طرح: ' + (extra || 'خطای سرور'));
+						}
+					}
+
+					var shot = lastSaveShot || captureShot();
+					if (!shot) {
+						finish(true);
+						return;
+					}
+					/* snapshot جداگانه — اگر ناموفق بود، طرح ثبت‌شده باقی می‌ماند */
+					var sfd = new FormData();
+					sfd.append('action', 'ckb_save_snapshot');
+					sfd.append('nonce', cfg.nonce);
+					sfd.append('designId', res.data.id);
+					sfd.append('snapshot', shot);
+					fetch(cfg.ajaxUrl, { method: 'POST', body: sfd, credentials: 'same-origin' })
+						.then(function (r) { return r.json(); })
+						.then(function (sres) {
+							if (sres && sres.success) {
+								finish(true);
+							} else {
+								/* طرح ثبت شد ولی snapshot ذخیره نشد */
+								finish(true, '<br><small>⚠ تصویر طرح ذخیره نشد (محدودیت حجم هاست) — ثبت خود لطمه نمی‌زند.</small>');
+							}
+						})
+						.catch(function () {
+							finish(true, '<br><small>⚠ تصویر طرح ذخیره نشد (خطای شبکه) — ثبت خود لطمه نمی‌زند.</small>');
+						});
+				})
+				.catch(function (err) {
 					btn.disabled = false;
 					btn.innerText = 'ارسال طرح و دریافت مشاوره';
-					showNotice('error', 'خطای شبکه؛ لطفاً مجدداً تلاش کنید.');
+					/* v2.13.7 — علت واقعی را نشان بده: آدرس ajax + نوع خطا */
+					showNotice('error',
+						'خطای شبکه. جزئیات:<br><small dir="ltr" style="user-select:text">' +
+						'URL: ' + escapeHtml(String(cfg.ajaxUrl || '')) + '<br>' +
+						'Error: ' + escapeHtml(String(err && err.message ? err.message : err)) +
+						'</small>');
+					try { console.error('[CKB] submit fetch failed', err, 'ajaxUrl =', cfg.ajaxUrl); } catch (e) {}
 				});
+			}
 		}
+		var lastNonceRefreshed = false;
 
 		/* Toolbar buttons */
 		function bindClick(id, fn) {
@@ -1809,6 +2109,7 @@
 			coachBtn.setAttribute('aria-expanded', 'false');
 			coachBtn.innerHTML = TAB_ICONS.coach + '<span class="ckb-tab-label">همراه طراح</span>';
 			coachBtn.addEventListener('click', function () {
+				resetOverlays(); /* v2.13.10: پنل همراه طراح زیر مودالِ باز نماند */
 				if (window.CKBCoach) window.CKBCoach.toggle();
 			});
 			bar.appendChild(coachBtn);
@@ -1861,7 +2162,10 @@
 				moreBtn.classList.toggle('on', moreOpen);
 				moreBtn.setAttribute('aria-expanded', moreOpen ? 'true' : 'false');
 			};
-			moreBtn.addEventListener('click', function () { moreSheetToggle(!moreOpen); });
+			moreBtn.addEventListener('click', function () {
+				if (!moreOpen) resetOverlays(); /* v2.13.10: ورق ابزار زیر مودالِ باز نماند */
+				moreSheetToggle(!moreOpen);
+			});
 			backdrop.addEventListener('click', function () { moreSheetToggle(false); });
 			sheet.querySelector('.ckb-more-close').addEventListener('click', function () { moreSheetToggle(false); });
 			/* any tool tap closes the sheet — the effect is visible on the canvas */
@@ -1897,34 +2201,50 @@
 			if (window.CKBCoach) window.CKBCoach.refresh();
 		}
 
-		/* ── v2.13 گالری الهام: ماژول مستقل ckb-inspiration.js ──
-		   کارت‌های پروژه‌های اجراشده را در تب «پلان‌های آماده» می‌سازد؛
-		   هیچ منطق موجودی تغییر نمی‌کند — فقط خواندن پلان‌ها و بارگذاری آن‌ها. */
-		if (window.CKBInspiration) {
-			window.CKBInspiration.init({
-				root: rootEl,
-				projects: cfg.inspiration || [],
-				getPlans: function () { return plans; },
-				loadPlan: function (p) { loadPlan(p); closeModal('plan'); },
-				planArea: function (p) { return B.calculatePlanArea(toSpace(p)); },
-			});
+		/* ── v2.14 راهنمای درون‌پلان (ckb-hints.js) ── */
+		function hintSignal(ev) {
+			if (window.CKBHints) window.CKBHints.signal(ev);
 		}
 
-		/* ── v2.13 سه نقطه شروع: کارت‌های سربرگ مودال نقشه ──
-		   هر کارت کاربر را به مسیر درست می‌برد — پروژه اجراشده، پلان آماده، از صفر. */
-		rootEl.querySelectorAll('[data-start]').forEach(function (card) {
-			card.addEventListener('click', function () {
-				var target = card.getAttribute('data-start');
-				if (target === 'projects') {
-					setPlanTab('presets');
-					if (window.CKBInspiration) window.CKBInspiration.focus();
-				} else if (target === 'scratch') {
-					setPlanTab('custom');
-				} else {
-					setPlanTab('presets');
-				}
+		function vpPointOfEl(el) {
+			if (!el) return null;
+			var r = el.getBoundingClientRect();
+			if (!r.width || !r.height) return null;
+			var v = vp.getBoundingClientRect();
+			return { x: r.left - v.left + r.width / 2, y: r.top - v.top + r.height / 2 };
+		}
+
+		function vpPointOfItem() {
+			var item = items.find(function (it) { return it.id === selectedId; }) || items[items.length - 1];
+			if (!item) return null;
+			var p = new THREE.Vector3(item.x, Math.min(item.height || 0.5, 1.2) / 2, item.z).project(camera);
+			if (p.z > 1) return null;
+			return { x: (p.x + 1) / 2 * vp.clientWidth, y: (1 - p.y) / 2 * vp.clientHeight };
+		}
+
+		if (window.CKBHints) {
+			window.CKBHints.init({
+				vp: vp,
+				mobile: MOBILE,
+				anchor: function (name) {
+					var modalOpen = Array.prototype.some.call(
+						rootEl.querySelectorAll('.ckb-wstudio-modal'),
+						function (m) { return m.style.display === 'flex'; }
+					);
+					if (modalOpen) return null;
+					if (name === 'center') return { x: vp.clientWidth / 2, y: vp.clientHeight * 0.52 };
+					if (name === 'add') return vpPointOfEl($('btn-add'));
+					if (name === 'item') return vpPointOfItem() || vpPointOfEl($('btn-add'));
+					if (name === 'nudge') {
+						var insp = $('insp');
+						var nudge = insp && insp.style.display !== 'none' ? insp.querySelector('.ckb-insp-nudge') : null;
+						return vpPointOfEl(nudge) || vpPointOfItem();
+					}
+					return null;
+				},
+				onTour: function () { resetOverlays(); startStudioTour(); },
 			});
-		});
+		}
 
 		/* Sync the inspector offset with the live bar height
 		   (observes the tab bar — mirrors --ckb-dock-h
@@ -1943,6 +2263,7 @@
 		}
 
 		bindClick('btn-add', function () {
+			resetOverlays();
 			buildCatalogTools();
 			renderCatalog();
 			openModal('catalog');
@@ -1954,15 +2275,18 @@
 				renderCatalog();
 			});
 		}
-		bindClick('btn-guide', startStudioTour);
+		bindClick('btn-guide', function () {
+			resetOverlays();
+			if (window.CKBHints) window.CKBHints.start(true); else startStudioTour();
+		});
 		// «شروع طراحی»: first the plans are shown and selected, then the design space — order matters
 		bindClick('btn-guide-start', function () {
-			closeModal('guide');
+			resetOverlays();
 			openPlanEditor();
 		});
-		bindClick('btn-plan-editor', function () { openPlanEditor(); });
+		bindClick('btn-plan-editor', function () { resetOverlays(); openPlanEditor(); });
 		bindClick('btn-pe-help', startStudioTour);
-		bindClick('btn-bom', function () { renderBOM(); openModal('bom'); });
+		bindClick('btn-bom', function () { resetOverlays(); renderBOM(); openModal('bom'); });
 		bindClick('btn-undo', undo);
 		bindClick('btn-redo', redo);
 		bindClick('btn-day', function () { setLighting('day'); });
@@ -1986,6 +2310,8 @@
 			});
 		}
 		bindClick('btn-submit', submitDesign);
+		bindClick('btn-otp-send', function () { otpSend($('btn-otp-send')); });
+		bindClick('btn-otp-resend', function () { otpSend($('btn-otp-resend')); });
 		bindClick('btn-cam', resetCamera);
 		bindClick('btn-clear', clearAllItems);
 		bindClick('btn-print', function () { window.print(); });
@@ -2011,6 +2337,14 @@
 			applyDockState();
 		});
 		applyDockState();
+
+		/* v2.13.12: اگر قالب (یا هر اسکریپت دیگری) مودالی را بیرون از کانتینر
+		   انداخته باشد، آن را برمی‌گردانیم — وگرنه شنوندهٔ ✕ هرگز به آن وصل
+		   نمی‌شود و مودالِ باز هم پشت بوم سه‌بعدی پنهان می‌ماند */
+		['catalog', 'guide', 'plan', 'bom', 'save'].forEach(function (n) {
+			var m = document.getElementById(sid + '-modal-' + n);
+			if (m && !rootEl.contains(m)) rootEl.appendChild(m);
+		});
 
 		// Modal close buttons
 		rootEl.querySelectorAll('[data-close]').forEach(function (btn) {
@@ -2082,39 +2416,29 @@
 		   first the plan window, then adding/moving items and every dock tool.
 		   «؟ راهنما» and «؟ راهنمای تصویری» replay it on demand. */
 		var planTourStep = -1;
+		/* v2.13.10: آیا خودِ تور ویرایشگر پلان را باز کرده؟ — پایان تور باید
+		   همان را ببندد وگرنه کاربر در ویرایشگرِ رهاشده گیر می‌کند و کلیک
+		   «ثبت طرح» زیر پردهٔ آن گم می‌شود. */
+		var tourOpenedPlan = false;
 		var tourSpot = null;
 		var tourCard = null;
-		var STUDIO_TOUR = [
-			{
-				title: 'دو راه برای شروع',
-				desc: 'پلان آماده را یک‌جا بارگذاری کنید، یا فرم و ابعاد بام خودتان را دستی بسازید.',
-				getEl: function () { return $('plan-tabs'); },
-				ptab: null,
-				modal: 'plan',
-			},
-			{
-				title: 'پلان‌های آماده',
-				desc: 'هر کارت نقشه و چیدمان کامل یک روف‌گاردن است — با یک کلیک روی بوم می‌آید.',
-				getEl: function () { return $('plans-list'); },
-				ptab: 'presets',
-				modal: 'plan',
-			},
-			{
-				title: 'فرم و ابعاد دلخواه',
-				desc: 'شکل هندسی بام را انتخاب و ابعاد را به متر بدهید؛ متراژ زنده همین‌جا محاسبه می‌شود.',
-				getEl: function () { var el = $('pe-shape'); return el ? el.closest('.ckb-fgroup') : null; },
-				ptab: 'custom',
-				modal: 'plan',
-			},
-			{
-				title: 'اعمال روی بوم',
-				desc: 'با «اعمال پلان جدید»، بوم سه‌بعدی با فرم تازه بازسازی می‌شود و اقلام داخل مرزها می‌مانند.',
-				getEl: function () { return $('btn-pe-apply'); },
-				ptab: 'custom',
-				modal: 'plan',
-			},
-			{
-				title: 'افزودن اقلام به بام',
+	var STUDIO_TOUR = [
+		{
+			title: 'فرم و ابعاد دلخواه',
+			desc: 'شکل هندسی بام را انتخاب و ابعاد را به متر بدهید؛ متراژ زنده همین‌جا محاسبه می‌شود.',
+			getEl: function () { var el = $('pe-shape'); return el ? el.closest('.ckb-fgroup') : null; },
+			ptab: 'custom',
+			modal: 'plan',
+		},
+		{
+			title: 'اعمال روی بوم',
+			desc: 'با «اعمال پلان جدید»، بوم سه‌بعدی با فرم تازه بازسازی می‌شود و اقلام داخل مرزها می‌مانند.',
+			getEl: function () { return $('btn-pe-apply'); },
+			ptab: 'custom',
+			modal: 'plan',
+		},
+		{
+			title: 'افزودن اقلام به بام',
 				desc: 'با «+ افزودن اقلام» کاتالوگ باز می‌شود؛ با جستجو یا فیلتر دسته‌بندی قلم موردنظر را پیدا و اضافه کنید.',
 				getEl: function () { return $('btn-add'); },
 				modal: null,
@@ -2195,7 +2519,10 @@
 			/* Move between the plan window and the main canvas as the tour walks on */
 			if (meta.modal === 'plan') {
 				var pm = $('modal-plan');
-				if (pm && getComputedStyle(pm).display === 'none') openModal('plan');
+				if (pm && getComputedStyle(pm).display === 'none') {
+					openModal('plan');
+					tourOpenedPlan = true; /* v2.13.10 */
+				}
 				if (meta.ptab) setPlanTab(meta.ptab);
 			} else {
 				closeModal('plan');
@@ -2259,6 +2586,13 @@
 			planTourStep = -1;
 			if (tourSpot) tourSpot.style.display = 'none';
 			if (tourCard) tourCard.style.display = 'none';
+			/* v2.13.10: اگر خودِ تور ویرایشگر پلان را باز کرده بود، با پایان
+			   تور ببندش — «رد کردن» نباید کاربر را در ویرایشگر رهاشده جا بگذارد.
+			   اگر کاربر از داخل ویرایشگر تور را باز کرده، همان باز می‌ماند. */
+			if (tourOpenedPlan) {
+				closeModal('plan');
+				tourOpenedPlan = false;
+			}
 		}
 
 		/* ─────────────── Boot ─────────────── */
@@ -2285,17 +2619,22 @@
 		setLighting(lightingMode);
 		animate();
 
-		// First visit: the full visual tour (plan → add → move → toolbar) plays
-		// in place of the static guide modal, for admin and public alike.
-		// Public embeds keep the guide modal on LATER visits (its «شروع طراحی»
-		// CTA opens the plan selection directly).
-		var tourSeen = false;
-		try { tourSeen = !!window.localStorage.getItem('ckb-studio-tour-seen'); } catch (err3) { tourSeen = true; }
-		if (!tourSeen) {
-			try { window.localStorage.setItem('ckb-studio-tour-seen', '1'); } catch (err4) {}
-			setTimeout(startStudioTour, 900);
-		} else if (cfg.autoPlans) {
-			setTimeout(function () { openModal('guide'); }, 900);
+		// v2.14: the first-visit guide lives on the plan itself (ckb-hints.js) and
+		// resumes on later visits until finished; the spotlight tour stays one
+		// click away (hint card + «راهنمای تصویری» in the plan editor).
+		if (window.CKBHints && window.CKBHints.pending()) {
+			setTimeout(function () { window.CKBHints.start(false); }, 900);
+		} else {
+			var tourSeen = !!window.CKBHints;
+			if (!tourSeen) {
+				try { tourSeen = !!window.localStorage.getItem('ckb-studio-tour-seen'); } catch (err3) { tourSeen = true; }
+			}
+			if (!tourSeen) {
+				try { window.localStorage.setItem('ckb-studio-tour-seen', '1'); } catch (err4) {}
+				setTimeout(startStudioTour, 900);
+			} else if (cfg.autoPlans) {
+				setTimeout(function () { openModal('guide'); }, 900);
+			}
 		}
 
 		return {

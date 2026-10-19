@@ -28,6 +28,7 @@ function ckb_render_product_meta( $post ) {
 	$weight = get_post_meta( $post->ID, '_ckb_weight', true );
 	$price  = get_post_meta( $post->ID, '_ckb_price', true );
 	$shape  = get_post_meta( $post->ID, '_ckb_shape_type', true );
+	$glb    = get_post_meta( $post->ID, '_ckb_glb_url', true );
 	$wpc    = get_post_meta( $post->ID, '_ckb_wpc_color', true );
 	$metal  = get_post_meta( $post->ID, '_ckb_metal_color', true );
 	$light  = get_post_meta( $post->ID, '_ckb_has_lighting', true );
@@ -76,6 +77,15 @@ function ckb_render_product_meta( $post ) {
 		<tr>
 			<th><?php esc_html_e( 'قیمت تقریبی (تومان)', 'chekadbam' ); ?></th>
 			<td><input type="number" step="100000" name="ckb_price" value="<?php echo esc_attr( $price ); ?>" dir="ltr" /></td>
+		</tr>
+		<tr>
+			<th><label for="ckb_glb_url"><?php esc_html_e( 'مدل GLB اختصاصی (اختیاری)', 'chekadbam' ); ?></label></th>
+			<td>
+				<input type="url" id="ckb_glb_url" name="ckb_glb_url" value="<?php echo esc_attr( $glb ); ?>" dir="ltr" class="regular-text code" placeholder="https://chekadbam.com/wp-content/uploads/2026/.../model.glb" />
+				<p class="description">
+					<?php esc_html_e( 'اگر آدرس یک فایل .glb (فایل‌های رسانه‌ای وردپرس هم کافی است) داده شود، استودیو همان مدل واقعی را می‌سازد و نوع شکل بالا فقط به‌عنوان جایگزین (fallback) استفاده می‌شود. تکسچرهای داخل GLB (embedded) خودکار بار می‌شوند؛ اگر مدل تکسچر نداشته باشد، رنگ چوب‌پلاست/فلز انتخاب‌شده روی متریال‌ها اعمال می‌شود. ابعاد مدل خودکار به طول/عرض/ارتفاع بالا اسکیل می‌شود.', 'chekadbam' ); ?>
+				</p>
+			</td>
 		</tr>
 		<tr>
 			<th><?php esc_html_e( 'رنگ چوب‌پلاست', 'chekadbam' ); ?></th>
@@ -323,6 +333,7 @@ function ckb_save_product( $post_id ) {
 	$code   = isset( $_POST['ckb_code'] ) ? sanitize_text_field( wp_unslash( $_POST['ckb_code'] ) ) : '';
 	$cat    = isset( $_POST['ckb_category'] ) ? sanitize_key( $_POST['ckb_category'] ) : 'planting';
 	$shape  = isset( $_POST['ckb_shape_type'] ) ? sanitize_key( $_POST['ckb_shape_type'] ) : 'box';
+	$glb    = isset( $_POST['ckb_glb_url'] ) ? esc_url_raw( wp_unslash( $_POST['ckb_glb_url'] ) ) : '';
 	$w      = isset( $_POST['ckb_width'] ) ? floatval( $_POST['ckb_width'] ) : 0;
 	$d      = isset( $_POST['ckb_depth'] ) ? floatval( $_POST['ckb_depth'] ) : 0;
 	$h      = isset( $_POST['ckb_height'] ) ? floatval( $_POST['ckb_height'] ) : 0;
@@ -335,6 +346,7 @@ function ckb_save_product( $post_id ) {
 	update_post_meta( $post_id, '_ckb_code', $code );
 	update_post_meta( $post_id, '_ckb_category', $cat );
 	update_post_meta( $post_id, '_ckb_shape_type', $shape );
+	update_post_meta( $post_id, '_ckb_glb_url', $glb );
 	update_post_meta( $post_id, '_ckb_width', $w );
 	update_post_meta( $post_id, '_ckb_depth', $d );
 	update_post_meta( $post_id, '_ckb_height', $h );

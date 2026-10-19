@@ -6,6 +6,7 @@ import { SpaceConfig, StudioItem } from "@/lib/studio-types";
 import { createWpcPlankTexture, createArtificialTurfTexture, createCanvasFabricTexture, createFallingWaterTexture, createWaterCausticsTexture } from "@/lib/materials-textures";
 import { clampItemToPlan, isInsidePlanBounds } from "@/lib/plan-boundary";
 import { createFoliageCluster, createTreeCanopy, createVineCluster, createGroundCover } from "@/lib/foliage";
+import { ChekadbamStudioLoader } from "./StudioLoaderOverlay";
 
 /** Stable numeric seed derived from an item id so plants never re-shuffle. */
 function seedFromId(id: string): number {
@@ -95,6 +96,9 @@ export const Chekadbam3DCanvas = forwardRef<Chekadbam3DCanvasRef, Chekadbam3DCan
     // Collision status
     const [hasCollisions, setHasCollisions] = useState(false);
 
+    // Loader overlay — shown until the scene has produced its first rendered frame
+    const [sceneReady, setSceneReady] = useState(false);
+
     // Helper: Colors
     const getWPCColorHexStr = (colorId?: string) => {
       switch (colorId) {
@@ -176,9 +180,14 @@ export const Chekadbam3DCanvas = forwardRef<Chekadbam3DCanvasRef, Chekadbam3DCan
 
     useImperativeHandle(ref, () => ({
       takeScreenshot: () => {
-        if (!rendererRef.current || !sceneRef.current || !cameraRef.current) return "";
-        rendererRef.current.render(sceneRef.current, cameraRef.current);
-        return rendererRef.current.domElement.toDataURL("image/jpeg", 0.95);
+        try {
+          if (!rendererRef.current || !sceneRef.current || !cameraRef.current) return "";
+          rendererRef.current.render(sceneRef.current, cameraRef.current);
+          return rendererRef.current.domElement.toDataURL("image/jpeg", 0.95);
+        } catch (err) {
+          console.error("takeScreenshot error:", err);
+          return "";
+        }
       },
       resetCamera,
       setTopView,
@@ -2576,10 +2585,20 @@ export const Chekadbam3DCanvas = forwardRef<Chekadbam3DCanvasRef, Chekadbam3DCan
         renderer.setSize(w, h);
       };
 
+      // Signal the loader overlay: geometry, lighting and items are all built
+      // synchronously inside this effect, so one rendered frame is enough.
+      // A timeout (not rAF) keeps the signal firing even if the first frame's
+      // rAF callback is delayed or React re-runs the effect under StrictMode.
+      const readyTimer = window.setTimeout(() => {
+        renderer.render(scene, camera);
+        setSceneReady(true);
+      }, 350);
+
       window.addEventListener("resize", handleResize);
 
       return () => {
         cancelAnimationFrame(animationFrameId);
+        window.clearTimeout(readyTimer);
         window.removeEventListener("resize", handleResize);
         renderer.dispose();
       };
@@ -2823,6 +2842,9 @@ export const Chekadbam3DCanvas = forwardRef<Chekadbam3DCanvasRef, Chekadbam3DCan
 
     return (
       <div ref={containerRef} className="relative w-full h-full select-none overflow-hidden bg-slate-900">
+        {/* لودینگ برند — تا وقتی sceneReady=false نمایش داده می‌شود */}
+        <ChekadbamStudioLoader ready={sceneReady} />
+
         <canvas
           ref={canvasRef}
           className="w-full h-full cursor-grab active:cursor-grabbing block"

@@ -84,6 +84,7 @@ function ckb_get_studio_products() {
 			'weight'     => (float) get_post_meta( $p->ID, '_ckb_weight', true ) ?: 40,
 			'price'      => (int) get_post_meta( $p->ID, '_ckb_price', true ) ?: 5000000,
 			'shape'      => get_post_meta( $p->ID, '_ckb_shape_type', true ) ?: 'box',
+			'glbUrl'     => esc_url_raw( get_post_meta( $p->ID, '_ckb_glb_url', true ) ),
 			'wpcColor'   => get_post_meta( $p->ID, '_ckb_wpc_color', true ) ?: 'walnut',
 			'metalColor' => get_post_meta( $p->ID, '_ckb_metal_color', true ) ?: 'black',
 			'light'      => '1' === get_post_meta( $p->ID, '_ckb_has_lighting', true ),
@@ -190,44 +191,6 @@ function ckb_repair_fa_text( $s ) {
 	return is_string( $decoded ) ? $decoded : $s;
 }
 
-/**
- * v2.13 گالری الهام: پروژه‌های اجراشده چکادبام به‌عنوان نقطه شروع طراحی.
- * هر پروژه به یک پلان آماده گره خورده است؛ کلیک روی «بارگذاری این چیدمان»
- * همان پلان را روی بوم می‌آورد تا کاربر از یک نمونه واقعی ویرایش کند.
- * تصویر اختیاری است (آدرس از کتابخانه رسانه) — بدون تصویر، گرادیان برند
- * همان پروژه نمایش داده می‌شود. با فیلتر زیر قابل سفارشی‌سازی است:
- * add_filter( 'ckb_studio_inspiration_projects', function ( $p ) { ... } );
- */
-function ckb_get_inspiration_projects() {
-	$projects = array(
-		array(
-			'title'     => 'روف‌گاردن ویلای لواسان',
-			'desc'      => 'پرگولا + آبنمای قاب + کاشت چندلایه',
-			'planName'  => 'پلان مستطیلی | پنت‌هاوس نیاوران (۱۰ × ۸ متر | ۸۰ م²)',
-			'planShape' => 'rectangular',
-			'gradient'  => 'linear-gradient(140deg,#134e2f,#1e293b)',
-			'image'     => '',
-		),
-		array(
-			'title'     => 'تراس طولی سعادت‌آباد',
-			'desc'      => 'چیدمان خطی + دیوار سبز حریم',
-			'planName'  => 'پلان تراس طولی کشیده (۱۰ × ۲.۸ متر | ۲۸ م²)',
-			'planShape' => 'narrow_balcony',
-			'gradient'  => 'linear-gradient(140deg,#7c2d12,#1e293b)',
-			'image'     => '',
-		),
-		array(
-			'title'     => 'بام مسکونی با باکس پله',
-			'desc'      => 'دورگرد باکس پله + نیمکت‌های متصل',
-			'planName'  => 'پلان بام با باکس پله مرکزی (۱۱ × ۱۰ متر | ۹۸.۵ م²)',
-			'planShape' => 'central_shaft',
-			'gradient'  => 'linear-gradient(140deg,#1e3a5f,#1e293b)',
-			'image'     => '',
-		),
-	);
-	return apply_filters( 'ckb_studio_inspiration_projects', $projects );
-}
-
 /** Fallback plans (matches seed.php). */
 function ckb_default_studio_plans() {
 	return array(
@@ -247,18 +210,17 @@ function ckb_default_studio_plans() {
 			'shaftWidth' => 0,
 			'shaftLength' => 0,
 			'items' => array(
-				array( 'productId' => 'CK-PG-DK320', 'name' => 'پرگولا مدولار مدرن چوب‌پلاست ۳×۳ متر', 'category' => 'structures', 'x' => -3.5, 'z' => -2, 'rotation' => 0, 'w' => 3, 'd' => 3, 'h' => 2.5, 'shapeType' => 'pergola', 'priceEst' => 38500000, 'weightKg' => 280 ),
-				array( 'productId' => '', 'name' => 'میز آتشدان مربعی چوب‌پلاست با سبد شعله فلزی', 'category' => 'water_fire', 'x' => -3.5, 'z' => -2, 'rotation' => 0, 'w' => 1.1, 'd' => 1.1, 'h' => 0.72, 'shapeType' => 'firepit_table', 'priceEst' => 21500000, 'weightKg' => 92 ),
-				array( 'productId' => '', 'name' => 'ست مبل راحتی ۴ نفره چوب‌پلاست و فلز مشکی (با میز)', 'category' => 'furniture', 'x' => 3.2, 'z' => -2, 'rotation' => 0, 'w' => 2.2, 'd' => 1.5, 'h' => 0.78, 'shapeType' => 'lounge_set', 'priceEst' => 26500000, 'weightKg' => 64 ),
-				array( 'productId' => '', 'name' => 'آبنمای خطی مدرن استیل و چوب‌پلاست', 'category' => 'water_fire', 'x' => 4.8, 'z' => -2, 'rotation' => 90, 'w' => 1.4, 'd' => 0.45, 'h' => 1.2, 'shapeType' => 'water_feature', 'priceEst' => 16800000, 'weightKg' => 65 ),
-				array( 'productId' => 'CK-FB-160', 'name' => 'فلاورباکس مدولار ۱۶۰ سانتی‌متری عریض', 'category' => 'planting', 'x' => -5, 'z' => 1, 'rotation' => 90, 'w' => 1.6, 'd' => 0.5, 'h' => 0.55, 'shapeType' => 'box', 'priceEst' => 7900000, 'weightKg' => 58 ),
-				array( 'productId' => 'CK-FB-160', 'name' => 'فلاورباکس مدولار ۱۶۰ سانتی‌متری عریض', 'category' => 'planting', 'x' => -5, 'z' => 2.8, 'rotation' => 90, 'w' => 1.6, 'd' => 0.5, 'h' => 0.55, 'shapeType' => 'box', 'priceEst' => 7900000, 'weightKg' => 58 ),
-				array( 'productId' => '', 'name' => 'آتشدان گازی مدرن روف‌گاردن', 'category' => 'water_fire', 'x' => 3.2, 'z' => 0, 'rotation' => 0, 'w' => 0.9, 'd' => 0.9, 'h' => 0.45, 'shapeType' => 'firepit', 'priceEst' => 14200000, 'weightKg' => 48 ),
-				array( 'productId' => '', 'name' => 'چتر سایبان هیدرولیک پایه‌کنار ۳ متری', 'category' => 'accessories', 'x' => -2.8, 'z' => 1.8, 'rotation' => 45, 'w' => 3, 'd' => 3, 'h' => 2.65, 'shapeType' => 'umbrella', 'priceEst' => 15400000, 'weightKg' => 85 ),
-				array( 'productId' => '', 'name' => 'نیمکت پشتی‌دار اسلت چوب‌پلاست با شاسی مشکی', 'category' => 'furniture', 'x' => 0.4, 'z' => 3.2, 'rotation' => 180, 'w' => 1.4, 'd' => 0.62, 'h' => 0.88, 'shapeType' => 'bench_backrest', 'priceEst' => 9800000, 'weightKg' => 38 ),
-				array( 'productId' => '', 'name' => 'میز آتشدان مربعی چوب‌پلاست با سبد شعله فلزی', 'category' => 'water_fire', 'x' => 0.4, 'z' => 1.4, 'rotation' => 0, 'w' => 1.1, 'd' => 1.1, 'h' => 0.72, 'shapeType' => 'firepit_table', 'priceEst' => 21500000, 'weightKg' => 92 ),
-				array( 'productId' => '', 'name' => 'پرگولا مدولار چوب‌پلاست با کف‌سازی دک یکپارچه ۳.۲×۳.۲', 'category' => 'structures', 'x' => 3.4, 'z' => 2.4, 'rotation' => 0, 'w' => 3.2, 'd' => 3.2, 'h' => 2.6, 'shapeType' => 'pergola_deck', 'priceEst' => 52000000, 'weightKg' => 410 ),
-				array( 'productId' => '', 'name' => 'دیوار سبز مدولار قاب‌دار با تراف کاشت پایه', 'category' => 'structures', 'x' => -5, 'z' => -2.6, 'rotation' => 90, 'w' => 1.2, 'd' => 0.42, 'h' => 1.8, 'shapeType' => 'green_wall_planter', 'priceEst' => 11200000, 'weightKg' => 68 ),
+				/* سبک منسجم طراح: ست مبل درست زیر پرگولا، آتشدان کنار نشیمن، فلاورباکس کنار دیوار */
+				array( 'productId' => 'CK-PG-DK320', 'name' => 'پرگولا مدولار مدرن چوب‌پلاست ۳×۳ متر', 'category' => 'structures', 'x' => -1.5, 'z' => -2.1, 'rotation' => 0, 'w' => 3, 'd' => 3, 'h' => 2.5, 'shapeType' => 'pergola', 'priceEst' => 38500000, 'weightKg' => 280 ),
+				array( 'productId' => 'CK-LN-SET04', 'name' => 'ست مبل راحتی ۴ نفره چوب‌پلاست و فلز مشکی (با میز)', 'category' => 'furniture', 'x' => -1.5, 'z' => -2.1, 'rotation' => 0, 'w' => 2.2, 'd' => 1.5, 'h' => 0.78, 'shapeType' => 'lounge_set', 'priceEst' => 26500000, 'weightKg' => 64 ),
+				array( 'productId' => '', 'name' => 'آتشدان گازی مدرن روف‌گاردن', 'category' => 'water_fire', 'x' => 0.9, 'z' => -2.1, 'rotation' => 0, 'w' => 0.9, 'd' => 0.9, 'h' => 0.45, 'shapeType' => 'firepit', 'priceEst' => 14200000, 'weightKg' => 48 ),
+				array( 'productId' => 'CK-PG-DK320', 'name' => 'پرگولا مدولار مدرن چوب‌پلاست ۳×۳ متر', 'category' => 'structures', 'x' => 1.3, 'z' => 2, 'rotation' => 90, 'w' => 3, 'd' => 3, 'h' => 2.5, 'shapeType' => 'pergola', 'priceEst' => 38500000, 'weightKg' => 280 ),
+				array( 'productId' => 'CK-BN-BR140', 'name' => 'نیمکت پشتی‌دار اسلت چوب‌پلاست با شاسی مشکی', 'category' => 'furniture', 'x' => 1.3, 'z' => 1.4, 'rotation' => 0, 'w' => 1.4, 'd' => 0.62, 'h' => 0.88, 'shapeType' => 'bench_backrest', 'priceEst' => 9800000, 'weightKg' => 38 ),
+				array( 'productId' => '', 'name' => 'آبنمای خطی مدرن استیل و چوب‌پلاست', 'category' => 'water_fire', 'x' => 4.9, 'z' => 1.6, 'rotation' => 90, 'w' => 1.4, 'd' => 0.45, 'h' => 1.2, 'shapeType' => 'water_feature', 'priceEst' => 16800000, 'weightKg' => 65 ),
+				array( 'productId' => 'CK-FB-160', 'name' => 'فلاورباکس مدولار ۱۶۰ سانتی‌متری عریض', 'category' => 'planting', 'x' => -3, 'z' => 3.6, 'rotation' => 90, 'w' => 1.6, 'd' => 0.5, 'h' => 0.55, 'shapeType' => 'box', 'priceEst' => 7900000, 'weightKg' => 58 ),
+				array( 'productId' => 'CK-FB-160', 'name' => 'فلاورباکس مدولار ۱۶۰ سانتی‌متری عریض', 'category' => 'planting', 'x' => -3, 'z' => 1.7, 'rotation' => 90, 'w' => 1.6, 'd' => 0.5, 'h' => 0.55, 'shapeType' => 'box', 'priceEst' => 7900000, 'weightKg' => 58 ),
+				array( 'productId' => 'CK-GW-FP120', 'name' => 'دیوار سبز مدولار قاب‌دار با تراف کاشت پایه', 'category' => 'structures', 'x' => -5.7, 'z' => 1, 'rotation' => 90, 'w' => 1.2, 'd' => 0.42, 'h' => 1.8, 'shapeType' => 'green_wall_planter', 'priceEst' => 11200000, 'weightKg' => 68 ),
+				array( 'productId' => 'CK-BBQ-180', 'name' => 'کانتر و باربیکیو ماژولار استیل و چوب‌پلاست', 'category' => 'accessories', 'x' => -1.5, 'z' => -0.2, 'rotation' => 0, 'w' => 1.8, 'd' => 0.65, 'h' => 0.9, 'shapeType' => 'bbq', 'priceEst' => 26500000, 'weightKg' => 95 ),
 			),
 		),
 		array(
@@ -277,12 +239,17 @@ function ckb_default_studio_plans() {
 			'shaftWidth' => 3.6,
 			'shaftLength' => 3.2,
 			'items' => array(
-				array( 'productId' => '', 'name' => 'مجموعه ترکیبی نیمکت متصل به دو فلاورباکس', 'category' => 'furniture', 'x' => 0, 'z' => -3.8, 'rotation' => 0, 'w' => 2.2, 'd' => 0.5, 'h' => 0.6, 'shapeType' => 'bench_integrated', 'priceEst' => 11900000, 'weightKg' => 76 ),
-				array( 'productId' => '', 'name' => 'مجموعه ترکیبی نیمکت متصل به دو فلاورباکس', 'category' => 'furniture', 'x' => 0, 'z' => 3.8, 'rotation' => 180, 'w' => 2.2, 'd' => 0.5, 'h' => 0.6, 'shapeType' => 'bench_integrated', 'priceEst' => 11900000, 'weightKg' => 76 ),
-				array( 'productId' => '', 'name' => 'دیواره سبز عمودی مدولار روی دیواره باکس پله', 'category' => 'structures', 'x' => -2, 'z' => 0, 'rotation' => 90, 'w' => 1.2, 'd' => 0.25, 'h' => 2, 'shapeType' => 'green_wall', 'priceEst' => 12500000, 'weightKg' => 85 ),
-				array( 'productId' => '', 'name' => 'آبنمای خطی مدرن استیل و چوب‌پلاست', 'category' => 'water_fire', 'x' => 2, 'z' => 0, 'rotation' => -90, 'w' => 1.4, 'd' => 0.45, 'h' => 1.2, 'shapeType' => 'water_feature', 'priceEst' => 16800000, 'weightKg' => 65 ),
-				array( 'productId' => 'CK-FB-120', 'name' => 'فلاورباکس مدولار ۱۲۰ سانتی‌متری', 'category' => 'planting', 'x' => -4.5, 'z' => -2.5, 'rotation' => 90, 'w' => 1.2, 'd' => 0.45, 'h' => 0.5, 'shapeType' => 'box', 'priceEst' => 6100000, 'weightKg' => 42 ),
-				array( 'productId' => 'CK-FB-120', 'name' => 'فلاورباکس مدولار ۱۲۰ سانتی‌متری', 'category' => 'planting', 'x' => -4.5, 'z' => 2.5, 'rotation' => 90, 'w' => 1.2, 'd' => 0.45, 'h' => 0.5, 'shapeType' => 'box', 'priceEst' => 6100000, 'weightKg' => 42 ),
+				/* سبک منسجم: پرگولا + مبل زیر آن + آتشدان کنار، زون شرقی آبنما و نیمکت */
+				array( 'productId' => 'CK-PG-DK320', 'name' => 'پرگولا مدولار مدرن چوب‌پلاست ۳×۳ متر', 'category' => 'structures', 'x' => -3.6, 'z' => -2.2, 'rotation' => 0, 'w' => 3, 'd' => 3, 'h' => 2.5, 'shapeType' => 'pergola', 'priceEst' => 38500000, 'weightKg' => 280 ),
+				array( 'productId' => 'CK-LN-SET04', 'name' => 'ست مبل راحتی ۴ نفره چوب‌پلاست و فلز مشکی (با میز)', 'category' => 'furniture', 'x' => -3.6, 'z' => -2.2, 'rotation' => 0, 'w' => 2.2, 'd' => 1.5, 'h' => 0.78, 'shapeType' => 'lounge_set', 'priceEst' => 26500000, 'weightKg' => 64 ),
+				array( 'productId' => '', 'name' => 'آتشدان گازی مدرن روف‌گاردن', 'category' => 'water_fire', 'x' => -3.6, 'z' => -0.6, 'rotation' => 0, 'w' => 0.9, 'd' => 0.9, 'h' => 0.45, 'shapeType' => 'firepit', 'priceEst' => 14200000, 'weightKg' => 48 ),
+				array( 'productId' => '', 'name' => 'آبنمای خطی مدرن استیل و چوب‌پلاست', 'category' => 'water_fire', 'x' => 3.6, 'z' => -2, 'rotation' => 0, 'w' => 1.4, 'd' => 0.45, 'h' => 1.2, 'shapeType' => 'water_feature', 'priceEst' => 16800000, 'weightKg' => 65 ),
+				array( 'productId' => 'CK-BN-BR140', 'name' => 'نیمکت پشتی‌دار اسلت چوب‌پلاست با شاسی مشکی', 'category' => 'furniture', 'x' => 3.6, 'z' => -0.8, 'rotation' => 90, 'w' => 1.4, 'd' => 0.62, 'h' => 0.88, 'shapeType' => 'bench_backrest', 'priceEst' => 9800000, 'weightKg' => 38 ),
+				array( 'productId' => '', 'name' => 'دیواره سبز عمودی مدولار روی دیواره باکس پله', 'category' => 'structures', 'x' => 0, 'z' => -1.75, 'rotation' => 0, 'w' => 1.2, 'd' => 0.25, 'h' => 2, 'shapeType' => 'green_wall', 'priceEst' => 12500000, 'weightKg' => 85 ),
+				array( 'productId' => 'CK-FB-120', 'name' => 'فلاورباکس مدولار ۱۲۰ سانتی‌متری', 'category' => 'planting', 'x' => -1.3, 'z' => 4.6, 'rotation' => 0, 'w' => 1.2, 'd' => 0.45, 'h' => 0.5, 'shapeType' => 'box', 'priceEst' => 6100000, 'weightKg' => 42 ),
+				array( 'productId' => 'CK-FB-120', 'name' => 'فلاورباکس مدولار ۱۲۰ سانتی‌متری', 'category' => 'planting', 'x' => 0.1, 'z' => 4.6, 'rotation' => 0, 'w' => 1.2, 'd' => 0.45, 'h' => 0.5, 'shapeType' => 'box', 'priceEst' => 6100000, 'weightKg' => 42 ),
+				array( 'productId' => 'CK-FB-120', 'name' => 'فلاورباکس مدولار ۱۲۰ سانتی‌متری', 'category' => 'planting', 'x' => 1.5, 'z' => 4.6, 'rotation' => 0, 'w' => 1.2, 'd' => 0.45, 'h' => 0.5, 'shapeType' => 'box', 'priceEst' => 6100000, 'weightKg' => 42 ),
+				array( 'productId' => 'CK-FB-120', 'name' => 'فلاورباکس مدولار ۱۲۰ سانتی‌متری', 'category' => 'planting', 'x' => -5.2, 'z' => -4.5, 'rotation' => 90, 'w' => 1.2, 'd' => 0.45, 'h' => 0.5, 'shapeType' => 'box', 'priceEst' => 6100000, 'weightKg' => 42 ),
 			),
 		),
 		array(
@@ -301,9 +268,12 @@ function ckb_default_studio_plans() {
 			'shaftWidth' => 0,
 			'shaftLength' => 0,
 			'items' => array(
-				array( 'productId' => '', 'name' => 'نیمکت مدولار چوب‌پلاست ۱۲۰', 'category' => 'furniture', 'x' => -2, 'z' => -0.7, 'rotation' => 0, 'w' => 1.2, 'd' => 0.45, 'h' => 0.45, 'shapeType' => 'box', 'priceEst' => 4800000, 'weightKg' => 24 ),
-				array( 'productId' => 'CK-FB-160', 'name' => 'فلاورباکس مدولار ۱۶۰ سانتی‌متری عریض', 'category' => 'planting', 'x' => 2.5, 'z' => -0.8, 'rotation' => 0, 'w' => 1.6, 'd' => 0.5, 'h' => 0.55, 'shapeType' => 'box', 'priceEst' => 7900000, 'weightKg' => 58 ),
-				array( 'productId' => '', 'name' => 'دیواره سبز عمودی مدولار (Green Wall)', 'category' => 'structures', 'x' => 4.2, 'z' => 0, 'rotation' => 90, 'w' => 1.2, 'd' => 0.25, 'h' => 2, 'shapeType' => 'green_wall', 'priceEst' => 12500000, 'weightKg' => 85 ),
+				/* سبک منسجم: نیمکت پشتی‌دار غرب + کاشت خطی کنار دیوار + آبنما + دیوار سبز شرق */
+				array( 'productId' => 'CK-BN-BR140', 'name' => 'نیمکت پشتی‌دار اسلت چوب‌پلاست با شاسی مشکی', 'category' => 'furniture', 'x' => -3, 'z' => -0.35, 'rotation' => 0, 'w' => 1.4, 'd' => 0.62, 'h' => 0.88, 'shapeType' => 'bench_backrest', 'priceEst' => 9800000, 'weightKg' => 38 ),
+				array( 'productId' => 'CK-FB-160', 'name' => 'فلاورباکس مدولار ۱۶۰ سانتی‌متری عریض', 'category' => 'planting', 'x' => -1.4, 'z' => 0.85, 'rotation' => 0, 'w' => 1.6, 'd' => 0.5, 'h' => 0.55, 'shapeType' => 'box', 'priceEst' => 7900000, 'weightKg' => 58 ),
+				array( 'productId' => 'CK-FB-160', 'name' => 'فلاورباکس مدولار ۱۶۰ سانتی‌متری عریض', 'category' => 'planting', 'x' => 0.3, 'z' => 0.85, 'rotation' => 0, 'w' => 1.6, 'd' => 0.5, 'h' => 0.55, 'shapeType' => 'box', 'priceEst' => 7900000, 'weightKg' => 58 ),
+				array( 'productId' => '', 'name' => 'آبنمای خطی مدرن استیل و چوب‌پلاست', 'category' => 'water_fire', 'x' => 1.9, 'z' => 0.4, 'rotation' => 0, 'w' => 1.4, 'd' => 0.45, 'h' => 1.2, 'shapeType' => 'water_feature', 'priceEst' => 16800000, 'weightKg' => 65 ),
+				array( 'productId' => '', 'name' => 'دیواره سبز عمودی مدولار (Green Wall)', 'category' => 'structures', 'x' => 4.4, 'z' => 0, 'rotation' => 90, 'w' => 1.2, 'd' => 0.25, 'h' => 2, 'shapeType' => 'green_wall', 'priceEst' => 12500000, 'weightKg' => 85 ),
 			),
 		),
 		array(
@@ -322,13 +292,18 @@ function ckb_default_studio_plans() {
 			'shaftWidth' => 0,
 			'shaftLength' => 0,
 			'items' => array(
-				array( 'productId' => 'CK-PG-DK320', 'name' => 'پرگولا مدولار مدرن چوب‌پلاست ۳×۳ متر', 'category' => 'structures', 'x' => -4.8, 'z' => -2.5, 'rotation' => 0, 'w' => 3, 'd' => 3, 'h' => 2.5, 'shapeType' => 'pergola', 'priceEst' => 38500000, 'weightKg' => 280 ),
-				array( 'productId' => 'CK-PG-DK320', 'name' => 'پرگولا مدولار مدرن چوب‌پلاست ۳×۳ متر', 'category' => 'structures', 'x' => 4.8, 'z' => -2.5, 'rotation' => 0, 'w' => 3, 'd' => 3, 'h' => 2.5, 'shapeType' => 'pergola', 'priceEst' => 38500000, 'weightKg' => 280 ),
-				array( 'productId' => '', 'name' => 'ست مبل راحتی ۴ نفره چوب‌پلاست و فلز مشکی (با میز)', 'category' => 'furniture', 'x' => -4.8, 'z' => -2.5, 'rotation' => 0, 'w' => 2.2, 'd' => 1.5, 'h' => 0.78, 'shapeType' => 'lounge_set', 'priceEst' => 26500000, 'weightKg' => 64 ),
-				array( 'productId' => '', 'name' => 'میز آتشدان مربعی چوب‌پلاست با سبد شعله فلزی', 'category' => 'water_fire', 'x' => 4.8, 'z' => -2.5, 'rotation' => 0, 'w' => 1.1, 'd' => 1.1, 'h' => 0.72, 'shapeType' => 'firepit_table', 'priceEst' => 21500000, 'weightKg' => 92 ),
-				array( 'productId' => '', 'name' => 'کانتر و باربیکیو ماژولار استیل و چوب‌پلاست', 'category' => 'accessories', 'x' => -4.8, 'z' => 3.5, 'rotation' => 0, 'w' => 1.8, 'd' => 0.65, 'h' => 0.9, 'shapeType' => 'bbq', 'priceEst' => 26500000, 'weightKg' => 95 ),
-				array( 'productId' => '', 'name' => 'آبنمای خطی مدرن استیل و چوب‌پلاست', 'category' => 'water_fire', 'x' => 4.8, 'z' => 3.5, 'rotation' => 0, 'w' => 1.4, 'd' => 0.45, 'h' => 1.2, 'shapeType' => 'water_feature', 'priceEst' => 16800000, 'weightKg' => 65 ),
-				array( 'productId' => '', 'name' => 'آتشدان گازی مدرن روف‌گاردن', 'category' => 'water_fire', 'x' => 0, 'z' => 3.5, 'rotation' => 0, 'w' => 0.9, 'd' => 0.9, 'h' => 0.45, 'shapeType' => 'firepit', 'priceEst' => 14200000, 'weightKg' => 48 ),
+				/* سبک منسجم: پرگولا + مبل زیر آن در غرب، باربیکیو کنار، نیمکت زیر پرگولای شرقی + میز آتشدان کنار */
+				array( 'productId' => 'CK-PG-DK320', 'name' => 'پرگولا مدولار مدرن چوب‌پلاست ۳×۳ متر', 'category' => 'structures', 'x' => -4.8, 'z' => -3.2, 'rotation' => 0, 'w' => 3, 'd' => 3, 'h' => 2.5, 'shapeType' => 'pergola', 'priceEst' => 38500000, 'weightKg' => 280 ),
+				array( 'productId' => 'CK-LN-SET04', 'name' => 'ست مبل راحتی ۴ نفره چوب‌پلاست و فلز مشکی (با میز)', 'category' => 'furniture', 'x' => -4.8, 'z' => -3.2, 'rotation' => 0, 'w' => 2.2, 'd' => 1.5, 'h' => 0.78, 'shapeType' => 'lounge_set', 'priceEst' => 26500000, 'weightKg' => 64 ),
+				array( 'productId' => 'CK-BBQ-180', 'name' => 'کانتر و باربیکیو ماژولار استیل و چوب‌پلاست', 'category' => 'accessories', 'x' => -4.8, 'z' => -0.7, 'rotation' => 0, 'w' => 1.8, 'd' => 0.65, 'h' => 0.9, 'shapeType' => 'bbq', 'priceEst' => 26500000, 'weightKg' => 95 ),
+				array( 'productId' => 'CK-PG-DK320', 'name' => 'پرگولا مدولار مدرن چوب‌پلاست ۳×۳ متر', 'category' => 'structures', 'x' => 4.8, 'z' => -3.2, 'rotation' => 0, 'w' => 3, 'd' => 3, 'h' => 2.5, 'shapeType' => 'pergola', 'priceEst' => 38500000, 'weightKg' => 280 ),
+				array( 'productId' => 'CK-BN-BR140', 'name' => 'نیمکت پشتی‌دار اسلت چوب‌پلاست با شاسی مشکی', 'category' => 'furniture', 'x' => 4.8, 'z' => -3.4, 'rotation' => 0, 'w' => 1.4, 'd' => 0.62, 'h' => 0.88, 'shapeType' => 'bench_backrest', 'priceEst' => 9800000, 'weightKg' => 38 ),
+				array( 'productId' => '', 'name' => 'میز آتشدان مربعی چوب‌پلاست با سبد شعله فلزی', 'category' => 'water_fire', 'x' => 4.8, 'z' => -2.1, 'rotation' => 0, 'w' => 1.1, 'd' => 1.1, 'h' => 0.72, 'shapeType' => 'firepit_table', 'priceEst' => 21500000, 'weightKg' => 92 ),
+				array( 'productId' => '', 'name' => 'آبنمای خطی مدرن استیل و چوب‌پلاست', 'category' => 'water_fire', 'x' => 4.8, 'z' => 3.6, 'rotation' => 90, 'w' => 1.4, 'd' => 0.45, 'h' => 1.2, 'shapeType' => 'water_feature', 'priceEst' => 16800000, 'weightKg' => 65 ),
+				array( 'productId' => 'CK-GW-FP120', 'name' => 'دیوار سبز مدولار قاب‌دار با تراف کاشت پایه', 'category' => 'structures', 'x' => -4.8, 'z' => 3.6, 'rotation' => 0, 'w' => 1.2, 'd' => 0.42, 'h' => 1.8, 'shapeType' => 'green_wall_planter', 'priceEst' => 11200000, 'weightKg' => 68 ),
+				array( 'productId' => 'CK-FB-160', 'name' => 'فلاورباکس مدولار ۱۶۰ سانتی‌متری عریض', 'category' => 'planting', 'x' => -2.9, 'z' => 4.6, 'rotation' => 0, 'w' => 1.6, 'd' => 0.5, 'h' => 0.55, 'shapeType' => 'box', 'priceEst' => 7900000, 'weightKg' => 58 ),
+				array( 'productId' => 'CK-FB-160', 'name' => 'فلاورباکس مدولار ۱۶۰ سانتی‌متری عریض', 'category' => 'planting', 'x' => -1.2, 'z' => 4.6, 'rotation' => 0, 'w' => 1.6, 'd' => 0.5, 'h' => 0.55, 'shapeType' => 'box', 'priceEst' => 7900000, 'weightKg' => 58 ),
+				array( 'productId' => 'CK-FB-160', 'name' => 'فلاورباکس مدولار ۱۶۰ سانتی‌متری عریض', 'category' => 'planting', 'x' => 2, 'z' => 4.6, 'rotation' => 0, 'w' => 1.6, 'd' => 0.5, 'h' => 0.55, 'shapeType' => 'box', 'priceEst' => 7900000, 'weightKg' => 58 ),
 			),
 		),
 		array(
@@ -347,12 +322,15 @@ function ckb_default_studio_plans() {
 			'shaftWidth' => 0,
 			'shaftLength' => 0,
 			'items' => array(
-				array( 'productId' => 'CK-PG-DK320', 'name' => 'پرگولا مدولار مدرن چوب‌پلاست ۳×۳ متر', 'category' => 'structures', 'x' => -2.5, 'z' => -1.8, 'rotation' => 0, 'w' => 3, 'd' => 3, 'h' => 2.5, 'shapeType' => 'pergola', 'priceEst' => 38500000, 'weightKg' => 280 ),
-				array( 'productId' => '', 'name' => 'ست مبل راحتی ۴ نفره چوب‌پلاست و فلز مشکی (با میز)', 'category' => 'furniture', 'x' => -2.5, 'z' => -1.8, 'rotation' => 0, 'w' => 2.2, 'd' => 1.5, 'h' => 0.78, 'shapeType' => 'lounge_set', 'priceEst' => 26500000, 'weightKg' => 64 ),
-				array( 'productId' => '', 'name' => 'آبنمای خطی مدرن استیل و چوب‌پلاست', 'category' => 'water_fire', 'x' => 2.8, 'z' => -2.8, 'rotation' => 0, 'w' => 1.4, 'd' => 0.45, 'h' => 1.2, 'shapeType' => 'water_feature', 'priceEst' => 16800000, 'weightKg' => 65 ),
-				array( 'productId' => 'CK-FB-160', 'name' => 'فلاورباکس مدولار ۱۶۰ سانتی‌متری عریض', 'category' => 'planting', 'x' => 3.8, 'z' => 0, 'rotation' => 90, 'w' => 1.6, 'd' => 0.5, 'h' => 0.55, 'shapeType' => 'box', 'priceEst' => 7900000, 'weightKg' => 58 ),
-				array( 'productId' => '', 'name' => 'مجموعه ترکیبی نیمکت متصل به دو فلاورباکس', 'category' => 'furniture', 'x' => -0.5, 'z' => 2.8, 'rotation' => 0, 'w' => 2.2, 'd' => 0.5, 'h' => 0.6, 'shapeType' => 'bench_integrated', 'priceEst' => 11900000, 'weightKg' => 76 ),
-				array( 'productId' => '', 'name' => 'آتشدان گازی مدرن روف‌گاردن', 'category' => 'water_fire', 'x' => 1.2, 'z' => 0.5, 'rotation' => 0, 'w' => 0.9, 'd' => 0.9, 'h' => 0.45, 'shapeType' => 'firepit', 'priceEst' => 14200000, 'weightKg' => 48 ),
+				/* سبک منسجم: پرگولا + مبل زیر آن در شمال‌غرب، آتشدان کنار، آبنما شرق، نیمکت و کاشت خطی دیوار جنوب */
+				array( 'productId' => 'CK-PG-DK320', 'name' => 'پرگولا مدولار مدرن چوب‌پلاست ۳×۳ متر', 'category' => 'structures', 'x' => -3.1, 'z' => -1.9, 'rotation' => 0, 'w' => 3, 'd' => 3, 'h' => 2.5, 'shapeType' => 'pergola', 'priceEst' => 38500000, 'weightKg' => 280 ),
+				array( 'productId' => 'CK-LN-SET04', 'name' => 'ست مبل راحتی ۴ نفره چوب‌پلاست و فلز مشکی (با میز)', 'category' => 'furniture', 'x' => -3.1, 'z' => -1.9, 'rotation' => 0, 'w' => 2.2, 'd' => 1.5, 'h' => 0.78, 'shapeType' => 'lounge_set', 'priceEst' => 26500000, 'weightKg' => 64 ),
+				array( 'productId' => '', 'name' => 'آتشدان گازی مدرن روف‌گاردن', 'category' => 'water_fire', 'x' => -0.9, 'z' => -1.9, 'rotation' => 0, 'w' => 0.9, 'd' => 0.9, 'h' => 0.45, 'shapeType' => 'firepit', 'priceEst' => 14200000, 'weightKg' => 48 ),
+				array( 'productId' => '', 'name' => 'آبنمای خطی مدرن استیل و چوب‌پلاست', 'category' => 'water_fire', 'x' => 3.7, 'z' => -1.9, 'rotation' => 90, 'w' => 1.4, 'd' => 0.45, 'h' => 1.2, 'shapeType' => 'water_feature', 'priceEst' => 16800000, 'weightKg' => 65 ),
+				array( 'productId' => '', 'name' => 'مجموعه ترکیبی نیمکت متصل به دو فلاورباکس', 'category' => 'furniture', 'x' => -0.7, 'z' => 3.15, 'rotation' => 0, 'w' => 2.2, 'd' => 0.5, 'h' => 0.6, 'shapeType' => 'bench_integrated', 'priceEst' => 11900000, 'weightKg' => 76 ),
+				array( 'productId' => 'CK-FB-160', 'name' => 'فلاورباکس مدولار ۱۶۰ سانتی‌متری عریض', 'category' => 'planting', 'x' => 1.6, 'z' => 3.15, 'rotation' => 0, 'w' => 1.6, 'd' => 0.5, 'h' => 0.55, 'shapeType' => 'box', 'priceEst' => 7900000, 'weightKg' => 58 ),
+				array( 'productId' => 'CK-FB-160', 'name' => 'فلاورباکس مدولار ۱۶۰ سانتی‌متری عریض', 'category' => 'planting', 'x' => 3.3, 'z' => 3.15, 'rotation' => 0, 'w' => 1.6, 'd' => 0.5, 'h' => 0.55, 'shapeType' => 'box', 'priceEst' => 7900000, 'weightKg' => 58 ),
+				array( 'productId' => 'CK-GW-FP120', 'name' => 'دیوار سبز مدولار قاب‌دار با تراف کاشت پایه', 'category' => 'structures', 'x' => -4.65, 'z' => 0.9, 'rotation' => 90, 'w' => 1.2, 'd' => 0.42, 'h' => 1.8, 'shapeType' => 'green_wall_planter', 'priceEst' => 11200000, 'weightKg' => 68 ),
 			),
 		),
 	);
@@ -374,9 +352,9 @@ function ckb_defer_studio_scripts( $tag, $handle ) {
 		return $tag;
 	}
 	$defer_handles = array(
-		'ckb-three', 'ckb-textures', 'ckb-foliage', 'ckb-models',
-		'ckb-boundary', 'ckb-bom', 'ckb-blueprint', 'ckb-coach',
-		'ckb-inspiration', 'ckb-viewer', 'ckb-studio-app',
+		'ckb-three', 'ckb-textures', 'ckb-foliage', 'ckb-gltfloader', 'ckb-models',
+		'ckb-boundary', 'ckb-bom', 'ckb-blueprint', 'ckb-coach', 'ckb-hints',
+		'ckb-viewer', 'ckb-studio-app',
 	);
 	if ( in_array( $handle, $defer_handles, true )
 		&& strpos( $tag, 'defer' ) === false
@@ -411,22 +389,31 @@ function ckb_wpstudio_maybe_enqueue_early() {
 	}
 }
 function ckb_wpstudio_register_assets() {
-	$ver = CKB_VERSION;
+	/* v2.13.5 — cache-busting دو لایه: نسخه افزونه + mtime فایل.
+	   قبلاً فقط «v=2.13.2» در URL بود؛ بعضی کش‌های CDN/هاست مقدار query را
+	   نادیده می‌گرفتند و مرورگر JS قدیمی را می‌داد (منو قدیمی+رفع نشدن باگ‌ها).
+	   با mtime، هر آپلود جدید فایل، URL یکتا می‌شود و کش خنثی می‌شود. */
+	$mt = function ( $path ) {
+		$file = str_replace( CKB_PLUGIN_URL, CKB_PLUGIN_DIR, $path );
+		return CKB_VERSION . '.' . ( file_exists( $file ) ? (string) @filemtime( $file ) : '0' );
+	};
 
-	wp_register_style( 'ckb-studio', CKB_PLUGIN_URL . 'assets/studio.css', array(), $ver );
-	wp_register_script( 'ckb-three', CKB_PLUGIN_URL . 'assets/three.min.js', array(), $ver, false );
-	wp_register_script( 'ckb-textures', CKB_PLUGIN_URL . 'assets/ckb-textures.js', array( 'ckb-three' ), $ver, true );
-	wp_register_script( 'ckb-foliage', CKB_PLUGIN_URL . 'assets/ckb-foliage.js', array( 'ckb-three' ), $ver, true );
-	wp_register_script( 'ckb-models', CKB_PLUGIN_URL . 'assets/ckb-models.js', array( 'ckb-three', 'ckb-textures', 'ckb-foliage' ), $ver, true );
-	wp_register_script( 'ckb-boundary', CKB_PLUGIN_URL . 'assets/ckb-boundary.js', array(), $ver, true );
-	wp_register_script( 'ckb-bom', CKB_PLUGIN_URL . 'assets/ckb-bom.js', array(), $ver, true );
-	wp_register_script( 'ckb-blueprint', CKB_PLUGIN_URL . 'assets/ckb-blueprint.js', array( 'ckb-three' ), $ver, true );
+	wp_register_style( 'ckb-studio', CKB_PLUGIN_URL . 'assets/studio.css', array(), $mt( CKB_PLUGIN_URL . 'assets/studio.css' ) );
+	wp_register_script( 'ckb-three', CKB_PLUGIN_URL . 'assets/three.min.js', array(), $mt( CKB_PLUGIN_URL . 'assets/three.min.js' ), false );
+	wp_register_script( 'ckb-textures', CKB_PLUGIN_URL . 'assets/ckb-textures.js', array( 'ckb-three' ), $mt( CKB_PLUGIN_URL . 'assets/ckb-textures.js' ), true );
+	wp_register_script( 'ckb-foliage', CKB_PLUGIN_URL . 'assets/ckb-foliage.js', array( 'ckb-three' ), $mt( CKB_PLUGIN_URL . 'assets/ckb-foliage.js' ), true );
+	wp_register_script( 'ckb-gltfloader', CKB_PLUGIN_URL . 'assets/ckb-gltfloader.js', array( 'ckb-three' ), $mt( CKB_PLUGIN_URL . 'assets/ckb-gltfloader.js' ), true ); /* GLTFLoader shim روی THREE باندل‌شده */
+	wp_register_script( 'ckb-models', CKB_PLUGIN_URL . 'assets/ckb-models.js', array( 'ckb-three', 'ckb-textures', 'ckb-foliage', 'ckb-gltfloader' ), $mt( CKB_PLUGIN_URL . 'assets/ckb-models.js' ), true );
+	wp_register_script( 'ckb-boundary', CKB_PLUGIN_URL . 'assets/ckb-boundary.js', array(), $mt( CKB_PLUGIN_URL . 'assets/ckb-boundary.js' ), true );
+	wp_register_script( 'ckb-bom', CKB_PLUGIN_URL . 'assets/ckb-bom.js', array(), $mt( CKB_PLUGIN_URL . 'assets/ckb-bom.js' ), true );
+	wp_register_script( 'ckb-blueprint', CKB_PLUGIN_URL . 'assets/ckb-blueprint.js', array( 'ckb-three' ), $mt( CKB_PLUGIN_URL . 'assets/ckb-blueprint.js' ), true );
 	/* همراه طراح (v2.11): ماژول مستقل پنل راهنمای طراحی — بدون وابستگی */
-	wp_register_script( 'ckb-coach', CKB_PLUGIN_URL . 'assets/ckb-coach.js', array(), $ver, true );
-	/* گالری الهام (v2.13): ماژول مستقل پروژه‌های اجراشده — بدون وابستگی */
-	wp_register_script( 'ckb-inspiration', CKB_PLUGIN_URL . 'assets/ckb-inspiration.js', array(), $ver, true );
-	wp_register_script( 'ckb-viewer', CKB_PLUGIN_URL . 'assets/viewer.js', array( 'ckb-models' ), $ver, true );
-	wp_register_script( 'ckb-studio-app', CKB_PLUGIN_URL . 'assets/studio-app.js', array( 'ckb-models', 'ckb-boundary', 'ckb-bom' ), $ver, true );}
+	wp_register_script( 'ckb-coach', CKB_PLUGIN_URL . 'assets/ckb-coach.js', array(), $mt( CKB_PLUGIN_URL . 'assets/ckb-coach.js' ), true );
+	/* راهنمای درون‌پلان (v2.14): قدم‌های حرکتی روی خود بوم — بدون وابستگی */
+	wp_register_script( 'ckb-hints', CKB_PLUGIN_URL . 'assets/ckb-hints.js', array(), $mt( CKB_PLUGIN_URL . 'assets/ckb-hints.js' ), true );
+	wp_register_script( 'ckb-viewer', CKB_PLUGIN_URL . 'assets/viewer.js', array( 'ckb-models' ), $mt( CKB_PLUGIN_URL . 'assets/viewer.js' ), true );
+	wp_register_script( 'ckb-studio-app', CKB_PLUGIN_URL . 'assets/studio-app.js', array( 'ckb-models', 'ckb-boundary', 'ckb-bom' ), $mt( CKB_PLUGIN_URL . 'assets/studio-app.js' ), true );
+}
 
 /* ------------------------------ Core Studio HTML ------------------------------ */
 
@@ -451,38 +438,17 @@ function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen
 	wp_enqueue_script( 'ckb-bom' );
 	wp_enqueue_script( 'ckb-blueprint' );
 	wp_enqueue_script( 'ckb-coach' ); /* همراه طراح — قبل از studio-app تا در لحظه mount آماده باشد (v2.11) */
-	wp_enqueue_script( 'ckb-inspiration' ); /* گالری الهام — قبل از studio-app تا در لحظه mount آماده باشد (v2.13) */
+	wp_enqueue_script( 'ckb-hints' ); /* راهنمای درون‌پلان — قبل از studio-app (v2.14) */
 	wp_enqueue_script( 'ckb-studio-app' );
-
-	/* v2.13 گالری الهام: شناسه پلانِ هر پروژه همین‌جا سمت سرور حل می‌شود
-	   (اول تطبیق نام، بعد تطبیق فرم پلان) تا ماژول JS به داده DB وابسته نباشد. */
-	$inspiration = ckb_get_inspiration_projects();
-	foreach ( $inspiration as $idx => $prj ) {
-		$resolved = '';
-		foreach ( $plans as $pl ) {
-			if ( isset( $prj['planName'] ) && $prj['planName'] === $pl['name'] ) {
-				$resolved = $pl['id'];
-				break;
-			}
-		}
-		if ( '' === $resolved && isset( $prj['planShape'] ) ) {
-			foreach ( $plans as $pl ) {
-				if ( $prj['planShape'] === $pl['shape'] ) {
-					$resolved = $pl['id'];
-					break;
-				}
-			}
-		}
-		$inspiration[ $idx ]['planId'] = $resolved;
-	}
 
 	$config = array(
 		'products'    => $products,
 		'plans'       => $plans,
-		'inspiration' => $inspiration,
 		'ajaxUrl'     => $ajax_url,
 		'nonce'       => $nonce,
 		'autoPlans'   => $auto_plans,
+		/* کد تایید پیامکی (OTP): فقط فرم عمومی — استودیوی پیشخوان (کارمندان) معاف است */
+		'otpEnabled'  => ckb_smsotp_available() && ! $is_admin,
 		/* Mobile v2.8: server-side device sniff informs the JS render path */
 		'isMobile'    => (bool) wp_is_mobile(),
 	);
@@ -518,6 +484,17 @@ function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen
 				</div>
 				<!-- One-off warning toast (studio-app.js showToast) -->
 				<div class="ckb-wstudio-toast" id="<?php echo esc_attr( $studio_id ); ?>-toast" role="status"></div>
+				<!-- Loading overlay (v2.13.2) — سرور-رندر: بلافاصله با HTML نمایش داده می‌شود و
+				     کد جاوااسکریپت (studio-app.js addLoadingOverlay) بعد از اولین فریم آن را محو/حذف می‌کند.
+				     اگر JS مسدود باشد هم کاربر پوشش را می‌بیند و صفحه‌ی خالی نمیگیرد. -->
+				<div class="ckb-wstudio-loader is-server" id="<?php echo esc_attr( $studio_id ); ?>-loader" aria-hidden="true">
+					<div class="ckb-loader-ring">
+						<svg viewBox="0 0 64 64" fill="none"><circle class="ckb-loader-track" cx="32" cy="32" r="27" stroke-width="3" fill="none"/><circle class="ckb-loader-arc" cx="32" cy="32" r="27" stroke-width="3" stroke-linecap="round" fill="none" stroke-dasharray="42 128"/></svg>
+						<div class="ckb-loader-core"><span></span></div>
+					</div>
+					<div class="ckb-loader-brand"><span class="ckb-loader-dot"></span><b>چکادبام استودیو</b></div>
+					<div class="ckb-loader-note">در حال آماده‌سازی صحنه سه‌بعدی</div>
+				</div>
 			</div>
 
 			<!-- Selected Item Floating Inspector -->
@@ -599,13 +576,13 @@ function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen
 				</div>
 				<div class="ckb-guide-body">
 					<ol class="ckb-guide-steps">
-						<li><span class="ckb-guide-num">۱</span><div><b>بام خود را تعریف کنید</b><p>با «ابعاد بام من» شکل، ابعاد و کف‌سازی پشت‌بام را تنظیم کنید یا از پلان‌های آماده بارگذاری کنید.</p></div></li>
+						<li><span class="ckb-guide-num">۱</span><div><b>بام خود را تعریف کنید</b><p>با «ابعاد بام من» شکل، ابعاد و کف‌سازی پشت‌بام را تنظیم کنید.</p></div></li>
 						<li><span class="ckb-guide-num">۲</span><div><b>اقلام را اضافه کنید</b><p>«افزودن اقلام» هر قلم را در امن‌ترین نقطه پلان قرار می‌دهد؛ با جستجو و فیلتر دسته‌بندی، سریع به قلم موردنظر می‌رسید.</p></div></li>
 						<li><span class="ckb-guide-num">۳</span><div><b>جابه‌جایی دقیق</b><p>قلم انتخاب‌شده را با ماوس یا انگشت بکشید، با دکمه‌های جهت‌دار نوار قلم نیم‌متر یک‌جا حرکتش دهید و با کلیدهای جهت‌دار هم همین کار را بکنید. چرخش ۴۵°، ۹۰°، تکثیر و رنگ چوب‌پلاست هم از همان نوار.</p></div></li>
 						<li><span class="ckb-guide-num">۴</span><div><b>دید و نورپردازی</b><p>درگ روی فضای خالی دوربین را می‌چرخاند و اسکرول زوم می‌کند. سه حالت روز، غروب و شب حس فضای واقعی را می‌سازند.</p></div></li>
 						<li><span class="ckb-guide-num">۵</span><div><b>فهرست اقلام و ذخیره</b><p>«فهرست اقلام و برآورد» متراژ اقلام را حساب می‌کند و «ثبت و ارسال طرح» برای مشاوره و اجرا ثبت می‌شود.</p></div></li>
 					</ol>
-					<p class="ckb-guide-hint">دکمه «؟ راهنما» در نوار پایین، همین راهنما را دوباره باز می‌کند.</p>
+					<p class="ckb-guide-hint">دکمه «؟ راهنما»، راهنمای قدم‌به‌قدم روی خود پلان را دوباره نشان می‌دهد.</p>
 				</div>
 				<div class="ckb-guide-foot">
 					<span>استودیو چکادبام — طراحی روف‌گاردن مدولار</span>
@@ -624,36 +601,6 @@ function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen
 						<div class="ckb-wstudio-x" data-close="plan" role="button" aria-label="بستن" tabindex="0">✕</div>
 					</div>
 				</div>
-				<!-- v2.13 سه نقطه شروع (الگوی TimberTech): کاربر اول انتخاب می‌کند
-				     چطور شروع کند — الهام از پروژه واقعی، پلان آماده، یا از صفر.
-				     سوییچ تب‌ها در studio-app.js به [data-start] وصل است. -->
-				<div class="ckb-start-grid">
-					<button type="button" class="ckb-start-card" data-start="projects">
-						<span class="ckb-start-tag">جدید</span>
-						<span class="ckb-sic" aria-hidden="true">📷</span>
-						<b>از پروژه‌های اجراشده</b>
-						<p>عکس پروژه واقعی چکادبام را ببینید و همان چیدمان را روی بام خودتان ویرایش کنید.</p>
-					</button>
-					<button type="button" class="ckb-start-card" data-start="presets">
-						<span class="ckb-sic" aria-hidden="true">📐</span>
-						<b>از پلان‌های آماده</b>
-						<p>پلان‌های مهندسی‌شده با چیدمان کامل — یک کلیک، همه‌چیز روی بوم.</p>
-					</button>
-					<button type="button" class="ckb-start-card" data-start="scratch">
-						<span class="ckb-sic" aria-hidden="true">✏️</span>
-						<b>شروع از صفر</b>
-						<p>شکل و ابعاد دقیق بام خودتان را بدهید و قدم‌به‌قدم با راهنمای همراه طراح بچینید.</p>
-					</button>
-				</div>
-				<div class="ckb-plan-tabs" id="<?php echo esc_attr( $studio_id ); ?>-plan-tabs">
-					<button type="button" data-ptab="presets" class="active">پلان‌های آماده</button>
-					<button type="button" data-ptab="custom">تنظیم دستی فرم و ابعاد</button>
-				</div>
-				<div class="ckb-ptab" data-ptab-body="presets">
-					<p class="ckb-ptab-hint">یکی از پلان‌های آماده را انتخاب کنید تا نقشه و چیدمان یک‌جا بارگذاری شود.</p>
-					<div class="ckb-plans-grid" id="<?php echo esc_attr( $studio_id ); ?>-plans-list"></div>
-				</div>
-				<div class="ckb-ptab" data-ptab-body="custom" style="display:none">
 				<div class="ckb-pe-grid">
 				<div class="ckb-pe-main">
 				<div class="ckb-fgroup">
@@ -740,7 +687,6 @@ function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen
 				</div>
 				</div>
 			</div>
-		</div>
 
 		<!-- BOM Modal -->
 		<div class="ckb-wstudio-modal" id="<?php echo esc_attr( $studio_id ); ?>-modal-bom">
@@ -790,12 +736,24 @@ function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen
 				<div class="ckb-grid2">
 					<div class="ckb-fgroup">
 						<label>شماره تماس همراه *</label>
-						<input type="tel" id="<?php echo esc_attr( $studio_id ); ?>-inp-phone" dir="ltr" placeholder="09120000000">
+						<div class="ckb-otp-row">
+							<input type="tel" id="<?php echo esc_attr( $studio_id ); ?>-inp-phone" dir="ltr" placeholder="09120000000" autocomplete="tel">
+							<button type="button" class="ckb-otp-send-btn" id="<?php echo esc_attr( $studio_id ); ?>-btn-otp-send" hidden>ارسال کد تایید</button>
+						</div>
 					</div>
 					<div class="ckb-fgroup">
 						<label>ایمیل (اختیاری)</label>
 						<input type="email" id="<?php echo esc_attr( $studio_id ); ?>-inp-email" dir="ltr" placeholder="you@example.com">
 					</div>
+				</div>
+				<!-- کد تایید پیامکی — فقط وقتی سرویس OTP فعال باشد نمایش داده می‌شود -->
+				<div class="ckb-fgroup" id="<?php echo esc_attr( $studio_id ); ?>-otp-group" hidden>
+					<label>کد تایید پیامکی *</label>
+					<div class="ckb-otp-row">
+						<input type="tel" id="<?php echo esc_attr( $studio_id ); ?>-inp-otp" class="ckb-otp-code-input" dir="ltr" inputmode="numeric" maxlength="5" placeholder="کد ۵ رقمی" autocomplete="one-time-code">
+						<button type="button" class="ckb-otp-send-btn" id="<?php echo esc_attr( $studio_id ); ?>-btn-otp-resend" hidden>ارسال مجدد</button>
+					</div>
+					<small class="ckb-otp-hint" id="<?php echo esc_attr( $studio_id ); ?>-otp-hint"></small>
 				</div>
 				<div class="ckb-fgroup">
 					<label>شهر پروژه</label>
@@ -805,9 +763,7 @@ function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen
 					<label>توضیحات</label>
 					<textarea id="<?php echo esc_attr( $studio_id ); ?>-inp-notes" rows="2" placeholder="توضیحات اختیاری..."></textarea>
 				</div>
-				<!-- v2.13 اعتمادسازی: دیسکلیمر مهندسی + سفارش نمونه رایگان رنگ.
-				     کارت‌های ایستا هستند؛ دکمه سفارش نمونه در ckb-inspiration.js
-				     به فرم همین پنجره وصل می‌شود. -->
+				<!-- v2.13 اعتمادسازی: دیسکلیمر مهندسی (کارت ایستا) -->
 				<div class="ckb-trust-row">
 					<div class="ckb-disclaimer">
 						<span class="ckb-di" aria-hidden="true">🛡</span>
@@ -815,16 +771,6 @@ function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen
 							<b>نقش مهندس تأییدکننده</b>
 							<p>این طرح صرفاً برای بصری‌سازی و برآورد اولیه است؛ اجرا پس از بازدید کارشناس و تأیید سازه انجام می‌شود.</p>
 						</div>
-					</div>
-					<div class="ckb-sample">
-						<div class="ckb-swatches" aria-hidden="true">
-							<i style="background:#4a321f"></i><i style="background:#9b683e"></i><i style="background:#2b2a29"></i><i style="background:#c59d6f"></i>
-						</div>
-						<div class="ckb-sample-txt">
-							<b>رنگ‌ها را از نزدیک ببینید</b>
-							<p>نمونه رایگان چوب‌پلاست درب منزل شما</p>
-						</div>
-						<button type="button" class="ckb-catalog-btn" data-sample-order>سفارش نمونه</button>
 					</div>
 				</div>
 				<button type="button" class="ckb-catalog-btn" style="width:100%;padding:11px;font-size:13px;" id="<?php echo esc_attr( $studio_id ); ?>-btn-submit">
