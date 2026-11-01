@@ -3,7 +3,7 @@
  * Plugin Name: چکادبام استودیو منیجر (Chekadbam Studio Manager)
  * Plugin URI:  https://chekadbam.com
  * Description: استودیوی طراحی سه‌بعدی واقع‌گرایانه روف‌گاردن با مدل‌های واقعی محصولات (پرگولا، آبنما، درخت، ...)، مدیریت اقلام مدولار WPC، پلان‌های روف‌گاردن، CRM طرح‌ها، REST API هم‌خوان با Next.js، نمایشگر سه‌بعدی محصول و کد کوتاه فرم.
- * Version:     2.16.9
+ * Version:     2.16.10
  * Author:      Chekadbam Engineering
  * Author URI:  https://chekadbam.com
  * Text Domain: chekadbam
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CKB_VERSION', '2.16.9' );
+define( 'CKB_VERSION', '2.16.10' );
 define( 'CKB_PLUGIN_FILE', __FILE__ );
 define( 'CKB_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CKB_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -68,7 +68,48 @@ function ckb_maybe_upgrade() {
 	foreach ( $tiles as $tid ) {
 		wp_trash_post( $tid );
 	}
+	/* v2.16.9 — بک‌فیل قلم «تاب چوبی پرگولادار با فلاورباکس»؛ seed اولیه فقط روی
+	   دیتابیس خالی اجرا می‌شود، پس در سایت‌های موجود این قلم هرگز ساخته نمی‌شد. */
+	ckb_ensure_swing_product();
 	update_option( 'ckb_db_version', CKB_VERSION );
+}
+
+function ckb_ensure_swing_product() {
+	$found = get_posts(
+		array(
+			'post_type'   => 'ckb_product',
+			'post_status' => 'any',
+			'numberposts' => 1,
+			'meta_key'    => '_ckb_code',
+			'meta_value'  => 'CK-SW-PG220',
+			'fields'      => 'ids',
+		)
+	);
+	$pid = $found ? $found[0] : wp_insert_post(
+		array(
+			'post_type'   => 'ckb_product',
+			'post_status' => 'publish',
+			'post_title'  => 'تاب چوبی پرگولادار با فلاورباکس',
+		)
+	);
+	if ( ! $pid || is_wp_error( $pid ) ) {
+		return;
+	}
+	update_post_meta( $pid, '_ckb_code', 'CK-SW-PG220' );
+	update_post_meta( $pid, '_ckb_category', 'furniture' );
+	update_post_meta( $pid, '_ckb_width', 2.0 );
+	update_post_meta( $pid, '_ckb_depth', 0.95 );
+	update_post_meta( $pid, '_ckb_height', 2.2 );
+	update_post_meta( $pid, '_ckb_weight', 165 );
+	update_post_meta( $pid, '_ckb_price', 42500000 );
+	update_post_meta( $pid, '_ckb_shape_type', 'box' );
+	update_post_meta( $pid, '_ckb_wpc_color', 'walnut' );
+	update_post_meta( $pid, '_ckb_metal_color', 'black' );
+	update_post_meta( $pid, '_ckb_has_lighting', '1' );
+	update_post_meta( $pid, '_ckb_glb_url', CKB_PLUGIN_URL . 'assets/models/swing-pergola-flowerbox.glb' );
+	if ( 'publish' !== get_post_status( $pid ) ) {
+		wp_update_post( array( 'ID' => $pid, 'post_status' => 'publish' ) );
+	}
 }
 
 /* ------------------------------ Admin menu ------------------------------ */

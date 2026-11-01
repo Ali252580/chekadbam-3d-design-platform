@@ -4,7 +4,7 @@ Tags: roof-garden, 3d-studio, modular, wpc, crm, rest-api, 3d-viewer
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 2.16.9
+Stable tag: 2.16.10
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -80,6 +80,9 @@ Namespace: /wp-json/chekadbam/v1
 * GET  /designs  — فهرست طرح‌ها با نام فیلدهای Next.js (userName, layoutData, snapshotUrl, estimatedPriceMin/Max, ...) + نام‌های قدیمی (فقط مدیر)
 
 == Changelog ==
+
+= 2.16.10 =
+* رفع «اضافه نشدن به اقلام»: seed اولیه فقط وقتی دیتابیس پر از قلم نبود اجرا می‌شد، بنابراین «تاب چوبی پرگولادار با فلاورباکس» (CK-SW-PG220) در سایت‌های موجود ساخته نمی‌شد. حالا هنگام ارتقای افزونه یک بک‌فیل خودکار اجرا می‌شود: اگر قلم نبود می‌سازد و اگر بود ابعاد (۲٫۰×۰٫۹۵×۲٫۲) و آدرس مدل GLB را اصلاح و منتشر می‌کند.
 
 = 2.16.9 =
 * تصویر کارت «تاب چوبی پرگولادار با فلاورباکس» در منوی افزودن (کاتالوگ) حالا همان مدل GLB واقعی را می‌چرخاند؛ قبلاً به‌جای آن باکس خاکستری procedural نمایش داده می‌شد چون `glbUrl` به رندر تصویر کارت پاس نمی‌شد.
