@@ -159,6 +159,7 @@
 					depth: p.d,
 					height: p.h,
 					shapeType: p.shape || 'box',
+					glbUrl: p.glbUrl || '',
 					category: p.category || 'planting',
 					wpcColor: p.wpcColor,
 					metalColor: p.metalColor,

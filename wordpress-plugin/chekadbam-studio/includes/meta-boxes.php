@@ -304,7 +304,7 @@ function ckb_render_design_view( $post ) {
 			<?php foreach ( $items as $i => $it ) : ?>
 				<tr>
 					<td><?php echo esc_html( $i + 1 ); ?></td>
-					<td><?php echo esc_html( $it['name'] ?? '—' ); ?></td>
+					<td><?php echo esc_html( ckb_repair_fa_text( $it['name'] ?? '—' ) ); ?></td>
 					<td><?php echo esc_html( $it['x'] ?? 0 ); ?></td>
 					<td><?php echo esc_html( $it['z'] ?? 0 ); ?></td>
 					<td><?php echo esc_html( $it['rotation'] ?? 0 ); ?>°</td>

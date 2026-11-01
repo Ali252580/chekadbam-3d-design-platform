@@ -54,7 +54,7 @@ function ckb_seed_products() {
 		array( 'code' => 'CK-WF-FRM130', 'title' => 'آبنمای قاب دوبل چوب‌پلاست با حوضچه ریزش آب', 'cat' => 'water_fire', 'w' => 1.3, 'd' => 1.1, 'h' => 1.45, 'weight' => 82, 'price' => 22800000, 'shape' => 'water_feature', 'light' => 1 ),
 		array( 'code' => 'CK-FP-SQ110', 'title' => 'میز آتشدان مربعی چوب‌پلاست با سبد شعله', 'cat' => 'water_fire', 'w' => 1.1, 'd' => 1.1, 'h' => 0.72, 'weight' => 92, 'price' => 21500000, 'shape' => 'firepit_table', 'light' => 1 ),
 		array( 'code' => 'CK-UMB-300', 'title' => 'چتر سایبان هیدرولیک پایه‌کنار ۳ متری', 'cat' => 'accessories', 'w' => 3.0, 'd' => 3.0, 'h' => 2.65, 'weight' => 85, 'price' => 15400000, 'shape' => 'umbrella', 'light' => 0 ),
-		array( 'code' => 'CK-FL-WPC', 'title' => 'تایل کف‌پوش چوب‌پلاست WPC پازلی', 'cat' => 'flooring', 'w' => 1.0, 'd' => 1.0, 'h' => 0.04, 'weight' => 18, 'price' => 2400000, 'shape' => 'box', 'light' => 0 ),
+		array( 'code' => 'CK-SW-PG220', 'title' => 'تاب چوبی پرگولادار با فلاورباکس', 'cat' => 'furniture', 'w' => 2.0, 'd' => 0.95, 'h' => 2.2, 'weight' => 165, 'price' => 42500000, 'shape' => 'box', 'light' => 1, 'glbUrl' => CKB_PLUGIN_URL . 'assets/models/swing-pergola-flowerbox.glb' ),
 	);
 
 	foreach ( $items as $it ) {
@@ -79,6 +79,9 @@ function ckb_seed_products() {
 		update_post_meta( $pid, '_ckb_wpc_color', 'walnut' );
 		update_post_meta( $pid, '_ckb_metal_color', 'black' );
 		update_post_meta( $pid, '_ckb_has_lighting', $it['light'] ? '1' : '0' );
+		if ( ! empty( $it['glbUrl'] ) ) {
+			update_post_meta( $pid, '_ckb_glb_url', $it['glbUrl'] );
+		}
 	}
 }
 
@@ -104,8 +107,8 @@ function ckb_seed_plans() {
 				array( 'productId' => 'CK-PG-DK320', 'name' => 'پرگولا با دک کف', 'x' => -2.6, 'z' => -1.6, 'rotation' => 0 ),
 				array( 'productId' => 'CK-WF-FRM130', 'name' => 'آبنمای قاب دوبل', 'x' => 3.2, 'z' => -2.6, 'rotation' => 0 ),
 				array( 'productId' => 'CK-FB-160', 'name' => 'فلاورباکس ۱۶۰', 'x' => 4.0, 'z' => 0.4, 'rotation' => 90 ),
-				array( 'productId' => 'CK-LN-SET04', 'name' => 'ست مبل راحتی', 'x' => -1.0, 'z' => 2.4, 'rotation' => 180 ),
-				array( 'productId' => 'CK-FP-SQ110', 'name' => 'میز آتشدان', 'x' => 1.6, 'z' => 0.6, 'rotation' => 0 ),
+				array( 'productId' => 'CK-LN-SET04', 'name' => 'ست مبل راحتی', 'x' => -2.6, 'z' => -2.35, 'rotation' => 0 ),
+				array( 'productId' => 'CK-FP-SQ110', 'name' => 'میز آتشدان', 'x' => -2.6, 'z' => -0.65, 'rotation' => 0 ),
 			),
 		),
 		array(
@@ -115,7 +118,8 @@ function ckb_seed_plans() {
 			'cutout_w' => 5.5, 'cutout_l' => 4.5,
 			'items'  => array(
 				array( 'productId' => 'CK-PG-DK320', 'name' => 'پرگولا با دک کف', 'x' => -3.4, 'z' => -2.0, 'rotation' => 0 ),
-				array( 'productId' => 'CK-LN-SET04', 'name' => 'ست مبل راحتی', 'x' => 3.2, 'z' => -2.4, 'rotation' => 0 ),
+				array( 'productId' => 'CK-LN-SET04', 'name' => 'ست مبل راحتی', 'x' => -3.4, 'z' => -2.75, 'rotation' => 0 ),
+				array( 'productId' => 'CK-FP-SQ110', 'name' => 'میز آتشدان', 'x' => -3.4, 'z' => -1.05, 'rotation' => 0 ),
 				array( 'productId' => 'CK-FB-160', 'name' => 'فلاورباکس ۱۶۰', 'x' => -5.0, 'z' => 1.4, 'rotation' => 90 ),
 				array( 'productId' => 'CK-BN-BR140', 'name' => 'نیمکت پشتی‌دار', 'x' => -0.6, 'z' => 3.2, 'rotation' => 180 ),
 			),

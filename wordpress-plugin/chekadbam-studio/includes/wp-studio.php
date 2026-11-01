@@ -110,6 +110,7 @@ function ckb_default_studio_products() {
 		array( 'code' => 'CK-WF-FRM130', 'name' => 'آبنمای قاب دوبل با حوضچه ریزش آب', 'category' => 'water_fire', 'w' => 1.3, 'd' => 1.1, 'h' => 1.45, 'weight' => 82, 'price' => 22800000, 'shape' => 'water_feature', 'wpcColor' => 'walnut', 'metalColor' => 'black', 'light' => true ),
 		array( 'code' => 'CK-FP-SQ110', 'name' => 'میز آتشدان مربعی چوب‌پلاست', 'category' => 'water_fire', 'w' => 1.1, 'd' => 1.1, 'h' => 0.72, 'weight' => 92, 'price' => 21500000, 'shape' => 'firepit_table', 'wpcColor' => 'walnut', 'metalColor' => 'black', 'light' => true ),
 		array( 'code' => 'CK-UMB-300', 'name' => 'چتر سایبان هیدرولیک پایه‌کنار ۳ متری', 'category' => 'accessories', 'w' => 3.0, 'd' => 3.0, 'h' => 2.65, 'weight' => 85, 'price' => 15400000, 'shape' => 'umbrella', 'wpcColor' => 'walnut', 'metalColor' => 'black', 'light' => false ),
+		array( 'code' => 'CK-SW-PG220', 'name' => 'تاب چوبی پرگولادار با فلاورباکس', 'category' => 'furniture', 'w' => 2.0, 'd' => 0.95, 'h' => 2.2, 'weight' => 165, 'price' => 42500000, 'shape' => 'box', 'glbUrl' => CKB_PLUGIN_URL . 'assets/models/swing-pergola-flowerbox.glb', 'wpcColor' => 'walnut', 'metalColor' => 'black', 'light' => true ),
 		array( 'code' => 'CK-TR-POT', 'name' => 'درختچه تزیینی در گلدان مدولار', 'category' => 'planting', 'w' => 0.9, 'd' => 0.9, 'h' => 2.4, 'weight' => 55, 'price' => 8600000, 'shape' => 'tree', 'wpcColor' => 'walnut', 'metalColor' => 'black', 'light' => false ),
 		array( 'code' => 'CK-BBQ-180', 'name' => 'باربیکیو و کانتر آشپزخانه بیرونی', 'category' => 'accessories', 'w' => 1.8, 'd' => 0.65, 'h' => 1.1, 'weight' => 120, 'price' => 34800000, 'shape' => 'bbq', 'wpcColor' => 'charcoal', 'metalColor' => 'charcoal', 'light' => false ),
 	);
@@ -118,7 +119,7 @@ function ckb_default_studio_products() {
 /**
  * Plans for the studio JS (from DB with fallback seed data).
  */
-function ckb_get_studio_plans() {
+function ckb_get_studio_plans( $products = array() ) {
 	$plans = array();
 	$posts = get_posts(
 		array(
@@ -160,6 +161,17 @@ function ckb_get_studio_plans() {
 		);
 	}
 
+	if ( empty( $products ) ) {
+		$products = ckb_get_studio_products();
+	}
+	$geom = ckb_product_geom_map( $products );
+
+	/* v2.16.6 — چیدمان پیش‌فرض: نشیمن و آتشدان داخل پرگولا */
+	foreach ( $plans as &$pl ) {
+		$pl['items'] = ckb_nest_seating_under_pergola( $pl['items'], $geom );
+	}
+	unset( $pl );
+
 	// Always guarantee the full set of shipped presets is available
 	// (DB rows may hold fewer plans than the presets).
 	if ( count( $plans ) < count( ckb_default_studio_plans() ) ) {
@@ -169,12 +181,166 @@ function ckb_get_studio_plans() {
 		}
 		foreach ( ckb_default_studio_plans() as $dflt ) {
 			if ( ! in_array( $dflt['name'], $names, true ) ) {
-				$plans[] = $dflt;
-				$names[] = $dflt['name'];
+				$dflt['items'] = ckb_nest_seating_under_pergola( $dflt['items'], $geom );
+				$plans[]       = $dflt;
+				$names[]       = $dflt['name'];
 			}
 		}
 	}
 	return $plans;
+}
+
+/** کد محصول → [شکل, عرض, عمق] تا اقلام پلن‌های دیتابیس (فقط productId) هم قابل تشخیص باشند. */
+function ckb_product_geom_map( $products ) {
+	$map = array();
+	foreach ( (array) $products as $p ) {
+		if ( ! isset( $p['code'] ) || '' === $p['code'] ) {
+			continue;
+		}
+		$map[ $p['code'] ] = array(
+			isset( $p['shape'] ) ? $p['shape'] : 'box',
+			isset( $p['w'] ) ? (float) $p['w'] : 0,
+			isset( $p['d'] ) ? (float) $p['d'] : 0,
+		);
+	}
+	return $map;
+}
+
+/** شکل و ابعاد یک قلم پلن؛ در پلن‌های ذخیره‌شده در دیتابیس این‌ها از خود محصول می‌آید. */
+function ckb_plan_item_geom( $item, $map ) {
+	$shape = isset( $item['shapeType'] ) ? (string) $item['shapeType'] : '';
+	$w     = isset( $item['w'] ) ? (float) $item['w'] : 0;
+	$d     = isset( $item['d'] ) ? (float) $item['d'] : 0;
+	$code  = isset( $item['productId'] ) ? (string) $item['productId'] : '';
+	if ( ( '' === $shape || $w <= 0 ) && isset( $map[ $code ] ) ) {
+		if ( '' === $shape ) {
+			$shape = $map[ $code ][0];
+		}
+		if ( $w <= 0 ) {
+			$w = $map[ $code ][1];
+		}
+		if ( $d <= 0 ) {
+			$d = $map[ $code ][2];
+		}
+	}
+	if ( $w <= 0 ) {
+		$w = 1.0;
+	}
+	if ( $d <= 0 ) {
+		$d = 1.0;
+	}
+	return array( $shape, $w, $d );
+}
+
+/**
+ * v2.16.6 — چیدمان پیش‌فرض پلن‌ها: ست نشیمن (مبل/صندلی) و آتشدان کنار هم زیر پرگولا،
+ * مثل عکس مرجع — نشیمن به عقبِ قاب پرگولا و آتشدان درست جلوی آن.
+ * هر قلم به نزدیک‌ترین پرگولا می‌رود و جای خالی را برمی‌دارد تا با قلم دیگر تداخل نکند؛
+ * پلن‌هایی که پرگولا ندارند دست نمی‌خورند.
+ */
+function ckb_nest_seating_under_pergola( $items, $map ) {
+	$items = (array) $items;
+	if ( count( $items ) < 2 ) {
+		return $items;
+	}
+
+	$pergolas = array();
+	$shapes   = array();
+	foreach ( $items as $i => $it ) {
+		$g = ckb_plan_item_geom( $it, $map );
+		$shapes[ $i ] = $g;
+		if ( 'pergola' === $g[0] || 'pergola_deck' === $g[0] ) {
+			$pergolas[] = array(
+				'x'   => isset( $it['x'] ) ? (float) $it['x'] : 0,
+				'z'   => isset( $it['z'] ) ? (float) $it['z'] : 0,
+				'w'   => $g[1],
+				'd'   => $g[2],
+				'rot' => isset( $it['rotation'] ) ? (float) $it['rotation'] : 0,
+			);
+		}
+	}
+	if ( empty( $pergolas ) ) {
+		return $items;
+	}
+
+	/* اول نشیمن‌ها جا می‌گیرند (عقب-مرکز)، بعد آتشدان‌ها (جلو-مرکز) */
+	$order = array();
+	foreach ( $shapes as $i => $g ) {
+		if ( 'lounge_set' === $g[0] ) {
+			$order[] = $i;
+		}
+	}
+	foreach ( $shapes as $i => $g ) {
+		if ( 'firepit' === $g[0] || 'firepit_table' === $g[0] ) {
+			$order[] = $i;
+		}
+	}
+
+	$placed = array(); // ایندکس پرگولا => جعبه‌های اشغال‌شده در مختصات محلی
+	foreach ( $order as $i ) {
+		$g  = $shapes[ $i ];
+		$x  = isset( $items[ $i ]['x'] ) ? (float) $items[ $i ]['x'] : 0;
+		$z  = isset( $items[ $i ]['z'] ) ? (float) $items[ $i ]['z'] : 0;
+		$p  = ckb_nearest_pergola( $pergolas, $x, $z );
+		$pg = $pergolas[ $p ];
+
+		$fire = ( 'firepit' === $g[0] || 'firepit_table' === $g[0] );
+		$edge_x = max( 0, $pg['w'] / 2 - $g[1] / 2 - 0.1 );
+		$edge_z = max( 0, $pg['d'] / 2 - $g[2] / 2 - 0.1 );
+
+		/* اولویت جا: نشیمن عقب-مرکز، آتشدان جلو-مرکز، و بعد کناره‌ها */
+		$cands = $fire
+			? array( array( 0, 1 ), array( -1, 1 ), array( 1, 1 ), array( -1, 0 ), array( 1, 0 ), array( 0, -1 ) )
+			: array( array( 0, -1 ), array( -1, 0 ), array( 1, 0 ), array( 0, 1 ), array( 0, 0 ) );
+
+		$lx = $cands[0][0] * $edge_x;
+		$lz = $cands[0][1] * $edge_z;
+		foreach ( $cands as $c ) {
+			$try_x = $c[0] * $edge_x;
+			$try_z = $c[1] * $edge_z;
+			$hit   = false;
+			if ( isset( $placed[ $p ] ) ) {
+				foreach ( $placed[ $p ] as $box ) {
+					if ( abs( $try_x - $box[0] ) < ( $g[1] + $box[2] ) / 2 - 0.02
+						&& abs( $try_z - $box[1] ) < ( $g[2] + $box[3] ) / 2 - 0.02 ) {
+						$hit = true;
+						break;
+					}
+				}
+			}
+			if ( ! $hit ) {
+				$lx = $try_x;
+				$lz = $try_z;
+				break;
+			}
+		}
+		$placed[ $p ][] = array( $lx, $lz, $g[1], $g[2] );
+
+		/* چرخش پرگولا: بردار محلی به مختصات جهانی */
+		$rad = deg2rad( $pg['rot'] );
+		$cos = cos( $rad );
+		$sin = sin( $rad );
+
+		$items[ $i ]['x']        = round( $pg['x'] + $lx * $cos + $lz * $sin, 3 );
+		$items[ $i ]['z']        = round( $pg['z'] - $lx * $sin + $lz * $cos, 3 );
+		$items[ $i ]['rotation'] = $pg['rot'];
+	}
+
+	return $items;
+}
+
+/** ایندکس نزدیک‌ترین پرگولا به یک نقطه. */
+function ckb_nearest_pergola( $pergolas, $x, $z ) {
+	$best    = 0;
+	$bestDst = null;
+	foreach ( $pergolas as $p => $pg ) {
+		$dst = sqrt( pow( $x - $pg['x'], 2 ) + pow( $z - $pg['z'], 2 ) );
+		if ( null === $bestDst || $dst < $bestDst ) {
+			$bestDst = $dst;
+			$best    = $p;
+		}
+	}
+	return $best;
 }
 
 /**
@@ -184,7 +350,7 @@ function ckb_get_studio_plans() {
 function ckb_repair_fa_text( $s ) {
 	$s = (string) $s;
 	if ( '' === $s ) { return $s; }
-	if ( preg_match( '/[' . chr(0x0600) . '-' . chr(0x06FF) . ']/u', $s ) ) { return $s; }
+	if ( preg_match( '/[\x{0600}-\x{06FF}]/u', $s ) ) { return $s; }
 	if ( ! preg_match( '/u([0-9a-fA-F]{4})/', $s ) ) { return $s; }
 	$escaped = preg_replace( '/u([0-9a-fA-F]{4})/', '\\u$1', $s );
 	$decoded = json_decode( '"' . $escaped . '"' );
@@ -210,10 +376,10 @@ function ckb_default_studio_plans() {
 			'shaftWidth' => 0,
 			'shaftLength' => 0,
 			'items' => array(
-				/* سبک منسجم طراح: ست مبل درست زیر پرگولا، آتشدان کنار نشیمن، فلاورباکس کنار دیوار */
+				/* سبک منسجم طراح: ست مبل و آتشدان هر دو زیر پرگولا (مبل عقب، آتشدان جلو)، فلاورباکس کنار دیوار */
 				array( 'productId' => 'CK-PG-DK320', 'name' => 'پرگولا مدولار مدرن چوب‌پلاست ۳×۳ متر', 'category' => 'structures', 'x' => -1.5, 'z' => -2.1, 'rotation' => 0, 'w' => 3, 'd' => 3, 'h' => 2.5, 'shapeType' => 'pergola', 'priceEst' => 38500000, 'weightKg' => 280 ),
-				array( 'productId' => 'CK-LN-SET04', 'name' => 'ست مبل راحتی ۴ نفره چوب‌پلاست و فلز مشکی (با میز)', 'category' => 'furniture', 'x' => -1.5, 'z' => -2.1, 'rotation' => 0, 'w' => 2.2, 'd' => 1.5, 'h' => 0.78, 'shapeType' => 'lounge_set', 'priceEst' => 26500000, 'weightKg' => 64 ),
-				array( 'productId' => '', 'name' => 'آتشدان گازی مدرن روف‌گاردن', 'category' => 'water_fire', 'x' => 0.9, 'z' => -2.1, 'rotation' => 0, 'w' => 0.9, 'd' => 0.9, 'h' => 0.45, 'shapeType' => 'firepit', 'priceEst' => 14200000, 'weightKg' => 48 ),
+				array( 'productId' => 'CK-LN-SET04', 'name' => 'ست مبل راحتی ۴ نفره چوب‌پلاست و فلز مشکی (با میز)', 'category' => 'furniture', 'x' => -1.5, 'z' => -2.75, 'rotation' => 0, 'w' => 2.2, 'd' => 1.5, 'h' => 0.78, 'shapeType' => 'lounge_set', 'priceEst' => 26500000, 'weightKg' => 64 ),
+				array( 'productId' => '', 'name' => 'آتشدان گازی مدرن روف‌گاردن', 'category' => 'water_fire', 'x' => -1.5, 'z' => -1.15, 'rotation' => 0, 'w' => 0.9, 'd' => 0.9, 'h' => 0.45, 'shapeType' => 'firepit', 'priceEst' => 14200000, 'weightKg' => 48 ),
 				array( 'productId' => 'CK-PG-DK320', 'name' => 'پرگولا مدولار مدرن چوب‌پلاست ۳×۳ متر', 'category' => 'structures', 'x' => 1.3, 'z' => 2, 'rotation' => 90, 'w' => 3, 'd' => 3, 'h' => 2.5, 'shapeType' => 'pergola', 'priceEst' => 38500000, 'weightKg' => 280 ),
 				array( 'productId' => 'CK-BN-BR140', 'name' => 'نیمکت پشتی‌دار اسلت چوب‌پلاست با شاسی مشکی', 'category' => 'furniture', 'x' => 1.3, 'z' => 1.4, 'rotation' => 0, 'w' => 1.4, 'd' => 0.62, 'h' => 0.88, 'shapeType' => 'bench_backrest', 'priceEst' => 9800000, 'weightKg' => 38 ),
 				array( 'productId' => '', 'name' => 'آبنمای خطی مدرن استیل و چوب‌پلاست', 'category' => 'water_fire', 'x' => 4.9, 'z' => 1.6, 'rotation' => 90, 'w' => 1.4, 'd' => 0.45, 'h' => 1.2, 'shapeType' => 'water_feature', 'priceEst' => 16800000, 'weightKg' => 65 ),
@@ -239,10 +405,10 @@ function ckb_default_studio_plans() {
 			'shaftWidth' => 3.6,
 			'shaftLength' => 3.2,
 			'items' => array(
-				/* سبک منسجم: پرگولا + مبل زیر آن + آتشدان کنار، زون شرقی آبنما و نیمکت */
+				/* سبک منسجم: پرگولا + مبل و آتشدان هر دو زیر آن، زون شرقی آبنما و نیمکت */
 				array( 'productId' => 'CK-PG-DK320', 'name' => 'پرگولا مدولار مدرن چوب‌پلاست ۳×۳ متر', 'category' => 'structures', 'x' => -3.6, 'z' => -2.2, 'rotation' => 0, 'w' => 3, 'd' => 3, 'h' => 2.5, 'shapeType' => 'pergola', 'priceEst' => 38500000, 'weightKg' => 280 ),
-				array( 'productId' => 'CK-LN-SET04', 'name' => 'ست مبل راحتی ۴ نفره چوب‌پلاست و فلز مشکی (با میز)', 'category' => 'furniture', 'x' => -3.6, 'z' => -2.2, 'rotation' => 0, 'w' => 2.2, 'd' => 1.5, 'h' => 0.78, 'shapeType' => 'lounge_set', 'priceEst' => 26500000, 'weightKg' => 64 ),
-				array( 'productId' => '', 'name' => 'آتشدان گازی مدرن روف‌گاردن', 'category' => 'water_fire', 'x' => -3.6, 'z' => -0.6, 'rotation' => 0, 'w' => 0.9, 'd' => 0.9, 'h' => 0.45, 'shapeType' => 'firepit', 'priceEst' => 14200000, 'weightKg' => 48 ),
+				array( 'productId' => 'CK-LN-SET04', 'name' => 'ست مبل راحتی ۴ نفره چوب‌پلاست و فلز مشکی (با میز)', 'category' => 'furniture', 'x' => -3.6, 'z' => -2.85, 'rotation' => 0, 'w' => 2.2, 'd' => 1.5, 'h' => 0.78, 'shapeType' => 'lounge_set', 'priceEst' => 26500000, 'weightKg' => 64 ),
+				array( 'productId' => '', 'name' => 'آتشدان گازی مدرن روف‌گاردن', 'category' => 'water_fire', 'x' => -3.6, 'z' => -1.25, 'rotation' => 0, 'w' => 0.9, 'd' => 0.9, 'h' => 0.45, 'shapeType' => 'firepit', 'priceEst' => 14200000, 'weightKg' => 48 ),
 				array( 'productId' => '', 'name' => 'آبنمای خطی مدرن استیل و چوب‌پلاست', 'category' => 'water_fire', 'x' => 3.6, 'z' => -2, 'rotation' => 0, 'w' => 1.4, 'd' => 0.45, 'h' => 1.2, 'shapeType' => 'water_feature', 'priceEst' => 16800000, 'weightKg' => 65 ),
 				array( 'productId' => 'CK-BN-BR140', 'name' => 'نیمکت پشتی‌دار اسلت چوب‌پلاست با شاسی مشکی', 'category' => 'furniture', 'x' => 3.6, 'z' => -0.8, 'rotation' => 90, 'w' => 1.4, 'd' => 0.62, 'h' => 0.88, 'shapeType' => 'bench_backrest', 'priceEst' => 9800000, 'weightKg' => 38 ),
 				array( 'productId' => '', 'name' => 'دیواره سبز عمودی مدولار روی دیواره باکس پله', 'category' => 'structures', 'x' => 0, 'z' => -1.75, 'rotation' => 0, 'w' => 1.2, 'd' => 0.25, 'h' => 2, 'shapeType' => 'green_wall', 'priceEst' => 12500000, 'weightKg' => 85 ),
@@ -292,13 +458,13 @@ function ckb_default_studio_plans() {
 			'shaftWidth' => 0,
 			'shaftLength' => 0,
 			'items' => array(
-				/* سبک منسجم: پرگولا + مبل زیر آن در غرب، باربیکیو کنار، نیمکت زیر پرگولای شرقی + میز آتشدان کنار */
+				/* سبک منسجم: پرگولا غرب با ست مبل و باربیکیو کنارش، پرگولا شرق با نیمکت و میز آتشدان زیر آن */
 				array( 'productId' => 'CK-PG-DK320', 'name' => 'پرگولا مدولار مدرن چوب‌پلاست ۳×۳ متر', 'category' => 'structures', 'x' => -4.8, 'z' => -3.2, 'rotation' => 0, 'w' => 3, 'd' => 3, 'h' => 2.5, 'shapeType' => 'pergola', 'priceEst' => 38500000, 'weightKg' => 280 ),
-				array( 'productId' => 'CK-LN-SET04', 'name' => 'ست مبل راحتی ۴ نفره چوب‌پلاست و فلز مشکی (با میز)', 'category' => 'furniture', 'x' => -4.8, 'z' => -3.2, 'rotation' => 0, 'w' => 2.2, 'd' => 1.5, 'h' => 0.78, 'shapeType' => 'lounge_set', 'priceEst' => 26500000, 'weightKg' => 64 ),
+				array( 'productId' => 'CK-LN-SET04', 'name' => 'ست مبل راحتی ۴ نفره چوب‌پلاست و فلز مشکی (با میز)', 'category' => 'furniture', 'x' => -4.8, 'z' => -3.85, 'rotation' => 0, 'w' => 2.2, 'd' => 1.5, 'h' => 0.78, 'shapeType' => 'lounge_set', 'priceEst' => 26500000, 'weightKg' => 64 ),
 				array( 'productId' => 'CK-BBQ-180', 'name' => 'کانتر و باربیکیو ماژولار استیل و چوب‌پلاست', 'category' => 'accessories', 'x' => -4.8, 'z' => -0.7, 'rotation' => 0, 'w' => 1.8, 'd' => 0.65, 'h' => 0.9, 'shapeType' => 'bbq', 'priceEst' => 26500000, 'weightKg' => 95 ),
 				array( 'productId' => 'CK-PG-DK320', 'name' => 'پرگولا مدولار مدرن چوب‌پلاست ۳×۳ متر', 'category' => 'structures', 'x' => 4.8, 'z' => -3.2, 'rotation' => 0, 'w' => 3, 'd' => 3, 'h' => 2.5, 'shapeType' => 'pergola', 'priceEst' => 38500000, 'weightKg' => 280 ),
-				array( 'productId' => 'CK-BN-BR140', 'name' => 'نیمکت پشتی‌دار اسلت چوب‌پلاست با شاسی مشکی', 'category' => 'furniture', 'x' => 4.8, 'z' => -3.4, 'rotation' => 0, 'w' => 1.4, 'd' => 0.62, 'h' => 0.88, 'shapeType' => 'bench_backrest', 'priceEst' => 9800000, 'weightKg' => 38 ),
-				array( 'productId' => '', 'name' => 'میز آتشدان مربعی چوب‌پلاست با سبد شعله فلزی', 'category' => 'water_fire', 'x' => 4.8, 'z' => -2.1, 'rotation' => 0, 'w' => 1.1, 'd' => 1.1, 'h' => 0.72, 'shapeType' => 'firepit_table', 'priceEst' => 21500000, 'weightKg' => 92 ),
+				array( 'productId' => 'CK-BN-BR140', 'name' => 'نیمکت پشتی‌دار اسلت چوب‌پلاست با شاسی مشکی', 'category' => 'furniture', 'x' => 4.8, 'z' => -3.9, 'rotation' => 0, 'w' => 1.4, 'd' => 0.62, 'h' => 0.88, 'shapeType' => 'bench_backrest', 'priceEst' => 9800000, 'weightKg' => 38 ),
+				array( 'productId' => '', 'name' => 'میز آتشدان مربعی چوب‌پلاست با سبد شعله فلزی', 'category' => 'water_fire', 'x' => 4.8, 'z' => -2.35, 'rotation' => 0, 'w' => 1.1, 'd' => 1.1, 'h' => 0.72, 'shapeType' => 'firepit_table', 'priceEst' => 21500000, 'weightKg' => 92 ),
 				array( 'productId' => '', 'name' => 'آبنمای خطی مدرن استیل و چوب‌پلاست', 'category' => 'water_fire', 'x' => 4.8, 'z' => 3.6, 'rotation' => 90, 'w' => 1.4, 'd' => 0.45, 'h' => 1.2, 'shapeType' => 'water_feature', 'priceEst' => 16800000, 'weightKg' => 65 ),
 				array( 'productId' => 'CK-GW-FP120', 'name' => 'دیوار سبز مدولار قاب‌دار با تراف کاشت پایه', 'category' => 'structures', 'x' => -4.8, 'z' => 3.6, 'rotation' => 0, 'w' => 1.2, 'd' => 0.42, 'h' => 1.8, 'shapeType' => 'green_wall_planter', 'priceEst' => 11200000, 'weightKg' => 68 ),
 				array( 'productId' => 'CK-FB-160', 'name' => 'فلاورباکس مدولار ۱۶۰ سانتی‌متری عریض', 'category' => 'planting', 'x' => -2.9, 'z' => 4.6, 'rotation' => 0, 'w' => 1.6, 'd' => 0.5, 'h' => 0.55, 'shapeType' => 'box', 'priceEst' => 7900000, 'weightKg' => 58 ),
@@ -322,10 +488,10 @@ function ckb_default_studio_plans() {
 			'shaftWidth' => 0,
 			'shaftLength' => 0,
 			'items' => array(
-				/* سبک منسجم: پرگولا + مبل زیر آن در شمال‌غرب، آتشدان کنار، آبنما شرق، نیمکت و کاشت خطی دیوار جنوب */
+				/* سبک منسجم: پرگولا با مبل و آتشدان زیر آن در شمال‌غرب، آبنما شرق، نیمکت و کاشت خطی دیوار جنوب */
 				array( 'productId' => 'CK-PG-DK320', 'name' => 'پرگولا مدولار مدرن چوب‌پلاست ۳×۳ متر', 'category' => 'structures', 'x' => -3.1, 'z' => -1.9, 'rotation' => 0, 'w' => 3, 'd' => 3, 'h' => 2.5, 'shapeType' => 'pergola', 'priceEst' => 38500000, 'weightKg' => 280 ),
-				array( 'productId' => 'CK-LN-SET04', 'name' => 'ست مبل راحتی ۴ نفره چوب‌پلاست و فلز مشکی (با میز)', 'category' => 'furniture', 'x' => -3.1, 'z' => -1.9, 'rotation' => 0, 'w' => 2.2, 'd' => 1.5, 'h' => 0.78, 'shapeType' => 'lounge_set', 'priceEst' => 26500000, 'weightKg' => 64 ),
-				array( 'productId' => '', 'name' => 'آتشدان گازی مدرن روف‌گاردن', 'category' => 'water_fire', 'x' => -0.9, 'z' => -1.9, 'rotation' => 0, 'w' => 0.9, 'd' => 0.9, 'h' => 0.45, 'shapeType' => 'firepit', 'priceEst' => 14200000, 'weightKg' => 48 ),
+				array( 'productId' => 'CK-LN-SET04', 'name' => 'ست مبل راحتی ۴ نفره چوب‌پلاست و فلز مشکی (با میز)', 'category' => 'furniture', 'x' => -3.1, 'z' => -2.55, 'rotation' => 0, 'w' => 2.2, 'd' => 1.5, 'h' => 0.78, 'shapeType' => 'lounge_set', 'priceEst' => 26500000, 'weightKg' => 64 ),
+				array( 'productId' => '', 'name' => 'آتشدان گازی مدرن روف‌گاردن', 'category' => 'water_fire', 'x' => -3.1, 'z' => -0.95, 'rotation' => 0, 'w' => 0.9, 'd' => 0.9, 'h' => 0.45, 'shapeType' => 'firepit', 'priceEst' => 14200000, 'weightKg' => 48 ),
 				array( 'productId' => '', 'name' => 'آبنمای خطی مدرن استیل و چوب‌پلاست', 'category' => 'water_fire', 'x' => 3.7, 'z' => -1.9, 'rotation' => 90, 'w' => 1.4, 'd' => 0.45, 'h' => 1.2, 'shapeType' => 'water_feature', 'priceEst' => 16800000, 'weightKg' => 65 ),
 				array( 'productId' => '', 'name' => 'مجموعه ترکیبی نیمکت متصل به دو فلاورباکس', 'category' => 'furniture', 'x' => -0.7, 'z' => 3.15, 'rotation' => 0, 'w' => 2.2, 'd' => 0.5, 'h' => 0.6, 'shapeType' => 'bench_integrated', 'priceEst' => 11900000, 'weightKg' => 76 ),
 				array( 'productId' => 'CK-FB-160', 'name' => 'فلاورباکس مدولار ۱۶۰ سانتی‌متری عریض', 'category' => 'planting', 'x' => 1.6, 'z' => 3.15, 'rotation' => 0, 'w' => 1.6, 'd' => 0.5, 'h' => 0.55, 'shapeType' => 'box', 'priceEst' => 7900000, 'weightKg' => 58 ),
@@ -419,7 +585,7 @@ function ckb_wpstudio_register_assets() {
 
 function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen = false ) {
 	$products = ckb_get_studio_products();
-	$plans    = ckb_get_studio_plans();
+	$plans    = ckb_get_studio_plans( $products );
 
 	$studio_id = 'ckb-ws-' . wp_rand( 1000, 9999 );
 	$ajax_url  = admin_url( 'admin-ajax.php' );
@@ -628,26 +794,29 @@ function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen
 						<input type="number" step="0.1" min="0.5" max="3" id="<?php echo esc_attr( $studio_id ); ?>-pe-parapet" value="1.1">
 					</div>
 				</div>
-				<div class="ckb-grid2">
+				<div class="ckb-pe-sec" id="<?php echo esc_attr( $studio_id ); ?>-pe-cut-sec">فرورفتگی L / U</div>
+				<div class="ckb-grid2" id="<?php echo esc_attr( $studio_id ); ?>-pe-cut-group">
 					<div class="ckb-fgroup">
-						<label>فرورفتگی L/U — طول (متر)</label>
+						<label>طول فرورفتگی (متر)</label>
 						<input type="number" step="0.1" min="0" id="<?php echo esc_attr( $studio_id ); ?>-pe-cutw" placeholder="مثلاً 4.5">
 					</div>
 					<div class="ckb-fgroup">
-						<label>فرورفتگی L/U — عرض (متر)</label>
+						<label>عرض فرورفتگی (متر)</label>
 						<input type="number" step="0.1" min="0" id="<?php echo esc_attr( $studio_id ); ?>-pe-cutl" placeholder="مثلاً 4">
 					</div>
 				</div>
-				<div class="ckb-grid2">
+				<div class="ckb-pe-sec" id="<?php echo esc_attr( $studio_id ); ?>-pe-shaft-sec">باکس پله / آسانسور مرکزی</div>
+				<div class="ckb-grid2" id="<?php echo esc_attr( $studio_id ); ?>-pe-shaft-group">
 					<div class="ckb-fgroup">
-						<label>باکس پله مرکزی — طول (متر)</label>
+						<label>طول باکس (متر)</label>
 						<input type="number" step="0.1" min="0" id="<?php echo esc_attr( $studio_id ); ?>-pe-shaftw" placeholder="مثلاً 3.2">
 					</div>
 					<div class="ckb-fgroup">
-						<label>باکس پله مرکزی — عرض (متر)</label>
+						<label>عرض باکس (متر)</label>
 						<input type="number" step="0.1" min="0" id="<?php echo esc_attr( $studio_id ); ?>-pe-shaftl" placeholder="مثلاً 3">
 					</div>
 				</div>
+				<div class="ckb-pe-sec">متریال و رنگ‌ها</div>
 				<div class="ckb-grid3">
 					<div class="ckb-fgroup">
 						<label>کف‌سازی</label>
@@ -681,9 +850,11 @@ function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen
 				</div>
 				<div class="ckb-pe-side">
 					<div class="ckb-pe-blueprint" id="<?php echo esc_attr( $studio_id ); ?>-pe-blueprint"></div>
-					<button type="button" class="ckb-catalog-btn" style="width:100%;padding:11px" id="<?php echo esc_attr( $studio_id ); ?>-btn-pe-apply">اعمال پلان جدید</button>
-					<button type="button" class="ckb-wstudio-btn" style="width:100%;margin-top:8px;justify-content:center" id="<?php echo esc_attr( $studio_id ); ?>-btn-pe-cancel">انصراف</button>
 				</div>
+				</div>
+				<div class="ckb-pe-actions">
+					<button type="button" class="ckb-catalog-btn" id="<?php echo esc_attr( $studio_id ); ?>-btn-pe-apply">اعمال پلان جدید</button>
+					<button type="button" class="ckb-wstudio-btn" id="<?php echo esc_attr( $studio_id ); ?>-btn-pe-cancel">انصراف</button>
 				</div>
 				</div>
 			</div>
@@ -718,7 +889,7 @@ function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen
 
 		<!-- Save Form Modal -->
 		<div class="ckb-wstudio-modal" id="<?php echo esc_attr( $studio_id ); ?>-modal-save">
-			<div class="ckb-wstudio-modal-box ckb-save-box" style="max-width:480px">
+			<div class="ckb-wstudio-modal-box ckb-save-box">
 				<div class="ckb-wstudio-modal-head">
 					<h4>ثبت و ارسال طرح به کارشناسان</h4>
 					<div class="ckb-wstudio-x" data-close="save" role="button" aria-label="بستن" tabindex="0">✕</div>
@@ -733,17 +904,11 @@ function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen
 					<label>نام و نام خانوادگی *</label>
 					<input type="text" id="<?php echo esc_attr( $studio_id ); ?>-inp-name" placeholder="مثال: مهندس راد">
 				</div>
-				<div class="ckb-grid2">
-					<div class="ckb-fgroup">
-						<label>شماره تماس همراه *</label>
-						<div class="ckb-otp-row">
-							<input type="tel" id="<?php echo esc_attr( $studio_id ); ?>-inp-phone" dir="ltr" placeholder="09120000000" autocomplete="tel">
-							<button type="button" class="ckb-otp-send-btn" id="<?php echo esc_attr( $studio_id ); ?>-btn-otp-send" hidden>ارسال کد تایید</button>
-						</div>
-					</div>
-					<div class="ckb-fgroup">
-						<label>ایمیل (اختیاری)</label>
-						<input type="email" id="<?php echo esc_attr( $studio_id ); ?>-inp-email" dir="ltr" placeholder="you@example.com">
+				<div class="ckb-fgroup">
+					<label>شماره تماس همراه *</label>
+					<div class="ckb-otp-row">
+						<input type="tel" id="<?php echo esc_attr( $studio_id ); ?>-inp-phone" dir="ltr" placeholder="09120000000" autocomplete="tel">
+						<button type="button" class="ckb-otp-send-btn" id="<?php echo esc_attr( $studio_id ); ?>-btn-otp-send" hidden>ارسال کد تایید</button>
 					</div>
 				</div>
 				<!-- کد تایید پیامکی — فقط وقتی سرویس OTP فعال باشد نمایش داده می‌شود -->

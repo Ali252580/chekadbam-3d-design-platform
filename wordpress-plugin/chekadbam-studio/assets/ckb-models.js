@@ -105,6 +105,62 @@
 		});
 	}
 
+	function applySwingAnimation(gltfScene, item) {
+		if ((item.glbUrl || '').indexOf('swing-pergola-flowerbox.glb') === -1) return;
+		var woodColor = new THREE.Color(wpcColorHexStr(item.wpcColor));
+		gltfScene.traverse(function (o) {
+			if (!o.isMesh || !o.material) return;
+			var source = Array.isArray(o.material) ? o.material : [o.material];
+			var mats = source.map(function (m) { return m.clone(); });
+			o.material = Array.isArray(o.material) ? mats : mats[0];
+			mats.forEach(function (m) {
+				/* این GLB با metalness پیش‌فرض ۱ صادر شده؛ فلز بدون envMap دیفیوز را
+				   می‌بلعد و سبزه‌های فلاورباکس سیاه می‌شد — بازگرداندن به سطح مات چوبی */
+				m.metalness = 0.05;
+				m.roughness = 0.85;
+				m.onBeforeCompile = function (shader) {
+					shader.uniforms.ckbTime = { value: 0 };
+					shader.uniforms.ckbWoodColor = { value: woodColor };
+					shader.vertexShader = shader.vertexShader
+						.replace('#include <common>', '#include <common>\nuniform float ckbTime;')
+						.replace('#include <begin_vertex>', [
+							'#include <begin_vertex>',
+							'float ckbSwingMask = step(abs(position.x), 0.34) * step(abs(position.z), 0.14) * step(-0.20, position.y) * step(position.y, 0.27);',
+							'float ckbSwingAngle = sin(ckbTime * 1.25) * 0.07 * ckbSwingMask;',
+							'float ckbSwingY = transformed.y - 0.27;',
+							'float ckbSwingZ = transformed.z;',
+							'transformed.y = 0.27 + ckbSwingY * cos(ckbSwingAngle) - ckbSwingZ * sin(ckbSwingAngle);',
+							'transformed.z = ckbSwingY * sin(ckbSwingAngle) + ckbSwingZ * cos(ckbSwingAngle);',
+						].join('\n'));
+					shader.fragmentShader = shader.fragmentShader
+						.replace('#include <common>', '#include <common>\nuniform vec3 ckbWoodColor;')
+						.replace('#include <map_fragment>', [
+							'#include <map_fragment>',
+							'vec3 ckbLumaWeights = vec3(0.2126, 0.7152, 0.0722);',
+							'float ckbWoodMask = smoothstep(0.015, 0.09, diffuseColor.r - diffuseColor.g) * smoothstep(0.0, 0.05, diffuseColor.g - diffuseColor.b);',
+							'float ckbSourceLuma = dot(diffuseColor.rgb, ckbLumaWeights);',
+							'float ckbTargetLuma = max(dot(ckbWoodColor, ckbLumaWeights), 0.001);',
+							'vec3 ckbWood = ckbWoodColor * (ckbSourceLuma / ckbTargetLuma);',
+							'diffuseColor.rgb = mix(diffuseColor.rgb, ckbWood, ckbWoodMask * 0.75);',
+							'float ckbLeafMask = smoothstep(0.003, 0.015, diffuseColor.g - max(diffuseColor.r, diffuseColor.b));',
+							'float ckbLeafLift = pow(max(dot(diffuseColor.rgb, ckbLumaWeights), 0.0001), 0.5) * 0.8;',
+							'vec3 ckbLeafCol = vec3(0.30, 1.0, 0.20) * (ckbLeafLift / 0.78);',
+							'diffuseColor.rgb = mix(diffuseColor.rgb, ckbLeafCol, ckbLeafMask);',
+						].join('\n'));
+					m.userData.ckbSwingShader = shader;
+				};
+				m.customProgramCacheKey = function () { return 'ckb-swing-animation-v3'; };
+				m.needsUpdate = true;
+			});
+			o.onBeforeRender = function () {
+				var now = performance.now() / 1000;
+				mats.forEach(function (m) {
+					if (m.userData.ckbSwingShader) m.userData.ckbSwingShader.uniforms.ckbTime.value = now;
+				});
+			};
+		});
+	}
+
 	function buildGlbBaseplate(item) {
 		/* جای‌گیر خام تا لحظه‌ی رسیدن GLB — بدون پیچیدگی، فقط فرم کلی قلم */
 		var w = Math.max(item.width || item.w || 1, 0.3);
@@ -131,10 +187,8 @@
 		/* اسکیل غیر یکنواخت به ابعاد پلان — مدل دقیقاً همان متراژ تعریف‌شده را اشغال می‌کند */
 		var sx = w / sw, sy = h / sh_, sz = d / sd;
 		var wrap = new THREE.Group();
-		gltfScene.position.sub(center); /* مرکز در پایه */
 		gltfScene.scale.set(sx, sy, sz);
-		gltfScene.position.x = -center.x * sx;
-		gltfScene.position.z = -center.z * sz;
+		gltfScene.position.set(-center.x * sx, -box.min.y * sy, -center.z * sz);
 		wrap.add(gltfScene);
 		return wrap;
 	}
@@ -148,6 +202,7 @@
 
 		/* متریال GLB بدون تکسچر → رنگ‌های پنل */
 		applyFallbackColors(gltfScene, wpcColorHexStr(item.wpcColor), metalColorHex(item.metalColor || 'black'));
+		applySwingAnimation(gltfScene, item);
 
 		var fitted = fitGlbToItem(gltfScene, item);
 		fitted.traverse(function (o) {
@@ -230,7 +285,10 @@
 		var FX = opts.effects || null;
 		function fxPhase() { return (seedOf(item.id) % 100) / 16; }
 
-		switch (item.shapeType) {
+		/* قلم دارای GLB → فقط placeholder/مدل واقعی؛ شکل procedural ساخته نمی‌شود */
+		var glbHandled = attachGlbIfAny(item, itemGroup);
+
+		if (!glbHandled) switch (item.shapeType) {
 			case 'tree': {
 				// Planter Pot (Cylinder with metal bands)
 				var potGeo = new THREE.CylinderGeometry(0.35, 0.28, 0.55, 24);
@@ -1665,9 +1723,6 @@
 				break;
 			}
 		}
-
-		/* GLB واقعی اختصاصی از پنل؟ اگر بود بلافاصله جای‌گیر خام + درخواست async */
-		attachGlbIfAny(item, itemGroup);
 
 		itemGroup.position.set(item.x || 0, item.y || 0, item.z || 0);
 		itemGroup.rotation.y = THREE.MathUtils.degToRad(item.rotation || 0);

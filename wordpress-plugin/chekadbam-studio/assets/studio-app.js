@@ -1574,6 +1574,7 @@
 			$('pe-cutl').value = space.cutoutLength || '';
 			$('pe-shaftw').value = space.shaftWidth || '';
 			$('pe-shaftl').value = space.shaftLength || '';
+			updatePlanEditorVisibility();
 			updatePlanEditorArea();
 			openModal('plan');
 		}
@@ -1591,6 +1592,21 @@
 				setPlanTab(b.getAttribute('data-ptab'));
 			});
 		});
+
+		/* v2.16.5 — فیلدهای بی‌ربط به فرمِ انتخابی مخفی می‌شوند تا فرم روی موبایل شلوغ نشود */
+		function updatePlanEditorVisibility() {
+			var shape = $('pe-shape') ? $('pe-shape').value : '';
+			var showCut = shape === 'l_shaped' || shape === 'u_shaped';
+			var showShaft = shape === 'central_shaft';
+			var cutSec = rootEl.querySelector('[id$="-pe-cut-sec"]');
+			var cutGrp = rootEl.querySelector('[id$="-pe-cut-group"]');
+			var shaftSec = rootEl.querySelector('[id$="-pe-shaft-sec"]');
+			var shaftGrp = rootEl.querySelector('[id$="-pe-shaft-group"]');
+			if (cutSec) cutSec.hidden = !showCut;
+			if (cutGrp) cutGrp.hidden = !showCut;
+			if (shaftSec) shaftSec.hidden = !showShaft;
+			if (shaftGrp) shaftGrp.hidden = !showShaft;
+		}
 
 		function updatePlanEditorArea() {
 			var tmp = {
@@ -1868,7 +1884,6 @@
 		function submitDesign() {
 			var name = $('inp-name').value.trim();
 			var phone = $('inp-phone').value.trim();
-			var email = $('inp-email').value.trim();
 			var city = $('inp-city').value.trim();
 			var notes = $('inp-notes').value.trim();
 
@@ -1915,7 +1930,7 @@
 
 			// Capture screenshot (render once more to be safe)
 			var dataUrl = lastSaveShot || captureShot();			var bom = window.CKBBom.calculateBillOfMaterials(space, items);
-			var submitData = { name: name, phone: phone, email: email, city: city, notes: notes,
+			var submitData = { name: name, phone: phone, city: city, notes: notes,
 				shape: space.shape, width: space.width, length: space.length, parapet: space.parapetHeight,
 				flooring: space.flooringType, wpcColor: space.wpcColor, metalColor: space.metalColor,
 				itemsJson: JSON.stringify(items), planJson: JSON.stringify(space), bomJson: JSON.stringify(bom),
@@ -1943,7 +1958,6 @@
 				fd.append('haveSnapshot', submitData.snapshot ? '1' : '');
 				fd.append('name', submitData.name);
 				fd.append('phone', submitData.phone);
-				fd.append('email', submitData.email);
 				fd.append('city', submitData.city);
 				fd.append('shape', submitData.shape);
 				fd.append('width', submitData.width);
@@ -2378,6 +2392,8 @@
 			var el = $(id);
 			if (el) el.addEventListener('input', updatePlanEditorArea);
 		});
+		var peShapeEl = $('pe-shape');
+		if (peShapeEl) peShapeEl.addEventListener('change', updatePlanEditorVisibility);
 		bindClick('btn-pe-apply', applyPlanEditor);
 		bindClick('btn-pe-cancel', function () { closeModal('plan'); });
 
@@ -2633,7 +2649,14 @@
 				try { window.localStorage.setItem('ckb-studio-tour-seen', '1'); } catch (err4) {}
 				setTimeout(startStudioTour, 900);
 			} else if (cfg.autoPlans) {
-				setTimeout(function () { openModal('guide'); }, 900);
+				// v2.16.7: راهنمای ۵ مرحله‌ای فقط یک‌بار خودکار باز شود؛ قبلاً
+				// هیچ فلگی ذخیره نمی‌شد و در هر بارگذاری دوباره باز می‌شد.
+				var guideSeen = false;
+				try { guideSeen = !!window.localStorage.getItem('ckb-plan-guide-seen'); } catch (errGuide) { guideSeen = true; }
+				if (!guideSeen) {
+					try { window.localStorage.setItem('ckb-plan-guide-seen', '1'); } catch (errGuide2) {}
+					setTimeout(function () { openModal('guide'); }, 900);
+				}
 			}
 		}
 

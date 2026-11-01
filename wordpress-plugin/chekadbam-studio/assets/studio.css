@@ -3,6 +3,10 @@
  * Dark cinematic theme matching the Next.js studio.
  */
 
+/* v2.16.5: قانون hidden باید display‌های صریح (مثل grid) را هم بشکند؛
+   بدون این، گروه‌های مخفی‌شدهٔ ویرایشگر پلان همچنان دیده می‌شدند */
+[hidden] { display: none !important; }
+
 /* ═══════════════ Container ═══════════════ */
 .ckb-wstudio-container {
 	position: relative;
@@ -296,6 +300,9 @@
 	position: fixed;
 	z-index: 99999;
 }
+/* v2.16.7: نوار تب در نمای تمام‌صفحه بالای پردهٔ شیت می‌ماند تا تب‌ها
+   هنگام باز بودن کاتالوگ/فرم هم قابل لمس باشند (شیت هم بالای تب تمام می‌شود) */
+.ckb-studio-full .ckb-tabbar { z-index: 100000; }
 .ckb-wstudio-modal-box {
 	/* v2.12.1: یک پله روشن‌تر از قبل (#0f172a) — پنجره‌ها تاریکِ خفه نباشند */
 	background: #17233b;
@@ -396,9 +403,13 @@
 	display: flex;
 	gap: 6px;
 	overflow-x: auto;
-	padding: 10px 0 4px;
+	/* v2.16.7: در RTL محتوا به سمت چپ ادامه دارد؛ محو شدن لبهٔ چپ نشانهٔ
+	   اسکرول است تا دسته‌های بیرون کادر پنهان نمانند */
+	padding: 10px 0 4px 20px;
 	scrollbar-width: thin;
 	scrollbar-color: #334155 transparent;
+	-webkit-mask-image: linear-gradient(to right, transparent 0, #000 20px);
+	mask-image: linear-gradient(to right, transparent 0, #000 20px);
 }
 .ckb-catalog-cats::-webkit-scrollbar { height: 4px; }
 .ckb-catalog-cats::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
@@ -734,6 +745,9 @@ input.ckb-otp-bad { border-color: #dc2626 !important; background: #450a0a !impor
 
 /* ─────────────── Studio guide modal ─────────────── */
 .ckb-guide-box { max-width: 620px; }
+/* v2.16.7: عرض ۴۸۰ فقط برای دسکتاپ؛ روی موبایل قاعدهٔ تمام‌عرض پایین‌تر
+   اعمال می‌شود (inline style قبلی این را در حالت افقی هم ۴۸۰ نگه می‌داشت) */
+.ckb-save-box { max-width: 480px; }
 .ckb-guide-head { display: flex; align-items: center; gap: 12px; }
 .ckb-guide-ic {
 	width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
@@ -937,7 +951,8 @@ input.ckb-otp-bad { border-color: #dc2626 !important; background: #450a0a !impor
 }
 
 @media (max-width: 768px) {
-	.ckb-hint-card { top: 10px; width: min(300px, calc(100% - 20px)); padding: 9px 12px 7px; }
+	/* v2.16.7: کارت راهنما زیر ردیف «شمال» بنشیند تا روی قطب‌نما نیفتد */
+	.ckb-hint-card { top: 46px; width: min(300px, calc(100% - 20px)); padding: 9px 12px 7px; }
 }
 
 /* Keyboard focus affordance */
@@ -1025,6 +1040,17 @@ input.ckb-otp-bad { border-color: #dc2626 !important; background: #450a0a !impor
 	gap: 16px;
 	align-items: start;
 }
+/* v2.16.5: سرتیترهای بخش‌های ویرایشگر پلان — فرم طولانی را قابل‌اسکن می‌کنند */
+.ckb-pe-sec {
+	font-size: 12px;
+	font-weight: 800;
+	color: #6ee7b7;
+	margin: 16px 0 8px;
+	padding-bottom: 6px;
+	border-bottom: 1px solid #26334d;
+}
+/* گزینه‌های دراپ‌داون روی زمینهٔ تیره خوانا بمانند (فایرفاکس/کروم دسکتاپ) */
+.ckb-fgroup select option { background: #0f172a; color: #f1f5f9; }
 .ckb-pe-side .ckb-pe-blueprint {
 	aspect-ratio: 16 / 10;
 	background: #080d1a;
@@ -1033,9 +1059,18 @@ input.ckb-otp-bad { border-color: #dc2626 !important; background: #450a0a !impor
 	overflow: hidden;
 	margin-bottom: 12px;
 }
+.ckb-pe-actions {
+	display: flex;
+	gap: 8px;
+	margin-top: 14px;
+}
+.ckb-pe-actions .ckb-catalog-btn { flex: 1.4; padding: 12px; font-size: 13px; }
+.ckb-pe-actions .ckb-wstudio-btn { flex: 1; justify-content: center; }
 .ckb-pe-side .ckb-bp-svg { width: 100%; height: 100%; display: block; }
 @media (max-width: 900px) {
 	.ckb-pe-grid { grid-template-columns: 1fr; }
+	/* v2.16.5: در چیدمان تک‌ستونی، نقشهٔ زنده و دکمه‌ها اول دیده شوند */
+	.ckb-pe-side { order: -1; }
 }
 
 /* ─────────────── Fullscreen studio (shortcode page) ─────────────── */
@@ -1288,37 +1323,34 @@ body.admin-bar .ckb-studio-full {
 	.ckb-wstudio-dock.collapsed .ckb-btn-label-sm { display: none; }
 	.ckb-wstudio-dock.collapsed .ckb-dock-handle { min-height: 38px; }
 
-	/* ── Inspector floats directly above the (single-row) dock ──
-	   v2.7.1: one scrollable row instead of wrapping — a wrapped 3-row
-	   inspector band covered half the canvas on phones */
+	/* ── Inspector floats directly above the dock ──
+	   v2.16.7: بازرس به‌جای ردیف افقیِ بریده، در دو ردیف جمع می‌شود تا
+	   همهٔ دکمه‌های چرخش/تکثیر/رنگ/حذف روی صفحه دیده شوند */
 	.ckb-wstudio-inspector {
 		bottom: calc(var(--ckb-dock-h, 56px) + env(safe-area-inset-bottom, 0px) + 10px);
 		left: 8px;
 		right: 8px;
 		transform: none;
-		justify-content: flex-start;
-		flex-wrap: nowrap;
-		overflow-x: auto;
-		overflow-y: hidden;
-		-webkit-overflow-scrolling: touch;
-		scrollbar-width: none;
-		gap: 5px;
-		padding: 6px 8px;
+		justify-content: center;
+		flex-wrap: wrap;
+		overflow: visible;
+		gap: 4px;
+		padding: 5px 6px;
 		font-size: 12px;
 	}
-	.ckb-wstudio-inspector::-webkit-scrollbar { display: none; }
 	.ckb-wstudio-inspector button {
-		padding: 6px 9px;
+		padding: 5px 7px;
 		min-height: 32px;
 		flex: 0 0 auto;
 	}
 	/* drag-fade must not inherit the desktop centering translate */
 	.ckb-dragging .ckb-wstudio-inspector { transform: translateY(16px); }
-	.ckb-insp-info { flex: 0 0 auto; max-width: 104px; }
-	.ckb-insp-name { max-width: 104px; font-size: 10px; }
-	.ckb-insp-nudge button { min-width: 30px; min-height: 30px; }
-	.ckb-insp-swatches { flex: 0 0 auto; }
-	.ckb-insp-swatch { width: 18px !important; height: 18px !important; }
+	.ckb-insp-info { flex: 0 0 auto; max-width: 96px; }
+	.ckb-insp-name { max-width: 96px; font-size: 10px; }
+	.ckb-insp-nudge { padding: 2px; gap: 2px; }
+	.ckb-insp-nudge button { min-width: 26px; min-height: 28px; }
+	.ckb-insp-swatches { flex: 0 0 auto; padding: 4px; gap: 3px; }
+	.ckb-insp-swatch { width: 16px !important; height: 16px !important; }
 
 	/* ── Compass: small, tucked into the corner ── */
 	.ckb-wstudio-compass {
@@ -1373,6 +1405,15 @@ body.admin-bar .ckb-studio-full {
 	.ckb-fgroup input,
 	.ckb-fgroup select,
 	.ckb-fgroup textarea { font-size: 16px; } /* stop iOS zoom-on-focus */
+
+	/* ── v2.16.5: فرم پلان روی موبایل — برچسب درشت‌تر و ورودی‌های نفس‌دار ── */
+	.ckb-fgroup label { font-size: 13.5px; line-height: 1.6; margin-bottom: 6px; }
+	.ckb-fgroup input,
+	.ckb-fgroup select { padding: 12px; border-radius: 12px; }
+	.ckb-pe-sec { font-size: 13px; margin: 18px 0 10px; }
+	.ckb-pe-actions { position: sticky; bottom: 0; background: #17233b; padding: 10px 0 2px; margin-top: 12px; }
+	.ckb-pe-actions .ckb-catalog-btn { min-height: 46px; font-size: 14px; }
+	.ckb-pe-actions .ckb-wstudio-btn { min-height: 46px; }
 
 	/* ── BOM table: horizontal scroll wrapper instead of squeezed columns ── */
 	.ckb-bom-wrap {
@@ -1751,7 +1792,9 @@ body.admin-bar .ckb-studio-full {
 	   shorter than the page, 92dvh pushed the box off the top and the
 	   sticky header/submit ended up off-screen. 100% of the wrapper
 	   (absolute, inset 0) is always exactly right. */
-	.ckb-wstudio-modal { max-height: 100%; padding: 0; }
+	/* v2.16.7: پدینگ پایین برگشت — این قاعده قبلاً آن را صفر می‌کرد و
+	   ورق روی نوار تب می‌افتاد (ضربه روی تب به محتوای پشتش می‌خورد) */
+	.ckb-wstudio-modal { max-height: 100%; padding: 8px 0 calc(var(--ckb-dock-h, 64px) + 6px); }
 	.ckb-wstudio-modal-box {
 		max-height: 100%;
 		overflow-y: auto;
@@ -1780,6 +1823,25 @@ body.admin-bar .ckb-studio-full {
 		z-index: 3;
 		box-shadow: 0 -10px 20px rgba(15, 23, 42, 0.92);
 	}
+	/* v2.16.7: فوکوس/اسکرول زیر CTA چسبان پنهان نشود */
+	.ckb-save-box { scroll-padding-bottom: 64px; }
+}
+
+/* v2.16.7: در صفحه‌های کوتاه پیش‌نمایش کوتاه‌تر می‌شود تا «ارسال کد» و
+   «دانلود تصویر» زیر دکمهٔ چسبان ثبت پنهان نمانند */
+@media (max-height: 620px) {
+	.ckb-save-shot img { max-height: 110px; }
+}
+@media (max-height: 480px) and (orientation: landscape) {
+	.ckb-save-shot { padding: 6px; margin-bottom: 8px; }
+	.ckb-save-shot img { max-height: 84px; }
+	.ckb-save-shot .ckb-wstudio-btn { min-height: 30px; padding: 4px 8px; }
+	.ckb-save-box { scroll-padding-bottom: 56px; }
+}
+/* v2.16.7: در عرض‌های دسکتاپ/تبلت نوار تب قرص شناور است (bottom: 16px)؛
+   فاصلهٔ ورق باید ارتفاع قرص + ۱۶ + ۶ باشد تا رویش نیفتد */
+@media (min-width: 769px) {
+	.ckb-wstudio-modal { padding-bottom: calc(var(--ckb-dock-h, 64px) + 22px); }
 }
 
 /* ══════════════════════════════════════════════════════════════

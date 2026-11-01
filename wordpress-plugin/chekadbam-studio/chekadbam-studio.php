@@ -3,7 +3,7 @@
  * Plugin Name: چکادبام استودیو منیجر (Chekadbam Studio Manager)
  * Plugin URI:  https://chekadbam.com
  * Description: استودیوی طراحی سه‌بعدی واقع‌گرایانه روف‌گاردن با مدل‌های واقعی محصولات (پرگولا، آبنما، درخت، ...)، مدیریت اقلام مدولار WPC، پلان‌های روف‌گاردن، CRM طرح‌ها، REST API هم‌خوان با Next.js، نمایشگر سه‌بعدی محصول و کد کوتاه فرم.
- * Version:     2.16.0
+ * Version:     2.16.8
  * Author:      Chekadbam Engineering
  * Author URI:  https://chekadbam.com
  * Text Domain: chekadbam
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CKB_VERSION', '2.16.0' );
+define( 'CKB_VERSION', '2.16.8' );
 define( 'CKB_PLUGIN_FILE', __FILE__ );
 define( 'CKB_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CKB_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -46,6 +46,30 @@ function ckb_activate() {
 register_deactivation_hook( __FILE__, function () {
 	flush_rewrite_rules();
 } );
+
+/* ------------------------------ Upgrade ------------------------------ */
+
+add_action( 'admin_init', 'ckb_maybe_upgrade' );
+function ckb_maybe_upgrade() {
+	if ( get_option( 'ckb_db_version' ) === CKB_VERSION ) {
+		return;
+	}
+	/* v2.16.4 — قلم «تایل کف‌پوش WPC» از کاتالوگ حذف شد؛ پست موجود به سطل زباله می‌رود */
+	$tiles = get_posts(
+		array(
+			'post_type'   => 'ckb_product',
+			'post_status' => 'publish',
+			'numberposts' => -1,
+			'meta_key'    => '_ckb_code',
+			'meta_value'  => 'CK-FL-WPC',
+			'fields'      => 'ids',
+		)
+	);
+	foreach ( $tiles as $tid ) {
+		wp_trash_post( $tid );
+	}
+	update_option( 'ckb_db_version', CKB_VERSION );
+}
 
 /* ------------------------------ Admin menu ------------------------------ */
 
@@ -210,6 +234,8 @@ function ckb_render_settings() {
 		update_option( 'ckb_company_phone', sanitize_text_field( wp_unslash( $_POST['ckb_company_phone'] ?? '' ) ) );
 		update_option( 'ckb_notify_email', sanitize_email( wp_unslash( $_POST['ckb_notify_email'] ?? get_option( 'admin_email' ) ) ) );
 		update_option( 'ckb_otp_disabled', isset( $_POST['ckb_otp_disabled'] ) ? '1' : '0' );
+		update_option( 'ckb_otp_pattern', sanitize_text_field( wp_unslash( $_POST['ckb_otp_pattern'] ?? '' ) ) );
+		update_option( 'ckb_otp_text', sanitize_textarea_field( wp_unslash( $_POST['ckb_otp_text'] ?? '' ) ) );
 		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'تنظیمات ذخیره شد.', 'chekadbam' ) . '</p></div>';
 	}
 
@@ -221,6 +247,9 @@ function ckb_render_settings() {
 	$sync_disabled = '1' === get_option( 'ckb_panel_sync_disabled', '0' );
 	$otp_disabled  = '1' === get_option( 'ckb_otp_disabled', '0' );
 	$sms_plugin_on = function_exists( 'wp_sms_send' );
+	$sms_gateway   = $sms_plugin_on ? ckb_smsotp_gateway_ready() : false;
+	$wpsms         = $sms_plugin_on ? get_option( 'wpsms_settings', array() ) : array();
+	$wpsms_gw      = is_array( $wpsms ) && isset( $wpsms['gateway_name'] ) ? (string) $wpsms['gateway_name'] : '';
 	?>
 	<div class="wrap ckb-wrap" dir="rtl">
 		<h1><?php esc_html_e( 'تنظیمات و اتصال استودیو', 'chekadbam' ); ?></h1>
@@ -274,16 +303,29 @@ function ckb_render_settings() {
 				<tr>
 					<th><?php esc_html_e( 'کد تایید پیامکی (OTP)', 'chekadbam' ); ?></th>
 					<td>
-						<?php if ( $sms_plugin_on ) : ?>
-							<p style="color:#059669;font-weight:700;margin:0 0 6px">✓ افزونه پیامک (WP SMS / WSMS) فعال است — کد تایید پیامکی در فرم ثبت طرح کار می‌کند.</p>
+						<?php if ( $sms_plugin_on && $sms_gateway ) : ?>
+							<p style="color:#059669;font-weight:700;margin:0 0 6px">✓ افزونه پیامک و درگاه ارسال فعال است<?php echo $wpsms_gw ? ' (درگاه: <code dir="ltr">' . esc_html( $wpsms_gw ) . '</code>)' : ''; ?> — کد تایید پیامکی در فرم ثبت طرح کار می‌کند.</p>
+						<?php elseif ( $sms_plugin_on ) : ?>
+							<p style="color:#d97706;font-weight:700;margin:0 0 6px">⚠ افزونه WP SMS نصب است ولی <b>درگاه پیامک کامل پیکربندی نشده</b><?php echo $wpsms_gw ? ' (درگاه انتخاب‌شده: <code dir="ltr">' . esc_html( $wpsms_gw ) . '</code>)' : ' (هیچ درگاهی انتخاب نشده)'; ?> — تا این مرحله کامل نشود کد تایید فعال نمی‌شود (فرم مثل قبل بدون کد ارسال می‌شود).</p>
+							<p class="description" style="margin:0 0 6px">به پیشخوان WP SMS (منوی <b>WSMS ← تنظیمات ← درگاه پیامک</b>) بروید، درگاه پنل خود را انتخاب کنید (کاوه‌نگار، ملی‌پیامک، فراپیامک، هاست‌ایران و…)، نام کاربری/رمز یا کلید API را وارد کنید و «ذخیره» را بزنید. سپس با دکمهٔ «ارسال پیامک آزمایشی» پایین همین صفحه تست کنید.</p>
 						<?php else : ?>
 							<p style="color:#dc2626;font-weight:700;margin:0 0 6px">✕ افزونه پیامک نصب نیست — کد تایید پیامکی غیرفعال است.</p>
 							<p class="description" style="margin:0 0 6px">برای فعال‌سازی، افزونه رایگان <b>WP SMS</b> را از «افزونه‌ها ← افزودن» (جستجوی <code dir="ltr">wp-sms</code>) نصب کنید و در تنظیمات آن یک درگاه ایرانی (کاوه‌نگار، ملی‌پیامک، فراپیامک و…) را با کلید API پنل پیامک خود پیکربندی کنید.</p>
 						<?php endif; ?>
-						<label>
+						<label style="display:block;margin-top:8px">
 							<input type="checkbox" name="ckb_otp_disabled" value="1" <?php checked( $otp_disabled ); ?> />
 							<?php esc_html_e( 'غیرفعال کردن کد تایید پیامکی (فرم بدون تأیید موبایل ارسال می‌شود)', 'chekadbam' ); ?>
 						</label>
+						<div style="margin-top:12px">
+							<label for="ckb_otp_pattern" style="display:block;font-weight:600"><?php esc_html_e( 'کد الگو (پترن) درگاه', 'chekadbam' ); ?></label>
+							<input type="text" id="ckb_otp_pattern" name="ckb_otp_pattern" value="<?php echo esc_attr( get_option( 'ckb_otp_pattern', '' ) ); ?>" dir="ltr" style="width:220px" placeholder="2343" />
+							<p class="description"><?php esc_html_e( 'اگر پنل پیامک شما «پترن/OTP» می‌خواهد (فرازاس‌ام‌اس، کاوه‌نگار، ملی‌پیامک، IPPanel و…) کد الگوی تأییدشده را اینجا وارد کنید. خالی بگذارید تا ارسال متنی معمولی انجام شود.', 'chekadbam' ); ?></p>
+						</div>
+						<div style="margin-top:12px">
+							<label for="ckb_otp_text" style="display:block;font-weight:600"><?php esc_html_e( 'متن پیامک', 'chekadbam' ); ?></label>
+							<textarea id="ckb_otp_text" name="ckb_otp_text" rows="3" class="large-text code" dir="rtl" placeholder="<?php echo esc_attr( 'چکادبام — کد تایید ثبت طرح: %code%' ); ?>"><?php echo esc_textarea( get_option( 'ckb_otp_text', '' ) ); ?></textarea>
+							<p class="description"><?php esc_html_e( 'جای <code dir="ltr">%code%</code> با کد ۵ رقمی پر می‌شود. وقتی کد الگو وارد می‌کنید، این متن باید <b>دقیقاً</b> همان متنی باشد که در پنل ثبت و تأیید کرده‌اید و نام متغیر در پنل هم باید <code dir="ltr">code</code> باشد.', 'chekadbam' ); ?></p>
+						</div>
 					</td>
 				</tr>
 				<?php if ( $sms_plugin_on ) : ?>

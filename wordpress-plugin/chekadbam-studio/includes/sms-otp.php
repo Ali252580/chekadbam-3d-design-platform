@@ -18,12 +18,41 @@ define( 'CKB_OTP_MAX_SENDS', 3 );                   /* حداکثر کد در ه
 define( 'CKB_OTP_MAX_TRIES', 5 );                   /* حداکثر تلاش ورود کد */
 define( 'CKB_OTP_WINDOW', 10 * MINUTE_IN_SECONDS ); /* بازه شمارش ارسال‌ها */
 
-/* آیا سرویس OTP فعال است؟ (افزونه پیامک نصب باشد و مدیر خاموش نکرده باشد) */
+/** آیا در WSMS یک درگاه واقعی پیکربندی شده؟
+ *  فقط نصب بودن WSMS کافی نیست: اگر درگاه انتخاب/ذخیره نشده باشد هیچ کدی
+ *  ارسال نمی‌شود و فرم عمومی برای بازدیدکننده قفل می‌شود. */
+function ckb_smsotp_gateway_ready() {
+	$s = get_option( 'wpsms_settings', array() );
+	if ( ! is_array( $s ) ) {
+		return false;
+	}
+	$gateway = isset( $s['gateway_name'] ) ? trim( (string) $s['gateway_name'] ) : '';
+	/* 'default' دروازهٔ پیش‌فرض WSMS است که به حساب wsms.io نیاز دارد */
+	if ( '' === $gateway || 'default' === $gateway ) {
+		return false;
+	}
+	if ( 'custom' === $gateway ) {
+		/* درگاه HTTP سفارشی: آدرس endpoint + سرشمارهٔ ارسال‌کننده کافی است
+		   (اعتبارنامه در هدر Authorization می‌آید، نه در gateway_key) */
+		$ready = ! empty( $s['gateway_api_url'] )
+			&& ( ! empty( $s['gateway_sender_name'] ) || ! empty( $s['gateway_sender_id'] ) );
+	} else {
+		$has_key  = ! empty( $s['gateway_key'] );
+		$has_user = ! empty( $s['gateway_username'] ) && ! empty( $s['gateway_password'] );
+		$ready    = $has_key || $has_user;
+	}
+	return (bool) apply_filters( 'ckb_smsotp_gateway_ready', $ready, $gateway );
+}
+
+/* آیا سرویس OTP فعال است؟ (افزونه پیامک + درگاهِ پیکربندی‌شده، و مدیر خاموش نکرده باشد) */
 function ckb_smsotp_available() {
 	if ( '1' === get_option( 'ckb_otp_disabled', '0' ) ) {
 		return false;
 	}
-	return function_exists( 'wp_sms_send' );
+	if ( ! function_exists( 'wp_sms_send' ) ) {
+		return false;
+	}
+	return ckb_smsotp_gateway_ready();
 }
 
 /* تبدیل ارقام فارسی/عربی به لاتین */
@@ -50,20 +79,42 @@ function ckb_smsotp_recipient( $phone ) {
 	return apply_filters( 'ckb_smsotp_recipient', $phone );
 }
 
-/* متن پیامک کد تایید */
+/* کد الگو (پترن) درگاه پیامک — خالی یعنی ارسال متنی معمولی */
+function ckb_smsotp_pattern() {
+	return trim( (string) get_option( 'ckb_otp_pattern', '' ) );
+}
+
+/* متن پیامک کد تایید: جایگزینی %code% و افزودن «|کد الگو» برای درگاه‌های پترن */
 function ckb_smsotp_message( $code ) {
-	$msg = 'چکادبام' . "\n" . 'کد تایید ثبت طرح: ' . $code . "\n" . '(اعتبار ۵ دقیقه)';
-	return apply_filters( 'ckb_smsotp_message', $msg, $code );
+	$text = (string) get_option( 'ckb_otp_text', '' );
+	if ( '' === trim( $text ) ) {
+		$text = 'چکادبام' . "\n" . 'کد تایید ثبت طرح: %code%' . "\n" . '(اعتبار ۵ دقیقه)';
+	}
+	$msg     = str_replace( '%code%', (string) $code, $text );
+	$pattern = ckb_smsotp_pattern();
+	if ( '' !== $pattern ) {
+		/* WSMS بخش بعد از «|» را کد الگو می‌گیرد و متغیرها را به پنل می‌فرستد؛
+		   متن نهایی را خودِ الگوی تأییدشده روی پنل می‌سازد */
+		$msg .= '|' . $pattern;
+	}
+	return apply_filters( 'ckb_smsotp_message', $msg, $code, $pattern );
 }
 
 /** ارسال پیامک از طریق افزونه WP SMS — true یا پیام خطا */
-function ckb_smsotp_send_sms( $phone, $message ) {
+function ckb_smsotp_send_sms( $phone, $message, $code = '' ) {
 	if ( ! function_exists( 'wp_sms_send' ) ) {
 		return 'افزونه پیامک (WP SMS / WSMS) نصب یا فعال نیست.';
 	}
-	$res = wp_sms_send( ckb_smsotp_recipient( $phone ), $message );
+	if ( ! ckb_smsotp_gateway_ready() ) {
+		return 'درگاه پیامک در WSMS انتخاب نشده است؛ در پیشخوان «WSMS ← تنظیمات ← درگاه پیامک» درگاه پنل خود را وارد و ذخیره کنید.';
+	}
+	$vars = ( '' !== $code && '' !== ckb_smsotp_pattern() ) ? array( 'code' => (string) $code ) : array();
+	$res  = wp_sms_send( ckb_smsotp_recipient( $phone ), $message, false, null, array(), $vars );
 	if ( is_wp_error( $res ) ) {
 		return $res->get_error_message();
+	}
+	if ( ! $res ) {
+		return 'درگاه پیامک پاسخ موفق نداد — معمولاً اعتبار پنل تمام شده یا نام کاربری/کلید API نادرست است.';
 	}
 	return true;
 }
@@ -106,7 +157,7 @@ function ckb_smsotp_issue( $phone ) {
 	/* کد ۵ رقمی */
 	$code = (string) wp_rand( 10000, 99999 );
 
-	$sent = ckb_smsotp_send_sms( $phone, ckb_smsotp_message( $code ) );
+	$sent = ckb_smsotp_send_sms( $phone, ckb_smsotp_message( $code ), $code );
 	if ( true !== $sent ) {
 		return 'ارسال پیامک ناموفق بود: ' . $sent;
 	}
@@ -215,7 +266,8 @@ function ckb_smsotp_test_endpoint() {
 	if ( ! $phone ) {
 		wp_send_json_error( 'شماره موبایل معتبر نیست. نمونه: 09121234567' );
 	}
-	$res = ckb_smsotp_send_sms( $phone, 'پیامک آزمایشی چکادبام — تنظیمات درگاه پیامک درست است.' );
+	$test = (string) wp_rand( 10000, 99999 );
+	$res  = ckb_smsotp_send_sms( $phone, ckb_smsotp_message( $test ), $test );
 	if ( true !== $res ) {
 		wp_send_json_error( 'ارسال ناموفق: ' . $res );
 	}
