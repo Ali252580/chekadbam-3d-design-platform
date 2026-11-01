@@ -1528,6 +1528,7 @@
 					id: 'thumb-' + prod.code,
 					width: prod.w, depth: prod.d, height: prod.h,
 					shapeType: prod.shape || 'box',
+					glbUrl: prod.glbUrl || '',
 					category: prod.category,
 					wpcColor: prod.wpcColor, metalColor: prod.metalColor,
 					hasLighting: false,

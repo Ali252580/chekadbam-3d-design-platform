@@ -4,7 +4,7 @@ Tags: roof-garden, 3d-studio, modular, wpc, crm, rest-api, 3d-viewer
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 2.16.8
+Stable tag: 2.16.9
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -80,6 +80,9 @@ Namespace: /wp-json/chekadbam/v1
 * GET  /designs  — فهرست طرح‌ها با نام فیلدهای Next.js (userName, layoutData, snapshotUrl, estimatedPriceMin/Max, ...) + نام‌های قدیمی (فقط مدیر)
 
 == Changelog ==
+
+= 2.16.9 =
+* تصویر کارت «تاب چوبی پرگولادار با فلاورباکس» در منوی افزودن (کاتالوگ) حالا همان مدل GLB واقعی را می‌چرخاند؛ قبلاً به‌جای آن باکس خاکستری procedural نمایش داده می‌شد چون `glbUrl` به رندر تصویر کارت پاس نمی‌شد.
 
 = 2.16.8 =
 * قلم جدید «تاب چوبی پرگولادار با فلاورباکس» (CK-SW-PG220) با مدل GLB اختصاصی — ابعاد ۲٫۰۰×۰٫۹۵×۲٫۲۰ متر؛ کف مدل دقیق روی زمین قرار می‌گیرد.
