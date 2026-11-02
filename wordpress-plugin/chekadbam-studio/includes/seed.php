@@ -53,7 +53,7 @@ function ckb_seed_products() {
 		array( 'code' => 'CK-GW-FP120', 'title' => 'دیوار سبز مدولار قاب‌دار با تراف کاشت', 'cat' => 'structures', 'w' => 1.2, 'd' => 0.42, 'h' => 1.8, 'weight' => 68, 'price' => 11200000, 'shape' => 'green_wall_planter', 'light' => 1 ),
 		array( 'code' => 'CK-WF-FRM130', 'title' => 'آبنمای قاب دوبل چوب‌پلاست با حوضچه ریزش آب', 'cat' => 'water_fire', 'w' => 1.3, 'd' => 1.1, 'h' => 1.45, 'weight' => 82, 'price' => 22800000, 'shape' => 'water_feature', 'light' => 1 ),
 		array( 'code' => 'CK-FP-SQ110', 'title' => 'میز آتشدان مربعی چوب‌پلاست با سبد شعله', 'cat' => 'water_fire', 'w' => 1.1, 'd' => 1.1, 'h' => 0.72, 'weight' => 92, 'price' => 21500000, 'shape' => 'firepit_table', 'light' => 1 ),
-		array( 'code' => 'CK-UMB-300', 'title' => 'چتر سایبان هیدرولیک پایه‌کنار ۳ متری', 'cat' => 'accessories', 'w' => 3.0, 'd' => 3.0, 'h' => 2.65, 'weight' => 85, 'price' => 15400000, 'shape' => 'umbrella', 'light' => 0 ),
+		array( 'code' => 'CK-UMB-300', 'title' => 'چتر سایبان پایه‌کنار ۳ متری', 'cat' => 'accessories', 'w' => 3.0, 'd' => 3.0, 'h' => 2.65, 'weight' => 85, 'price' => 15400000, 'shape' => 'umbrella', 'light' => 0 ),
 		array( 'code' => 'CK-SW-PG220', 'title' => 'تاب چوبی پرگولادار با فلاورباکس', 'cat' => 'furniture', 'w' => 2.0, 'd' => 0.95, 'h' => 2.2, 'weight' => 165, 'price' => 42500000, 'shape' => 'box', 'light' => 1, 'glbUrl' => CKB_PLUGIN_URL . 'assets/models/swing-pergola-flowerbox.glb' ),
 	);
 

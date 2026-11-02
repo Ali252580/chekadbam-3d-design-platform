@@ -1571,49 +1571,58 @@
 				itemGroup.add(strutMesh);
 
 				// 5. Central Canopy Suspension Hub
-				var hubGeo = new THREE.CylinderGeometry(0.08, 0.06, 0.15, 16);
+				var hubGeo = new THREE.CylinderGeometry(0.08, 0.06, 0.16, 16);
 				var hubMesh = new THREE.Mesh(hubGeo, brushedAluMat);
-				hubMesh.position.set(0, uH - 0.08, 0);
+				hubMesh.position.set(0, uH - 0.04, 0);
 				itemGroup.add(hubMesh);
 
-				// 6. 8 Aluminum Radial Folding Ribs
+				/* پارامترهای مخروط سقف: رأس زیر هاب، دایره لبه در شعاع uW/2.
+				   میله‌ها باید روی همین شیب قرار بگیرند، نه افقی بیرون بزنند. */
+				var canopyH = 0.55;
+				var canopyApexY = uH - 0.06;
+				var canopyR = uW / 2;
+				var ribTilt = Math.atan2(canopyH, canopyR);
+
+				// 6. 8 Aluminum Radial Ribs — angled down to hug the membrane underside
 				var ribCount = 8;
-				var ribLen = uW / 2;
+				var ribLen = canopyR;
 				for (var r3 = 0; r3 < ribCount; r3++) {
 					var rAngle = (r3 * Math.PI * 2) / ribCount;
-					var ribGeo = new THREE.BoxGeometry(ribLen, 0.025, 0.025);
+					var ribGeo = new THREE.BoxGeometry(ribLen, 0.03, 0.03);
 					var ribMesh = new THREE.Mesh(ribGeo, brushedAluMat);
-					ribMesh.position.set((Math.cos(rAngle) * ribLen) / 2, uH - 0.18, (Math.sin(rAngle) * ribLen) / 2);
+					var ribMidR = ribLen / 2;
+					var ribMidY = canopyApexY - (ribMidR / canopyR) * canopyH - 0.02;
+					ribMesh.position.set(Math.cos(rAngle) * ribMidR, ribMidY, Math.sin(rAngle) * ribMidR);
 					ribMesh.rotation.y = -rAngle;
-					ribMesh.rotation.z = 0.12;
+					ribMesh.rotation.z = -ribTilt;
 					ribMesh.castShadow = true;
 					itemGroup.add(ribMesh);
 				}
 
 				// 7. Main Octagonal Sunbrella Fabric Canopy (Stitched Membrane)
-				var canopyGeo = new THREE.ConeGeometry(uW / 2, 0.45, 8, 1, false);
+				var canopyGeo = new THREE.ConeGeometry(canopyR, canopyH, 8, 1, false);
 				var canopyMesh = new THREE.Mesh(canopyGeo, canopyFabricMat);
-				canopyMesh.position.set(0, uH - 0.22, 0);
+				canopyMesh.position.set(0, canopyApexY - canopyH / 2, 0);
 				canopyMesh.castShadow = true;
 				canopyMesh.receiveShadow = true;
 				itemGroup.add(canopyMesh);
 
 				// Top Wind Escape Air Vent Cap
-				var ventGeo = new THREE.ConeGeometry(uW * 0.22, 0.18, 8);
+				var ventGeo = new THREE.ConeGeometry(canopyR * 0.22, 0.18, 8);
 				var ventMesh = new THREE.Mesh(ventGeo, canopyFabricMat);
-				ventMesh.position.set(0, uH - 0.05, 0);
+				ventMesh.position.set(0, canopyApexY + 0.06, 0);
 				ventMesh.castShadow = true;
 				itemGroup.add(ventMesh);
 
 				// Top finial cap
 				var finialGeo = new THREE.SphereGeometry(0.05, 12, 12);
 				var finialMesh = new THREE.Mesh(finialGeo, chromePistonMat);
-				finialMesh.position.set(0, uH + 0.06, 0);
+				finialMesh.position.set(0, canopyApexY + 0.2, 0);
 				itemGroup.add(finialMesh);
 
 				if (isNight) {
 					var underUmbrellaLight = new THREE.PointLight(0xffe699, 2.2, 5.0);
-					underUmbrellaLight.position.set(0, uH - 0.35, 0);
+					underUmbrellaLight.position.set(0, canopyApexY - 0.4, 0);
 					itemGroup.add(underUmbrellaLight);
 				}
 				break;

@@ -900,7 +900,7 @@ export const CHEKADBAM_PRODUCTS: ChekadbamProduct[] = [
   {
     id: "umb-octa",
     code: "CK-UMB-300",
-    name: "چتر سایبان هیدرولیک پایه‌کنار ۳ متری",
+    name: "چتر سایبان پایه‌کنار ۳ متری",
     category: "accessories",
     categoryName: "سایبان و پرگولا",
     shortDesc: "سایبان گردان ۳۶۰ درجه با بازشوی جک هیدرولیکی، پایه مخزنی سنگین ضدواژگونی و پارچه آب‌گریز Sunbrella.",

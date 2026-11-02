@@ -3,7 +3,7 @@
  * Plugin Name: چکادبام استودیو منیجر (Chekadbam Studio Manager)
  * Plugin URI:  https://chekadbam.com
  * Description: استودیوی طراحی سه‌بعدی واقع‌گرایانه روف‌گاردن با مدل‌های واقعی محصولات (پرگولا، آبنما، درخت، ...)، مدیریت اقلام مدولار WPC، پلان‌های روف‌گاردن، CRM طرح‌ها، REST API هم‌خوان با Next.js، نمایشگر سه‌بعدی محصول و کد کوتاه فرم.
- * Version:     2.16.10
+ * Version:     2.16.11
  * Author:      Chekadbam Engineering
  * Author URI:  https://chekadbam.com
  * Text Domain: chekadbam
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CKB_VERSION', '2.16.10' );
+define( 'CKB_VERSION', '2.16.11' );
 define( 'CKB_PLUGIN_FILE', __FILE__ );
 define( 'CKB_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CKB_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -71,6 +71,29 @@ function ckb_maybe_upgrade() {
 	/* v2.16.9 — بک‌فیل قلم «تاب چوبی پرگولادار با فلاورباکس»؛ seed اولیه فقط روی
 	   دیتابیس خالی اجرا می‌شود، پس در سایت‌های موجود این قلم هرگز ساخته نمی‌شد. */
 	ckb_ensure_swing_product();
+	/* v2.16.11 — «هیدرولیک» از عنوان قلم CK-UMB-300 حذف می‌شود */
+	$umbrellas = get_posts(
+		array(
+			'post_type'   => 'ckb_product',
+			'post_status' => 'any',
+			'numberposts' => -1,
+			'meta_key'    => '_ckb_code',
+			'meta_value'  => 'CK-UMB-300',
+			'fields'      => 'ids',
+		)
+	);
+	foreach ( $umbrellas as $uid ) {
+		$title = get_the_title( $uid );
+		$new   = str_replace( 'هیدرولیک ', '', $title );
+		if ( $new !== $title ) {
+			wp_update_post(
+				array(
+					'ID'         => $uid,
+					'post_title' => $new,
+				)
+			);
+		}
+	}
 	update_option( 'ckb_db_version', CKB_VERSION );
 }
 
