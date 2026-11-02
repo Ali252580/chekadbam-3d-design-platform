@@ -3,7 +3,7 @@
  * Plugin Name: چکادبام استودیو منیجر (Chekadbam Studio Manager)
  * Plugin URI:  https://chekadbam.com
  * Description: استودیوی طراحی سه‌بعدی واقع‌گرایانه روف‌گاردن با مدل‌های واقعی محصولات (پرگولا، آبنما، درخت، ...)، مدیریت اقلام مدولار WPC، پلان‌های روف‌گاردن، CRM طرح‌ها، REST API هم‌خوان با Next.js، نمایشگر سه‌بعدی محصول و کد کوتاه فرم.
- * Version:     2.16.11
+ * Version:     2.16.12
  * Author:      Chekadbam Engineering
  * Author URI:  https://chekadbam.com
  * Text Domain: chekadbam
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CKB_VERSION', '2.16.11' );
+define( 'CKB_VERSION', '2.16.12' );
 define( 'CKB_PLUGIN_FILE', __FILE__ );
 define( 'CKB_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CKB_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -71,7 +71,8 @@ function ckb_maybe_upgrade() {
 	/* v2.16.9 — بک‌فیل قلم «تاب چوبی پرگولادار با فلاورباکس»؛ seed اولیه فقط روی
 	   دیتابیس خالی اجرا می‌شود، پس در سایت‌های موجود این قلم هرگز ساخته نمی‌شد. */
 	ckb_ensure_swing_product();
-	/* v2.16.11 — «هیدرولیک» از عنوان قلم CK-UMB-300 حذف می‌شود */
+	/* v2.16.11/12 — عنوان قلم CK-UMB-300 به «سایبان چتری پایه‌کنار» هم‌راستا می‌شود
+	   (سایت‌های موجود ممکن است هر دو نام قدیمی «چتر سایبان هیدرولیک…» یا «چتر سایبان…» را داشته باشند) */
 	$umbrellas = get_posts(
 		array(
 			'post_type'   => 'ckb_product',
@@ -83,13 +84,11 @@ function ckb_maybe_upgrade() {
 		)
 	);
 	foreach ( $umbrellas as $uid ) {
-		$title = get_the_title( $uid );
-		$new   = str_replace( 'هیدرولیک ', '', $title );
-		if ( $new !== $title ) {
+		if ( get_the_title( $uid ) !== 'سایبان چتری پایه‌کنار' ) {
 			wp_update_post(
 				array(
 					'ID'         => $uid,
-					'post_title' => $new,
+					'post_title' => 'سایبان چتری پایه‌کنار',
 				)
 			);
 		}

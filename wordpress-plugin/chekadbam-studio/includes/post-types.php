@@ -110,7 +110,7 @@ function ckb_shape_types() {
 		'water_feature'     => __( 'آبنما', 'chekadbam' ),
 		'firepit'           => __( 'آتشدان دایره‌ای', 'chekadbam' ),
 		'firepit_table'     => __( 'میز آتشدان مربعی', 'chekadbam' ),
-		'umbrella'          => __( 'چتر سایبان پایه‌کنار', 'chekadbam' ),
+		'umbrella'          => __( 'سایبان چتری پایه‌کنار', 'chekadbam' ),
 		'tree'              => __( 'درختچه / گلدان', 'chekadbam' ),
 		'bbq'               => __( 'باربیکیو و کانتر', 'chekadbam' ),
 		'louver'            => __( 'پارتیشن لوور', 'chekadbam' ),
