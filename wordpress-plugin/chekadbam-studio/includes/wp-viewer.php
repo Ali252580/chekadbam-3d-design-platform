@@ -145,6 +145,10 @@ function ckb_get_viewer_product( $post_id = 0, $code = '' ) {
 
 /** Viewer markup + boot script for one product. */
 function ckb_get_viewer_html( $product, $height = '360px', $show_title = true ) {
+	/* لایسنس: نمایشگر سه‌بعدی فقط روی دامنه‌های مجاز */
+	if ( ! ckb_license_is_active() ) {
+		return ckb_license_blocked_html();
+	}
 	static $viewer_seq = 0;
 	$viewer_seq++;
 
@@ -226,6 +230,10 @@ function ckb_wpstudio_get_nonce() {
 add_action( 'wp_ajax_ckb_save_design', 'ckb_wpstudio_save_design_v2' );
 add_action( 'wp_ajax_nopriv_ckb_save_design', 'ckb_wpstudio_save_design_v2' );
 function ckb_wpstudio_save_design_v2() {
+	/* لایسنس: ثبت طرح فقط روی دامنه‌های مجاز */
+	if ( ! ckb_license_is_active() ) {
+		wp_send_json_error( array( 'message' => 'لایسنس چکادبام روی این دامنه فعال نیست؛ ثبت طرح غیرفعال است.', 'code' => 'license_inactive' ) );
+	}
 	/* v2.13.4 — اگر post_max_size/host سمت سرور، بدنه POST را کامل نپذیرد،
 	   PHP کل $_POST را خالی می‌کند و کاربر «خطای امنیتی» می‌بیند؛ پیام دقیق بده. */
 	if ( empty( $_POST ) ) {
@@ -359,6 +367,10 @@ wp_send_json_success( array( 'id' => $pid ) );
 add_action( 'wp_ajax_ckb_save_snapshot', 'ckb_wpstudio_save_snapshot_endpoint' );
 add_action( 'wp_ajax_nopriv_ckb_save_snapshot', 'ckb_wpstudio_save_snapshot_endpoint' );
 function ckb_wpstudio_save_snapshot_endpoint() {
+	/* لایسنس: ذخیره تصویر فقط روی دامنه‌های مجاز */
+	if ( ! ckb_license_is_active() ) {
+		wp_send_json_error( array( 'message' => 'لایسنس چکادبام روی این دامنه فعال نیست.', 'code' => 'license_inactive' ) );
+	}
 	if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'ckb_wpstudio' ) ) {
 		wp_send_json_error( array(
 			'message'   => 'اعتبار فرم منقضی شده. طرح ثبت شده است؛ برای ذخیره تصویر صفحه را تازه‌سازی کنید.',

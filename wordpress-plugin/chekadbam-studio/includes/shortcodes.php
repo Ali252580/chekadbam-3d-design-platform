@@ -12,6 +12,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 add_shortcode( 'chekadbam_studio_link', 'ckb_render_studio_shortcode' );
 function ckb_render_studio_shortcode( $atts ) {
+	/* لایسنس: CTA استودیو فقط روی دامنه‌های مجاز */
+	if ( ! ckb_license_is_active() ) {
+		return ckb_license_blocked_html();
+	}
 	ob_start();
 	$studio_url = admin_url( 'admin.php?page=wp-studio' );
 ?>
@@ -28,6 +32,10 @@ function ckb_render_studio_shortcode( $atts ) {
 
 add_shortcode( 'chekadbam_form', 'ckb_render_form_shortcode' );
 function ckb_render_form_shortcode( $atts ) {
+	/* لایسنس: فرم ثبت طرح فقط روی دامنه‌های مجاز */
+	if ( ! ckb_license_is_active() ) {
+		return ckb_license_blocked_html();
+	}
 	$atts = shortcode_atts(
 		array(
 			'title' => __( 'درخواست طراحی سه‌بعدی روف‌گاردن', 'chekadbam' ),

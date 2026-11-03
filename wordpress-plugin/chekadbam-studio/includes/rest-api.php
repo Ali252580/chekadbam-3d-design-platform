@@ -115,6 +115,9 @@ function ckb_rest_unit_string( $w, $d, $h ) {
  * Next.js studio can consume the WordPress catalog unchanged.
  */
 function ckb_rest_get_products() {
+	if ( ! ckb_license_is_active() ) {
+		return new WP_Error( 'ckb_license_inactive', __( 'چکادبام استودیو روی این دامنه فعال نیست.', 'chekadbam' ), array( 'status' => 403 ) );
+	}
 	$posts = get_posts(
 		array(
 			'post_type'   => 'ckb_product',
@@ -206,6 +209,9 @@ function ckb_rest_get_products() {
  * studio-types.ts so the Next.js studio can load WordPress plans unchanged.
  */
 function ckb_rest_get_plans() {
+	if ( ! ckb_license_is_active() ) {
+		return new WP_Error( 'ckb_license_inactive', __( 'چکادبام استودیو روی این دامنه فعال نیست.', 'chekadbam' ), array( 'status' => 403 ) );
+	}
 	$posts = get_posts(
 		array(
 			'post_type'   => 'ckb_plan',
@@ -337,6 +343,9 @@ function ckb_rest_get_plans() {
  *    { name, phone, email, city, shape, width, length, area, items, snapshot, message }
  */
 function ckb_rest_post_design( WP_REST_Request $req ) {
+	if ( ! ckb_license_is_active() ) {
+		return new WP_Error( 'ckb_license_inactive', __( 'چکادبام استودیو روی این دامنه فعال نیست.', 'chekadbam' ), array( 'status' => 403 ) );
+	}
 	$params = $req->get_json_params();
 	if ( ! is_array( $params ) ) {
 		$params = $req->get_body_params();
@@ -477,6 +486,9 @@ function ckb_rest_post_design( WP_REST_Request $req ) {
  * Returns designs shaped like rows of the Next.js designs table (db/schema.ts).
  */
 function ckb_rest_get_designs() {
+	if ( ! ckb_license_is_active() ) {
+		return new WP_Error( 'ckb_license_inactive', __( 'چکادبام استودیو روی این دامنه فعال نیست.', 'chekadbam' ), array( 'status' => 403 ) );
+	}
 	$posts = get_posts(
 		array(
 			'post_type'   => 'ckb_design',

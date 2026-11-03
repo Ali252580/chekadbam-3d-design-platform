@@ -12,3 +12,7 @@ out/
 # OS / editor
 Thumbs.db
 .DS_Store
+
+# License signing keys — NEVER commit
+license/keys/
+license/*.pem

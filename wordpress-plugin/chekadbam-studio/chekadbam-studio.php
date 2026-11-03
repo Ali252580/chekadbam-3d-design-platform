@@ -3,7 +3,7 @@
  * Plugin Name: چکادبام استودیو منیجر (Chekadbam Studio Manager)
  * Plugin URI:  https://chekadbam.com
  * Description: استودیوی طراحی سه‌بعدی واقع‌گرایانه روف‌گاردن با مدل‌های واقعی محصولات (پرگولا، آبنما، درخت، ...)، مدیریت اقلام مدولار WPC، پلان‌های روف‌گاردن، CRM طرح‌ها، REST API هم‌خوان با Next.js، نمایشگر سه‌بعدی محصول و کد کوتاه فرم.
- * Version:     2.16.12
+ * Version:     2.17.0
  * Author:      Chekadbam Engineering
  * Author URI:  https://chekadbam.com
  * Text Domain: chekadbam
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CKB_VERSION', '2.16.12' );
+define( 'CKB_VERSION', '2.17.0' );
 define( 'CKB_PLUGIN_FILE', __FILE__ );
 define( 'CKB_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CKB_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -33,6 +33,7 @@ require_once CKB_PLUGIN_DIR . 'includes/wp-studio.php';
 require_once CKB_PLUGIN_DIR . 'includes/wp-viewer.php';
 require_once CKB_PLUGIN_DIR . 'includes/sms-otp.php';
 require_once CKB_PLUGIN_DIR . 'includes/panel-sync.php';
+require_once CKB_PLUGIN_DIR . 'includes/license.php';
 
 /* ------------------------------ Activation ------------------------------ */
 

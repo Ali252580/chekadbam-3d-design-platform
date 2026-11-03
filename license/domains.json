@@ -1,0 +1,12 @@
+{
+	"issuer": "chekadbam",
+	"generatedAt": null,
+	"notAfter": null,
+	"domains": {
+		"chekadbam.com": {
+			"status": "active",
+			"until": null,
+			"note": "سایت اصلی خودمان"
+		}
+	}
+}

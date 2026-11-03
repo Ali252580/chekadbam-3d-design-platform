@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "issuer": "chekadbam",
+  "generatedAt": "2026-11-03T06:22:22Z",
+  "notAfter": null,
+  "payloadStr": "{\"domains\":{\"chekadbam.com\":{\"note\":\"سایت اصلی خودمان\",\"status\":\"active\",\"until\":null}},\"generatedAt\":\"2026-11-03T06:22:22Z\",\"issuer\":\"chekadbam\",\"notAfter\":null,\"version\":1}",
+  "signature": "BTB1IfiBVmUFPES/PxV++nVJZsNhX6JW1DL6AZypmAOn7Rvk97sbEQ0JCoFiCCwLgrNr2Pf5lbCNVLu6WcbFAQ=="
+}

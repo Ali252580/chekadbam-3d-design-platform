@@ -584,6 +584,10 @@ function ckb_wpstudio_register_assets() {
 /* ------------------------------ Core Studio HTML ------------------------------ */
 
 function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen = false ) {
+	/* لایسنس: استودیو فقط روی دامنه‌های مجاز (فایل امضاشدهٔ گیت‌هاب) رندر می‌شود */
+	if ( ! ckb_license_is_active() ) {
+		return ckb_license_blocked_html();
+	}
 	$products = ckb_get_studio_products();
 	$plans    = ckb_get_studio_plans( $products );
 

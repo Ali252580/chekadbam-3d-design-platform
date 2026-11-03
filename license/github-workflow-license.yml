@@ -1,0 +1,70 @@
+# =====================================================================
+# Chekadbam License — auto-signing workflow
+#
+# جریان کار: ویرایش domains.json در این ریپو → این اکشن با کلید خصوصی
+# (Secret: LICENSE_SIGNING_KEY) فایل را امضا می‌کند → license.json
+# امضاشده کامیت می‌شود → سایت‌ها حداکثر ۱۲ ساعت بعد (یا با دکمهٔ
+# «بررسی دوباره» در پیشخوان) آن را می‌خوانند.
+#
+# Secret لازم (Settings → Secrets → Actions):
+#   LICENSE_SIGNING_KEY  = محتوای کامل فایل keys/chekadbam-license.key
+#                          (در ریپوی اصلی پروژه، پوشهٔ license/keys)
+# =====================================================================
+name: Sign license
+
+on:
+  push:
+    paths:
+      - 'domains.json'
+      - 'tools/sign.mjs'
+      - '.github/workflows/license.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sign-license
+  cancel-in-progress: true
+
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-actions[bot]'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Write signing key from secret
+        env:
+          LICENSE_SIGNING_KEY: ${{ secrets.LICENSE_SIGNING_KEY }}
+        run: |
+          if [ -z "$LICENSE_SIGNING_KEY" ]; then
+            echo "::error::Secret LICENSE_SIGNING_KEY تنظیم نشده است."; exit 1
+          fi
+          mkdir -p keys
+          printf '%s\n' "$LICENSE_SIGNING_KEY" > keys/chekadbam-license.key
+
+      - name: Sign domains.json → license.json
+        run: node tools/sign.mjs sign domains.json -o license.json -k keys/chekadbam-license.key
+
+      - name: Verify signature (sanity check)
+        run: node tools/sign.mjs verify license.json
+
+      - name: Shred temporary private key
+        run: rm -f keys/chekadbam-license.key
+
+      - name: Commit signed license (only when it actually changed)
+        run: |
+          git config user.name  "chekadbam-license-bot"
+          git config user.email "bot@chekadbam.com"
+          if git diff --quiet -- license.json; then
+            echo "No change in signed license — nothing to commit."
+            exit 0
+          fi
+          git add license.json
+          git commit -m "chore(license): re-sign domains"
+          git push
