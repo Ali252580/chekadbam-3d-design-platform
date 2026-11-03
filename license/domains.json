@@ -7,6 +7,16 @@
 			"status": "active",
 			"until": null,
 			"note": "سایت اصلی خودمان"
+		},
+		"chekadeno.com": {
+			"status": "active",
+			"until": null,
+			"note": "سایت تولیدی چکادبام"
+		},
+		"*.chekadeno.com": {
+			"status": "active",
+			"until": null,
+			"note": "www و زیردامنه‌های chekadeno.com"
 		}
 	}
 }
