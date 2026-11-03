@@ -1,8 +1,8 @@
 {
   "version": 1,
   "issuer": "chekadbam",
-  "generatedAt": "2026-11-03T08:04:01Z",
+  "generatedAt": "2026-11-03T08:17:21Z",
   "notAfter": null,
-  "payloadStr": "{\"domains\":{\"*.chekadeno.com\":{\"note\":\"www و زیردامنه‌های chekadeno.com\",\"status\":\"active\",\"until\":null},\"chekadbam.com\":{\"note\":\"سایت اصلی خودمان\",\"status\":\"active\",\"until\":null},\"chekadeno.com\":{\"note\":\"سایت تولیدی چکادبام\",\"status\":\"active\",\"until\":null}},\"generatedAt\":\"2026-11-03T08:04:01Z\",\"issuer\":\"chekadbam\",\"notAfter\":null,\"version\":1}",
-  "signature": "v8njSBjySRkw3Hh2RfP558Ib7iXXawdiwkscoGX0/8yok7RiiwJNdsd4uQRp0XsJ2Yu35gCu+CAUwMet4iEYBA=="
+  "payloadStr": "{\"domains\":{\"*.chekadeno.com\":{\"note\":\"www و زیردامنه‌های chekadeno.com\",\"status\":\"active\",\"until\":null},\"chekadbam.com\":{\"note\":\"سایت اصلی خودمان\",\"status\":\"active\",\"until\":null},\"chekadeno.com\":{\"note\":\"سایت تولیدی چکادبام\",\"status\":\"active\",\"until\":null}},\"generatedAt\":\"2026-11-03T08:17:21Z\",\"issuer\":\"chekadbam\",\"notAfter\":null,\"version\":1}",
+  "signature": "C096e+9kK2zSf8qkkZ6O+G3QVfdcKJtz2UJ60fmfugrA/5hfQwidSKJYTFOD1mdRN1U858wgjGPyvlxriGPjDg=="
 }
