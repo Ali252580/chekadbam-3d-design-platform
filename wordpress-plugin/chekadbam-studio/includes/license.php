@@ -7,8 +7,8 @@
  *
  *  - منبع: فایل license.json در مخزن گیت‌هاب (raw.githubusercontent.com و یا
  *    برای مخزن خصوصی، API گیت‌هاب با توکن).
- *  - هر ۱۲ ساعت یک‌بار (کرون وردپرس) و در بارگذاری صفحات پیشخوان فایل تازه
- *    می‌شود؛ تا سقف ۷۲ ساعت قطعیِ منبع، نسخهٔ کش‌شده معتبر می‌ماند («مرحمت»).
+ *  - ماهی یک‌بار (کرون وردپرس) و در بارگذاری صفحات پیشخوان فایل تازه
+ *    می‌شود؛ تا سقف ۸۱۶ ساعت (۳۴ روز) قطعیِ منبع، نسخهٔ کش‌شده معتبر می‌ماند («مرحمت»).
  *  - وضعیت دامنه: status = active | disabled و تاریخ اختیاری until + مهلت
  *    کلی notAfter.
  *  - وقتی دامنه فعال نیست: شورت‌کدها (استودیو/فرم/نمایشگر)، صفحه استودیو در
@@ -28,8 +28,9 @@ define( 'CKB_LICENSE_URL_DEFAULT', 'https://raw.githubusercontent.com/Ali252580/
 define( 'CKB_LICENSE_PUBLIC_KEY', 'c9yxe0tZ5janVvOPuoDZhRlaoeJu6Pr1fBpdpSge2Yc=' );
 
 /**
- * فیلتر ckb_license_refresh_hours → فاصلهٔ به‌روزرسانی کش (ساعت؛ پیش‌فرض ۱۲).
- * فیلتر ckb_license_grace_hours → سقف مجاز کار بدون دسترسی به منبع (ساعت؛ پیش‌فرض ۷۲).
+ * فیلتر ckb_license_refresh_hours → فاصلهٔ به‌روزرسانی کش (ساعت؛ پیش‌فرض ۷۲۰ = یک ماه).
+ * فیلتر ckb_license_grace_hours → سقف مجاز کار بدون دسترسی به منبع (ساعت؛ پیش‌فرض ۸۱۶ = ۳۴ روز).
+ * آدرس منبع در پیشخوان نمایش داده/ویرایش نمی‌شود؛ فقط با ثابت CKB_LICENSE_URL در wp-config عوض می‌شود.
  */
 
 /* ============================ Helpers ============================ */
@@ -39,7 +40,7 @@ function ckb_license_host() {
 	return strtolower( (string) parse_url( home_url(), PHP_URL_HOST ) );
 }
 
-/** آدرس فایل لایسنس (قابل ویرایش در پیشخوان). */
+/** آدرس فایل لایسنس — در پیشخوان نمایش داده نمی‌شود؛ فقط با ثابت CKB_LICENSE_URL در wp-config تغییر می‌کند. */
 function ckb_license_source_url() {
 	$url = get_option( 'ckb_license_url', '' );
 	if ( ! $url && defined( 'CKB_LICENSE_URL' ) ) {
@@ -182,8 +183,8 @@ function ckb_license_state( $allow_refresh = true ) {
 	$fetched = isset( $cache['fetchedAt'] ) ? (int) $cache['fetchedAt'] : 0;
 	$now     = time();
 
-	$refresh_hours = (int) apply_filters( 'ckb_license_refresh_hours', 12 );
-	$grace_hours   = (int) apply_filters( 'ckb_license_grace_hours', 72 );
+	$refresh_hours = (int) apply_filters( 'ckb_license_refresh_hours', 720 );   /* یک ماه */
+	$grace_hours   = (int) apply_filters( 'ckb_license_grace_hours', 816 );     /* ۳۴ روز */
 
 	$state = array(
 		'status'      => 'unlicensed',
@@ -326,8 +327,17 @@ function ckb_license_blocked_html() {
 
 add_action( 'admin_init', 'ckb_license_schedule' );
 function ckb_license_schedule() {
-	if ( ! wp_next_scheduled( 'ckb_license_cron_tick' ) ) {
-		wp_schedule_event( time() + 300, 'twicedaily', 'ckb_license_cron_tick' );
+	$timestamp = wp_next_scheduled( 'ckb_license_cron_tick' );
+	if ( $timestamp ) {
+		/* مهاجرت: رویداد قبلی با تکرار متفاوت (مثلاً twicedaily) → یک‌بار بازنویسی ماهیانه */
+		$event = function_exists( 'wp_get_scheduled_event' ) ? wp_get_scheduled_event( 'ckb_license_cron_tick' ) : null;
+		if ( $event && isset( $event->schedule ) && 'monthly' !== $event->schedule ) {
+			wp_unschedule_event( $timestamp, 'ckb_license_cron_tick' );
+			$timestamp = false;
+		}
+	}
+	if ( ! $timestamp ) {
+		wp_schedule_event( time() + HOUR_IN_SECONDS, 'monthly', 'ckb_license_cron_tick' );
 	}
 }
 
@@ -358,9 +368,10 @@ function ckb_license_save_settings() {
 	if ( ! current_user_can( 'manage_options' ) ) {
 		return;
 	}
-	update_option( 'ckb_license_url', esc_url_raw( wp_unslash( $_POST['ckb_license_url'] ?? '' ) ) );
-	update_option( 'ckb_license_token', sanitize_text_field( wp_unslash( $_POST['ckb_license_token'] ?? '' ) ) );
-	update_option( 'ckb_license_ping_url', esc_url_raw( wp_unslash( $_POST['ckb_license_ping_url'] ?? '' ) ) );
+	/* فقط توکن در پیشخوان قابل ویرایش است؛ آدرس منبع و گزارش از فرم حذف شده‌اند. */
+	if ( isset( $_POST['ckb_license_token'] ) ) {
+		update_option( 'ckb_license_token', sanitize_text_field( wp_unslash( $_POST['ckb_license_token'] ) ) );
+	}
 	if ( isset( $_POST['ckb_license_refresh_now'] ) ) {
 		delete_transient( 'ckb_license_fetch_lock' );
 		ckb_license_fetch( 10 );
@@ -376,9 +387,7 @@ function ckb_license_render_page() {
 	ckb_license_save_settings();
 
 	$state   = ckb_license_state();
-	$url     = ckb_license_source_url();
 	$token   = (string) get_option( 'ckb_license_token', '' );
-	$ping    = (string) get_option( 'ckb_license_ping_url', '' );
 
 	$badges = array(
 		'active'     => array( 'فعال', '#10b981' ),
@@ -418,7 +427,7 @@ function ckb_license_render_page() {
 		<div class="ckb-panel">
 			<h2><?php esc_html_e( 'دامنه‌های داخل فایل لایسنس', 'chekadbam' ); ?></h2>
 			<p class="description">
-				<?php esc_html_e( 'این فهرست فقط از گیت‌هاب کنترل می‌شود (فایل license.json امضاشده). در مخزن گیت‌هاب، فایل domains.json را ویرایش کنید؛ اکشن خودکار فایل را امضا می‌کند و سایت‌ها حداکثر ۱۲ ساعت بعد به‌روز می‌شوند.', 'chekadbam' ); ?>
+				<?php esc_html_e( 'این فهرست فقط از گیت‌هاب کنترل می‌شود (فایل license.json امضاشده). در مخزن گیت‌هاب، فایل domains.json را ویرایش کنید؛ اکشن خودکار فایل را امضا می‌کند و سایت‌ها ماهی یک‌بار به‌روز می‌شوند — برای اعمال فوری همین حالا «بررسی دوباره» را بزنید.', 'chekadbam' ); ?>
 			</p>
 			<?php if ( empty( $state['domains'] ) ) : ?>
 				<p style="color:#dc2626"><?php esc_html_e( 'هیچ داده‌ای در دسترس نیست — آدرس منبع را بررسی کن و «بررسی دوباره» را بزن.', 'chekadbam' ); ?></p>
@@ -466,27 +475,13 @@ function ckb_license_render_page() {
 		</div>
 
 		<form method="post" class="ckb-panel" style="max-width:760px">
-			<h2><?php esc_html_e( 'تنظیمات منبع لایسنس', 'chekadbam' ); ?></h2>
+			<h2><?php esc_html_e( 'تنظیمات اتصال به مخزن لایسنس', 'chekadbam' ); ?></h2>
 			<table class="form-table ckb-form">
 				<tr>
-					<th><label for="ckb_license_url"><?php esc_html_e( 'آدرس فایل لایسنس (امضاشده)', 'chekadbam' ); ?></label></th>
-					<td>
-						<input type="url" id="ckb_license_url" name="ckb_license_url" value="<?php echo esc_attr( $url ); ?>" class="regular-text" dir="ltr" />
-						<p class="description"><?php esc_html_e( 'پیش‌فرض: فایل امضاشدهٔ license.json در مخزن chekadbam-licenses گیت‌هاب. برای مخزن خصوصی، همان آدرس raw را بگذار و توکن زیر را پر کن (دریافت از API گیت‌هاب انجام می‌شود).', 'chekadbam' ); ?></p>
-					</td>
-				</tr>
-				<tr>
-					<th><label for="ckb_license_token"><?php esc_html_e( 'توکن مخزن خصوصی (اختیاری)', 'chekadbam' ); ?></label></th>
+					<th><label for="ckb_license_token"><?php esc_html_e( 'توکن مخزن خصوصی', 'chekadbam' ); ?></label></th>
 					<td>
 						<input type="password" id="ckb_license_token" name="ckb_license_token" value="<?php echo esc_attr( $token ); ?>" class="regular-text" dir="ltr" autocomplete="off" />
-						<p class="description"><?php esc_html_e( 'توکن دسترسی Fine-grained فقط با مجوز «Contents: Read» روی مخزن لایسنس؛ فقط برای مخزن خصوصی لازم است.', 'chekadbam' ); ?></p>
-					</td>
-				</tr>
-				<tr>
-					<th><label for="ckb_license_ping_url"><?php esc_html_e( 'آدرس گزارش استفاده (اختیاری)', 'chekadbam' ); ?></label></th>
-					<td>
-						<input type="url" id="ckb_license_ping_url" name="ckb_license_ping_url" value="<?php echo esc_attr( $ping ); ?>" class="regular-text" dir="ltr" placeholder="https://panel.chekadbam.com/api/license/ping" />
-						<p class="description"><?php esc_html_e( 'هر به‌روزرسانی موفق، دامنه و وضعیت این سایت را POST می‌کند تا در پنل خودت ببینی کدام دامنه‌ها واقعاً نصب و فعال‌اند.', 'chekadbam' ); ?></p>
+						<p class="description"><?php esc_html_e( 'توکن دسترسی Fine-grained فقط با مجوز «Contents: Read» روی مخزن لایسنس؛ مخزن خصوصی است و این توکن برای خواندن فایل امضاشده لازم است.', 'chekadbam' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -502,7 +497,7 @@ function ckb_license_render_page() {
 			<ol class="ckb-list" style="line-height:2.2">
 				<li><?php esc_html_e( 'در مخزن گیت‌هاب لایسنس، فایل domains.json را ویرایش کن (status: «active» یا «disabled»، تاریخ اختیاری «until»).' ); ?></li>
 				<li><?php esc_html_e( 'GitHub Action خودکار فایل را با کلید خصوصی امضا و license.json را کامیت می‌کند (یا با node sign.mjs دستی امضا کن).' ); ?></li>
-				<li><?php esc_html_e( 'هر سایت حداکثر ۱۲ ساعت بعد (یا با دکمهٔ «بررسی دوباره») به‌روز می‌شود؛ بدون اتصال به منبع هم تا ۷۲ ساعت با نسخهٔ آخر کار می‌کند.' ); ?></li>
+				<li><?php esc_html_e( 'هر سایت ماهی یک‌بار فایل لایسنس را تازه می‌کند؛ با دکمهٔ «بررسی دوباره» تغییرات فوراً اعمال می‌شود. بدون اتصال به منبع هم تا ۳۴ روز با نسخهٔ آخر کار می‌کند.' ); ?></li>
 			</ol>
 			<p class="description"><?php esc_html_e( 'کلید عمومی امضا: c9yxe0tZ5janVvOPuoDZhRlaoeJu6Pr1fBpdpSge2Yc= — دستکاری فایل (افزودن دامنه بدون کلید خصوصی) باعث نامعتبرشدن امضا و قفل‌شدن افزونه می‌شود.', 'chekadbam' ); ?></p>
 		</div>
