@@ -279,6 +279,8 @@
 }
 .ckb-wstudio-inspector button:hover { background: #334155; color: #fff; }
 .ckb-wstudio-inspector button.del:hover { background: #dc2626; color: #fff; border-color: #dc2626; }
+/* v2.18: the counter-clockwise rotate button only exists on touch layouts */
+.ckb-wstudio-inspector .ckb-insp-rot-neg { display: none; }
 
 /* ═══════════════ Modals / Drawers ═══════════════ */
 .ckb-wstudio-modal {
@@ -1324,8 +1326,9 @@ body.admin-bar .ckb-studio-full {
 	.ckb-wstudio-dock.collapsed .ckb-dock-handle { min-height: 38px; }
 
 	/* ── Inspector floats directly above the dock ──
-	   v2.16.7: بازرس به‌جای ردیف افقیِ بریده، در دو ردیف جمع می‌شود تا
-	   همهٔ دکمه‌های چرخش/تکثیر/رنگ/حذف روی صفحه دیده شوند */
+	   v2.18: touch-first sheet. Every control is 44×44, swatches 32×32,
+	   the row wraps into up to three lines and scrolls inside on short
+	   screens instead of being clipped. */
 	.ckb-wstudio-inspector {
 		bottom: calc(var(--ckb-dock-h, 56px) + env(safe-area-inset-bottom, 0px) + 10px);
 		left: 8px;
@@ -1333,24 +1336,34 @@ body.admin-bar .ckb-studio-full {
 		transform: none;
 		justify-content: center;
 		flex-wrap: wrap;
-		overflow: visible;
-		gap: 4px;
-		padding: 5px 6px;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		max-height: 45vh;
+		gap: 6px;
+		padding: 8px;
 		font-size: 12px;
+		border-radius: 16px;
 	}
 	.ckb-wstudio-inspector button {
-		padding: 5px 7px;
-		min-height: 32px;
+		min-height: 44px;
+		min-width: 44px;
+		padding: 8px 10px;
+		font-size: 12px;
 		flex: 0 0 auto;
+	}
+	.ckb-wstudio-inspector .ckb-insp-rot-neg {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
 	}
 	/* drag-fade must not inherit the desktop centering translate */
 	.ckb-dragging .ckb-wstudio-inspector { transform: translateY(16px); }
 	.ckb-insp-info { flex: 0 0 auto; max-width: 96px; }
 	.ckb-insp-name { max-width: 96px; font-size: 10px; }
-	.ckb-insp-nudge { padding: 2px; gap: 2px; }
-	.ckb-insp-nudge button { min-width: 26px; min-height: 28px; }
-	.ckb-insp-swatches { flex: 0 0 auto; padding: 4px; gap: 3px; }
-	.ckb-insp-swatch { width: 16px !important; height: 16px !important; }
+	.ckb-insp-nudge { padding: 3px; gap: 3px; }
+	.ckb-insp-nudge button { min-width: 44px; min-height: 44px; }
+	.ckb-insp-swatches { flex: 0 1 auto; max-width: 100%; overflow-x: auto; padding: 5px; gap: 5px; }
+	.ckb-insp-swatch { width: 32px !important; height: 32px !important; }
 
 	/* ── Compass: small, tucked into the corner ── */
 	.ckb-wstudio-compass {
@@ -1529,7 +1542,7 @@ body.admin-bar .ckb-studio-full {
 	.ckb-wstudio-dock { left: 0; right: 0; border-radius: 16px 16px 0 0; }
 
 	/* Comfortable 44px touch targets everywhere on phones */
-	.ckb-wstudio-inspector button { min-height: 36px; }
+	.ckb-wstudio-inspector button { min-height: 44px; }
 	.ckb-catalog-btn { min-height: 40px; }
 	.ckb-wstudio-x { width: 34px; height: 34px; }
 }

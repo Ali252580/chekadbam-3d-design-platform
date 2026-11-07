@@ -746,11 +746,13 @@
 					var title = $('insp-title');
 					if (title) title.innerText = item.name;
 					if (insp) insp.style.display = 'flex';
+					rootEl.classList.add('ckb-inspector-open');
 					updateInspectorMeta();
 					return;
 				}
 			}
 			if (insp) insp.style.display = 'none';
+			rootEl.classList.remove('ckb-inspector-open');
 		}
 
 		/* Live X/Z/rotation readout + active WPC swatch in the inspector bar */
@@ -769,7 +771,9 @@
 			var sw = $('insp-colors');
 			if (sw) {
 				sw.querySelectorAll('.ckb-insp-swatch').forEach(function (b) {
-					b.classList.toggle('on', !!item && b.getAttribute('data-color') === item.wpcColor);
+					var on = !!item && b.getAttribute('data-color') === item.wpcColor;
+					b.classList.toggle('on', on);
+					b.setAttribute('aria-pressed', on ? 'true' : 'false');
 				});
 			}
 		}
@@ -2351,6 +2355,7 @@
 		bindClick('btn-sunset', function () { setLighting('sunset'); });
 		bindClick('btn-night', function () { setLighting('night'); });
 		bindClick('btn-view', toggleView);
+		bindClick('btn-rot-45', function () { rotateSelected(-45); });
 		bindClick('btn-rot45', function () { rotateSelected(45); });
 		bindClick('btn-rot90', function () { rotateSelected(90); });
 		bindClick('btn-dup', duplicateSelected);
@@ -2669,7 +2674,7 @@
 			if (!bar || bar.childElementCount) return;
 			bar.innerHTML = WPC_SWATCHES.map(function (c) {
 				return '<button type="button" class="ckb-insp-swatch" data-color="' + c.id +
-					'" title="رنگ ' + c.name + '" aria-label="رنگ ' + c.name + '" style="background:' + c.hex + '"></button>';
+					'" title="رنگ ' + c.name + '" aria-label="رنگ ' + c.name + '" aria-pressed="false" style="background:' + c.hex + '"></button>';
 			}).join('');
 		}
 
