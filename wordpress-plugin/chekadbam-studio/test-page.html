@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>چکادبام استودیو — تست رندر افزونه</title>
-<link rel="stylesheet" href="assets/studio.css?v=2.16.7">
+<link rel="stylesheet" href="assets/studio.css?v=2.18.0-dev">
 <style>
   body { margin: 0; background: #020617; font-family: Tahoma, Vazirmatn, sans-serif; }
   .test-banner { background: #1e293b; color: #94a3b8; padding: 8px 16px; font-size: 12px; text-align: center; }
@@ -306,7 +306,7 @@
     <script src="assets/ckb-blueprint.js?v=2.13.10"></script>
     <script src="assets/ckb-coach.js?v=2.13.10"></script>
     <script src="assets/ckb-hints.js?v=2.14.0"></script>
-    <script src="assets/studio-app.js?v=2.16.9"></script>
+    <script src="assets/studio-app.js?v=2.18.0-dev"></script>
 <script src="assets/viewer.js?v=2.12.0"></script>
 <script src="assets/admin-preview.js?v=2.7.3"></script>
 <script>
@@ -367,7 +367,7 @@
   ];
 
   // Boot the studio
-  window.CKBStudio.mount('ckb-ws-test', {
+  window.__studio = window.CKBStudio.mount('ckb-ws-test', {
     products: mockProducts,
     plans: mockPlans,
     ajaxUrl: 'http://localhost/mock',

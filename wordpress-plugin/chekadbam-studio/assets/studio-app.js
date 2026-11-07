@@ -924,9 +924,14 @@
 		/* Pinch-to-zoom state (mobile): live pointers + start-of-pinch geometry */
 		var activePointers = new Map();
 		var pinch = null; // { startDist, startRadius } while two fingers are down
+		/* Touch drags need more slop than a mouse press */
+		var DRAG_THRESHOLD = MOBILE ? 10 : 6;
+		/* Set on pinch start; cleared only when every finger has lifted */
+		var ignorePointersUntilClear = false;
 
 		function pinchDist() {
 			var pts = Array.from(activePointers.values());
+			if (pts.length < 2) return 0;
 			return Math.hypot(pts[0].clientX - pts[1].clientX, pts[0].clientY - pts[1].clientY);
 		}
 
@@ -1058,13 +1063,26 @@
 
 		canvas.addEventListener('pointerdown', function (e) {
 			activePointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
-			if (activePointers.size === 2) {
-				/* Second finger: enter pinch mode, cancel any drag/orbit/select intent */
-				pinch = { startDist: pinchDist(), startRadius: cameraAngle.radius };
-				isOrbiting = false;
-				isDragging = false;
-				clickedId = null;
-				hasMoved = true;
+			try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+
+			if (activePointers.size >= 2) {
+				if (activePointers.size === 2) {
+					/* Second finger: enter pinch mode, cancel drag/orbit/select intent.
+					   If a drag was live, snap the visual group back to the committed
+					   x/z so the pinch cannot leave a half-moved item behind. */
+					pinch = { startDist: pinchDist(), startRadius: cameraAngle.radius };
+					if (isDragging && selectedId) {
+						var liveItem = items.find(function (it) { return it.id === selectedId; });
+						if (liveItem) moveItemVisual(liveItem);
+					}
+					isOrbiting = false;
+					isDragging = false;
+					clickedId = null;
+					dragLast = null;
+					hasMoved = true;
+					ignorePointersUntilClear = true;
+					rootEl.classList.remove('ckb-dragging');
+				}
 				return;
 			}
 
@@ -1092,8 +1110,6 @@
 				/* فقط فضای خالی → چرخش دوربین */
 				isOrbiting = true;
 			}
-
-			try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
 		});
 
 		canvas.addEventListener('pointermove', function (e) {
@@ -1113,11 +1129,15 @@
 				return; /* suspend orbit/drag while pinching */
 			}
 
+			/* A pinch just ended but a finger is still down: its stale delta must
+			   not orbit the camera. Ignore everything until the canvas is clear. */
+			if (ignorePointersUntilClear) return;
+
 			var dx = e.clientX - lastMouse.x;
 			var dy = e.clientY - lastMouse.y;
 			lastMouse = { x: e.clientX, y: e.clientY };
 
-			if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 6) hasMoved = true;
+			if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > DRAG_THRESHOLD) hasMoved = true;
 
 			/* v2.13.5: درگ فقط وقتی روی قلم واقعی شروع شود — شرط قبلی
 			   clickedId=null با selectedId=null هم true می‌شد و درگِ خالی
@@ -1166,20 +1186,30 @@
 
 		/* Mobile v2.8: a cancelled touch (incoming call, browser gesture, palm) must
 		   end the drag/orbit cleanly — otherwise the item stuck to the finger and the
-		   dock stayed faded until the next tap. */
+		   dock stayed faded until the next tap. A cancel is not a drop: the live
+		   group returns to the committed position and nothing is pushed to history. */
 		canvas.addEventListener('pointercancel', function (e) {
 			activePointers.delete(e.pointerId);
 			if (activePointers.size < 2) pinch = null;
-			if (activePointers.size > 0) return;
-			if (isDragging && clickedId && dragLast) {
-				var item = items.find(function (it) { return it.id === clickedId; });
-				if (item) {
-					item.x = dragLast.x;
-					item.z = dragLast.z;
-					pushHistory();
-					updateInspectorMeta();
-				}
+
+			if (isDragging && selectedId) {
+				var cancelItem = items.find(function (it) { return it.id === selectedId; });
+				if (cancelItem) moveItemVisual(cancelItem);
 			}
+
+			/* Another finger is still down: ignore its movement until all lift. */
+			if (activePointers.size > 0) {
+				ignorePointersUntilClear = true;
+				isOrbiting = false;
+				isDragging = false;
+				clickedId = null;
+				dragLast = null;
+				rootEl.classList.remove('ckb-dragging');
+				try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+				return;
+			}
+
+			ignorePointersUntilClear = false;
 			isOrbiting = false;
 			isDragging = false;
 			clickedId = null;
@@ -1191,7 +1221,21 @@
 		canvas.addEventListener('pointerup', function (e) {
 			activePointers.delete(e.pointerId);
 			if (activePointers.size < 2) pinch = null; /* pinch ends when fewer than two fingers remain */
-			if (activePointers.size > 0) return; /* remaining finger keeps orbiting, no click-select */
+			try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+			if (activePointers.size >= 2) return;
+
+			/* Pinch just ended: ignore the leftover finger so its stale lastMouse
+			   delta cannot swing the camera, and never treat it as a tap. */
+			if (ignorePointersUntilClear) {
+				if (activePointers.size > 0) return;
+				ignorePointersUntilClear = false;
+				isOrbiting = false;
+				isDragging = false;
+				clickedId = null;
+				dragLast = null;
+				rootEl.classList.remove('ckb-dragging');
+				return;
+			}
 
 			if (isDragging) {
 				if (clickedId && dragLast) {
@@ -1218,7 +1262,6 @@
 			clickedId = null;
 			dragLast = null;
 			rootEl.classList.remove('ckb-dragging');
-			try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
 		});
 
 		canvas.addEventListener('wheel', function (e) {
@@ -2674,6 +2717,24 @@
 			nudgeSelected: nudgeSelected,
 			clearAllItems: clearAllItems,
 			rotateSelected: rotateSelected,
+			selectItem: selectItem,
+			getState: function () {
+				var sel = items.find(function (it) { return it.id === selectedId; });
+				return {
+					camera: { theta: cameraAngle.theta, phi: cameraAngle.phi, radius: cameraAngle.radius },
+					space: { width: space.width, length: space.length },
+					selectedId: selectedId,
+					selectedItem: sel ? { id: sel.id, x: sel.x, z: sel.z, rotation: sel.rotation, wpcColor: sel.wpcColor } : null,
+					items: items.map(function (it) {
+						var g = itemGroups.get(it.id);
+						return {
+							id: it.id, x: it.x, z: it.z, rotation: it.rotation,
+							groupX: g ? g.position.x : null,
+							groupZ: g ? g.position.z : null,
+						};
+					}),
+				};
+			},
 			deselect: function () { selectItem(null); },
 			submitDesign: submitDesign,
 			takeScreenshot: function () {
