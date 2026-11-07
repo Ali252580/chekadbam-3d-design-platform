@@ -1341,6 +1341,7 @@ body.admin-bar .ckb-studio-full {
 		overflow-y: auto;
 		overscroll-behavior: contain;
 		max-height: 45vh;
+		max-height: 45dvh;
 		gap: 6px;
 		padding: 8px;
 		font-size: 12px;
@@ -1373,7 +1374,7 @@ body.admin-bar .ckb-studio-full {
 		position: absolute;
 		left: 8px;
 		bottom: calc(var(--ckb-dock-h, 56px) + env(safe-area-inset-bottom, 0px) + 10px);
-		z-index: 24;
+		z-index: 22;
 		flex-direction: column;
 		gap: 6px;
 	}

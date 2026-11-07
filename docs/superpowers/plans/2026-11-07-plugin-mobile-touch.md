@@ -1,6 +1,6 @@
 # Mobile Touch Experience (WordPress Plugin) Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Make the WordPress plugin studio's canvas and selected-item inspector reliably touch-friendly without changing desktop behavior.
 
@@ -56,7 +56,7 @@
     ```
   - `window.__studio` in `test-page.html` holds the object returned by `CKBStudio.mount`.
 
-- [ ] **Step 1: Add gesture state and threshold**
+- [x] **Step 1: Add gesture state and threshold**
 
 In `studio-app.js` next to `activePointers` / `pinch`, add:
 
@@ -69,7 +69,7 @@ var ignorePointersUntilClear = false;
 
 Change `pinchDist()` to return `0` when fewer than two pointers are tracked.
 
-- [ ] **Step 2: Rewrite the `pointerdown` branch**
+- [x] **Step 2: Rewrite the `pointerdown` branch**
 
 Immediately after `activePointers.set(...)`, capture the pointer once:
 
@@ -87,7 +87,7 @@ Then handle multi-touch before the single-pointer selection path:
 - Otherwise run the existing single-pointer pick/select/drag-offset logic unchanged.
 - Remove the old late `setPointerCapture` at the end of the single-pointer branch.
 
-- [ ] **Step 3: Guard `pointermove`**
+- [x] **Step 3: Guard `pointermove`**
 
 Order of checks:
 
@@ -96,7 +96,7 @@ Order of checks:
 3. If `ignorePointersUntilClear`, `return`.
 4. Continue with the existing drag / orbit / hover logic, replacing the hard-coded `6` in the movement check with `DRAG_THRESHOLD`.
 
-- [ ] **Step 4: Rewrite `pointerup` and `pointercancel` cleanup**
+- [x] **Step 4: Rewrite `pointerup` and `pointercancel` cleanup**
 
 For both events, delete the pointer and attempt `releasePointerCapture`.
 
@@ -113,7 +113,7 @@ For both events, delete the pointer and attempt `releasePointerCapture`.
   - if pointers remain, set `ignorePointersUntilClear = true` and `return`;
   - otherwise clear `ignorePointersUntilClear` and reset all gesture flags + `ckb-dragging`.
 
-- [ ] **Step 5: Add test/debug API and store it in the test page**
+- [x] **Step 5: Add test/debug API and store it in the test page**
 
 In the returned public object add:
 
@@ -124,12 +124,12 @@ getState: function () { /* shape above, reading itemGroups for groupX/groupZ and
 
 In `test-page.html`, replace `window.CKBStudio.mount(...)` with `window.__studio = window.CKBStudio.mount(...)`.
 
-- [ ] **Step 6: Syntax check**
+- [x] **Step 6: Syntax check**
 
 Run: `node --check wordpress-plugin/chekadbam-studio/assets/studio-app.js`
 Expected: no output, exit code 0.
 
-- [ ] **Step 7: Verify pinch and leftover-finger behavior in the browser**
+- [x] **Step 7: Verify pinch and leftover-finger behavior in the browser**
 
 Serve the plugin folder: `cd wordpress-plugin; python -m http.server 8899`.
 Open `http://localhost:8899/chekadbam-studio/test-page.html` at 390px wide, then run in the page console:
@@ -157,7 +157,7 @@ ev('pointerup', 1, 330, 330, 0);
 
 Expected: `zoomed.camera.radius < before.camera.radius`, `after.camera.theta === zoomed.camera.theta`, `after.camera.phi === zoomed.camera.phi`, `selected === null`.
 
-- [ ] **Step 8: Verify drag-cancel on pinch start**
+- [x] **Step 8: Verify drag-cancel on pinch start**
 
 With an item selected (`s.selectItem(s.getState().items[0].id)`), drag it with the mouse (browser automation), then while the mouse is still down dispatch a second touch pointer:
 
@@ -170,7 +170,7 @@ document.querySelector('#ckb-ws-test canvas').dispatchEvent(new PointerEvent('po
 
 Expected: `s.getState().selectedItem.x/z` still equal the committed values, and the matching `items[i].groupX/groupZ` equal the same values (no visual offset). Release both pointers; no new history entry is committed.
 
-- [ ] **Step 9: Verify third finger and `pointercancel` cleanup**
+- [x] **Step 9: Verify third finger and `pointercancel` cleanup**
 
 On a fresh page at 390px:
 
@@ -205,7 +205,7 @@ ev('pointerup', 5, 260, 320, 0);
 
 Expected: `r1 < r0` (pinch still active with the third finger down), `r2 < r1` (camera not locked after cancel), `selected === null`.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add wordpress-plugin/chekadbam-studio/assets/studio-app.js wordpress-plugin/chekadbam-studio/test-page.html
@@ -229,7 +229,7 @@ git commit -m "fix(studio): harden multi-touch pinch and drag cancellation"
   - CSS class `.ckb-insp-rot-neg` visible only inside the mobile media block.
   - Root class `ckb-inspector-open` toggled by `selectItem` (consumed by Task 3).
 
-- [ ] **Step 1: Add the mobile-only −45° button to both markup files**
+- [x] **Step 1: Add the mobile-only −45° button to both markup files**
 
 In `wp-studio.php` before the existing `btn-rot45`:
 
@@ -241,7 +241,7 @@ Add the same element in `test-page.html` with id `ckb-ws-test-btn-rot-45`, place
 
 Also add missing Persian `aria-label`s to the existing rotate/delete/close buttons in both files (`چرخش ۴۵ درجه`, `چرخش ۹۰ درجه`, `حذف قلم`, `بستن و لغو انتخاب`).
 
-- [ ] **Step 2: Bind and expose the new button**
+- [x] **Step 2: Bind and expose the new button**
 
 In `studio-app.js` next to the other bindings:
 
@@ -249,15 +249,15 @@ In `studio-app.js` next to the other bindings:
 bindClick('btn-rot-45', function () { rotateSelected(-45); });
 ```
 
-- [ ] **Step 3: Toggle the root class in `selectItem`**
+- [x] **Step 3: Toggle the root class in `selectItem`**
 
 When the inspector becomes visible (`insp.style.display = 'flex'`), add `rootEl.classList.add('ckb-inspector-open')`. On every path that hides it, call `rootEl.classList.remove('ckb-inspector-open')`.
 
-- [ ] **Step 4: Add `aria-pressed` to color swatches**
+- [x] **Step 4: Add `aria-pressed` to color swatches**
 
 In `buildInspSwatches`, add `aria-pressed="false"` to each emitted button. In `updateInspectorMeta`, set `aria-pressed` to `'true'` / `'false'` alongside the existing `.on` class toggle.
 
-- [ ] **Step 5: Style the mobile panel and hide the new button on desktop**
+- [x] **Step 5: Style the mobile panel and hide the new button on desktop**
 
 Base CSS (outside the media query), next to the inspector rules:
 
@@ -298,7 +298,7 @@ Inside the existing mobile media block, replace the compact inspector rules with
 
 Keep the existing `≤380px` rule that hides `.ckb-insp-pos`.
 
-- [ ] **Step 6: Verify sizes and rotation**
+- [x] **Step 6: Verify sizes and rotation**
 
 At 390px, run:
 
@@ -322,11 +322,11 @@ const rotAfter = s.getState().selectedItem.rotation;
 
 Expected: `minButton >= 44`, `swatch >= 32`, `rotAfter === rotBefore - 45`, `pressed === 'true'`, and no horizontal page overflow (`pageOverflow === false`). Also check at 320px that all buttons are still reachable by scrolling the panel.
 
-- [ ] **Step 7: Verify desktop is unchanged**
+- [x] **Step 7: Verify desktop is unchanged**
 
 At 800px wide: `getComputedStyle(document.querySelector('.ckb-insp-rot-neg')).display === 'none'` and the inspector still renders as the compact one-line bar with its previous button padding.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add wordpress-plugin/chekadbam-studio/assets/studio-app.js wordpress-plugin/chekadbam-studio/assets/studio.css wordpress-plugin/chekadbam-studio/includes/wp-studio.php wordpress-plugin/chekadbam-studio/test-page.html
@@ -345,7 +345,7 @@ git commit -m "feat(studio): mobile-sized inspector controls with -45° rotation
 - Consumes: `animateRadiusTo(targetRadius)`, `cameraAngle.radius`, `space`, `hintSignal('zoom')`, `rootEl`, `.ckb-wstudio-viewport`, `--ckb-dock-h`, root class `ckb-inspector-open`.
 - Produces: `.ckb-zoom-controls` element with `[data-zoom="in"]` and `[data-zoom="out"]` buttons; `zoomBy(factor)`.
 
-- [ ] **Step 1: Add `zoomBy` and the control builder**
+- [x] **Step 1: Add `zoomBy` and the control builder**
 
 Near `animateRadiusTo`:
 
@@ -382,7 +382,7 @@ function buildZoomControls() {
 
 Call `buildZoomControls()` once during boot before `animate()`.
 
-- [ ] **Step 2: Style and gate the control**
+- [x] **Step 2: Style and gate the control**
 
 Base CSS:
 
@@ -417,7 +417,7 @@ Inside the mobile media block:
 .ckb-inspector-open .ckb-zoom-controls { display: none; }
 ```
 
-- [ ] **Step 3: Verify zoom, clamp, hiding, and desktop**
+- [x] **Step 3: Verify zoom, clamp, hiding, and desktop**
 
 At 390px:
 
@@ -445,7 +445,7 @@ const maxDim = Math.max(width, length);
 
 Expected: `zoomedIn === true`, `hiddenWithInspector === 'none'`, `shownWithoutInspector === 'flex'`, `clamped === true`, button is 44×44. At 800px, `getComputedStyle(controls).display === 'none'`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add wordpress-plugin/chekadbam-studio/assets/studio-app.js wordpress-plugin/chekadbam-studio/assets/studio.css
@@ -464,21 +464,21 @@ git commit -m "feat(studio): add mobile on-canvas zoom controls"
 
 **Interfaces:** none.
 
-- [ ] **Step 1: Bump the plugin version to `2.18.0`**
+- [x] **Step 1: Bump the plugin version to `2.18.0`**
 
 Change `Version: 2.17.1` and `define( 'CKB_VERSION', '2.17.1' )` to `2.18.0`; update `Stable tag: 2.18.0`; add a `= 2.18.0 =` changelog entry (Persian) covering hardened pinch, mobile zoom buttons, 44px inspector controls, and `−۴۵°`.
 
-- [ ] **Step 2: Rebuild the installable zip**
+- [x] **Step 2: Rebuild the installable zip**
 
 Run: `node wordpress-plugin/build-zip.js`
 Expected: `wordpress-plugin/chekadbam-studio.zip` timestamp updated.
 
-- [ ] **Step 3: Confirm the zip contains the changed assets**
+- [x] **Step 3: Confirm the zip contains the changed assets**
 
 Run: `tar -tf wordpress-plugin/chekadbam-studio.zip | Select-String "studio-app.js|studio.css|wp-studio.php"`
 Expected: all three entries under `chekadbam-studio/`.
 
-- [ ] **Step 4: Full acceptance pass at 390px**
+- [x] **Step 4: Full acceptance pass at 390px**
 
 Run the Task 1 pinch/leftover-finger script, Task 1 drag-cancel check, Task 2 size/rotation script, and Task 3 zoom script back-to-back on a freshly loaded test page. Confirm:
 
@@ -488,17 +488,17 @@ Run the Task 1 pinch/leftover-finger script, Task 1 drag-cancel check, Task 2 si
 - inspector buttons ≥ 44px, swatches ≥ 32px, `−۴۵°` works;
 - zoom buttons are 44px, animate, clamp, and hide while the inspector is open.
 
-- [ ] **Step 5: Desktop regression at 800px**
+- [x] **Step 5: Desktop regression at 800px**
 
 Reload at 800px and confirm: compact inspector (no `−۴۵°`), no zoom controls, pinch/pointer logic untouched for a single mouse pointer, dock and canvas layout unchanged.
 
-- [ ] **Step 6: Static checks**
+- [x] **Step 6: Static checks**
 
 Run: `node --check wordpress-plugin/chekadbam-studio/assets/studio-app.js`
 Run: `git diff --check`
 Expected: both clean.
 
-- [ ] **Step 7: Commit release files**
+- [x] **Step 7: Commit release files**
 
 ```bash
 git add wordpress-plugin/chekadbam-studio/chekadbam-studio.php wordpress-plugin/chekadbam-studio/readme.txt wordpress-plugin/chekadbam-studio.zip docs/phase-2-mobile-touch-design.md docs/superpowers/plans/2026-11-07-plugin-mobile-touch.md

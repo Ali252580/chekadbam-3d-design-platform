@@ -862,6 +862,7 @@
 			var item = items.find(function (it) { return it.id === selectedId; });
 			if (!item) return;
 			item.rotation = ((item.rotation || 0) + deg) % 360;
+			if (item.rotation < 0) item.rotation += 360; /* always serialize 0–359 */
 			pushHistory();
 			rebuildItems();
 			hintSignal('fine');
@@ -927,9 +928,10 @@
 
 		/* Pinch-to-zoom state (mobile): live pointers + start-of-pinch geometry */
 		var activePointers = new Map();
-		var pinch = null; // { startDist, startRadius } while two fingers are down
+		var pinch = null; // { startDist, startRadius, ids } while two fingers are down
 		/* Touch drags need more slop than a mouse press */
-		var DRAG_THRESHOLD = MOBILE ? 10 : 6;
+		var DRAG_THRESHOLD = 6;
+		var TOUCH_DRAG_THRESHOLD = 10;
 		/* Set on pinch start; cleared only when every finger has lifted */
 		var ignorePointersUntilClear = false;
 
@@ -937,6 +939,17 @@
 			var pts = Array.from(activePointers.values());
 			if (pts.length < 2) return 0;
 			return Math.hypot(pts[0].clientX - pts[1].clientX, pts[0].clientY - pts[1].clientY);
+		}
+
+		/* Re-baseline the pinch when one of the two measured fingers lifts but
+		   others remain: the surviving pair must not inherit the old distance. */
+		function refreshPinch() {
+			if (!pinch || activePointers.size < 2) return;
+			pinch = {
+				startDist: pinchDist(),
+				startRadius: cameraAngle.radius,
+				ids: Array.from(activePointers.keys()).slice(0, 2),
+			};
 		}
 
 		/* ── Mobile v2.8 helpers ──────────────────────────────────────────
@@ -1082,7 +1095,12 @@
 					/* Second finger: enter pinch mode, cancel drag/orbit/select intent.
 					   If a drag was live, snap the visual group back to the committed
 					   x/z so the pinch cannot leave a half-moved item behind. */
-					pinch = { startDist: pinchDist(), startRadius: cameraAngle.radius };
+					zoomAnim = null; /* a running zoom animation must not fight the pinch */
+					pinch = {
+						startDist: pinchDist(),
+						startRadius: cameraAngle.radius,
+						ids: Array.from(activePointers.keys()).slice(0, 2),
+					};
 					if (isDragging && selectedId) {
 						var liveItem = items.find(function (it) { return it.id === selectedId; });
 						if (liveItem) moveItemVisual(liveItem);
@@ -1149,7 +1167,8 @@
 			var dy = e.clientY - lastMouse.y;
 			lastMouse = { x: e.clientX, y: e.clientY };
 
-			if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > DRAG_THRESHOLD) hasMoved = true;
+			if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) >
+				(e.pointerType === 'touch' ? TOUCH_DRAG_THRESHOLD : DRAG_THRESHOLD)) hasMoved = true;
 
 			/* v2.13.5: درگ فقط وقتی روی قلم واقعی شروع شود — شرط قبلی
 			   clickedId=null با selectedId=null هم true می‌شد و درگِ خالی
@@ -1203,6 +1222,7 @@
 		canvas.addEventListener('pointercancel', function (e) {
 			activePointers.delete(e.pointerId);
 			if (activePointers.size < 2) pinch = null;
+			else if (pinch && pinch.ids.indexOf(e.pointerId) !== -1) refreshPinch();
 
 			if (isDragging && selectedId) {
 				var cancelItem = items.find(function (it) { return it.id === selectedId; });
@@ -1233,6 +1253,7 @@
 		canvas.addEventListener('pointerup', function (e) {
 			activePointers.delete(e.pointerId);
 			if (activePointers.size < 2) pinch = null; /* pinch ends when fewer than two fingers remain */
+			else if (pinch && pinch.ids.indexOf(e.pointerId) !== -1) refreshPinch();
 			try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
 			if (activePointers.size >= 2) return;
 
