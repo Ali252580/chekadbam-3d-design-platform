@@ -963,6 +963,14 @@
 			zoomAnim = { from: from, to: targetRadius, start: performance.now(), dur: 320 };
 		}
 
+		/* v2.18: one-tap zoom for touch screens, sharing the same clamp as pinch */
+		function zoomBy(factor) {
+			var maxDim = Math.max(space.width, space.length);
+			var next = Math.max(4, Math.min(maxDim * 3, cameraAngle.radius * factor));
+			animateRadiusTo(next);
+			hintSignal('zoom');
+		}
+
 		function tickZoomAnim(nowMs) {
 			if (!zoomAnim) return;
 			var k = Math.min(1, (nowMs - zoomAnim.start) / zoomAnim.dur);
@@ -2678,7 +2686,29 @@
 			}).join('');
 		}
 
+		/* v2.18: on-canvas zoom buttons for phones. Injected here (not in the
+		   PHP markup) so every embed — shortcode, admin, test page — gets them
+		   without duplicating markup. Hidden by CSS outside the mobile breakpoint. */
+		function buildZoomControls() {
+			var host = rootEl.querySelector('.ckb-wstudio-viewport');
+			if (!host || host.querySelector('.ckb-zoom-controls')) return;
+			var wrap = document.createElement('div');
+			wrap.className = 'ckb-zoom-controls';
+			wrap.setAttribute('role', 'group');
+			wrap.setAttribute('aria-label', 'زوم بوم');
+			wrap.innerHTML =
+				'<button type="button" data-zoom="in" title="بزرگ‌نمایی" aria-label="بزرگ‌نمایی بوم">＋</button>' +
+				'<button type="button" data-zoom="out" title="کوچک‌نمایی" aria-label="کوچک‌نمایی بوم">−</button>';
+			wrap.addEventListener('click', function (e) {
+				var b = e.target.closest ? e.target.closest('[data-zoom]') : null;
+				if (!b) return;
+				zoomBy(b.getAttribute('data-zoom') === 'in' ? 0.85 : 1.18);
+			});
+			host.appendChild(wrap);
+		}
+
 		buildInspSwatches();
+		buildZoomControls();
 		updateLighting();
 		loadPlan(currentPlan);
 		setLighting(lightingMode);
