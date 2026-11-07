@@ -4,7 +4,7 @@ Tags: roof-garden, 3d-studio, modular, wpc, crm, rest-api, 3d-viewer
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 2.18.1
+Stable tag: 2.18.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -87,6 +87,9 @@ Namespace: /wp-json/chekadbam/v1
 * GET  /designs  — فهرست طرح‌ها با نام فیلدهای Next.js (userName, layoutData, snapshotUrl, estimatedPriceMin/Max, ...) + نام‌های قدیمی (فقط مدیر)
 
 == Changelog ==
+
+= 2.18.2 =
+* بازرس قلم در موبایل به یک ردیف تک‌خطی رسید: ردیف فلش‌های جابه‌جایی ریز در موبایل حذف شد (در دسکتاپ باقی است) و دکمهٔ تکثیر فقط با آیکن «⧉» نمایش داده می‌شود. ارتفاع پنل از حدود ۱۰۲px به ۵۲px کاهش یافت و هر شش دکمهٔ باقی‌مانده در عرض ۳۲۰ تا ۳۹۰px کنار هم جا می‌شوند.
 
 = 2.18.1 =
 * بازرس قلم در موبایل جمع‌وجور شد: ردیف رنگ‌های چوب‌پلاست در موبایل حذف شد، نمایش مختصات X/Z پنهان شد و اندازهٔ دکمه‌ها/فاصله‌ها به ۴۰px کاهش یافت تا پنل به‌جای سه ردیف بلند، دو ردیف باریک باشد. انتخاب رنگ همچنان در دسکتاپ در دسترس است.

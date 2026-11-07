@@ -682,7 +682,7 @@ function ckb_get_wpstudio_html( $is_admin = true, $height = '100vh', $fullscreen
 				<button type="button" class="ckb-insp-rot-neg" id="<?php echo esc_attr( $studio_id ); ?>-btn-rot-45" title="چرخش ۴۵ درجه به چپ" aria-label="چرخش ۴۵ درجه به چپ">−۴۵°</button>
 				<button type="button" id="<?php echo esc_attr( $studio_id ); ?>-btn-rot45" aria-label="چرخش ۴۵ درجه"><span class="ckb-rot-label">چرخش </span>۴۵°</button>
 				<button type="button" id="<?php echo esc_attr( $studio_id ); ?>-btn-rot90" aria-label="چرخش ۹۰ درجه"><span class="ckb-rot-label">چرخش </span>۹۰°</button>
-				<button type="button" id="<?php echo esc_attr( $studio_id ); ?>-btn-dup" title="تکثیر قلم" aria-label="تکثیر قلم">⧉ تکثیر</button>
+				<button type="button" id="<?php echo esc_attr( $studio_id ); ?>-btn-dup" title="تکثیر قلم" aria-label="تکثیر قلم">⧉<span class="ckb-dup-label"> تکثیر</span></button>
 				<div class="ckb-insp-swatches" id="<?php echo esc_attr( $studio_id ); ?>-insp-colors" role="group" aria-label="رنگ چوب‌پلاست این قلم"></div>
 				<button type="button" class="del" id="<?php echo esc_attr( $studio_id ); ?>-btn-del" aria-label="حذف قلم">حذف</button>
 				<button type="button" id="<?php echo esc_attr( $studio_id ); ?>-btn-desel" aria-label="بستن و لغو انتخاب">✕</button>

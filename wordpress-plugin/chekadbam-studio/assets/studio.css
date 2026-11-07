@@ -1364,8 +1364,10 @@ body.admin-bar .ckb-studio-full {
 	.ckb-insp-info { flex: 0 0 auto; max-width: 84px; }
 	.ckb-insp-name { max-width: 84px; font-size: 10px; }
 	.ckb-insp-pos { display: none; } /* no room for the coordinate readout on phones */
-	.ckb-insp-nudge { padding: 2px; gap: 2px; }
-	.ckb-insp-nudge button { min-width: 40px; min-height: 40px; }
+	/* v2.18.2: nudge arrows are removed on phones (still on desktop) and the
+	   duplicate button collapses to its icon, so the whole bar is one row. */
+	.ckb-insp-nudge { display: none; }
+	.ckb-dup-label { display: none; }
 	/* v2.18.1: keep the two rotation buttons short on phones; the words are
 	   redundant next to their degree value and cost a full extra row at 320px */
 	.ckb-wstudio-inspector .ckb-rot-label { display: none; }
