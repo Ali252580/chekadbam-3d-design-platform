@@ -1328,9 +1328,9 @@ body.admin-bar .ckb-studio-full {
 	.ckb-wstudio-dock.collapsed .ckb-dock-handle { min-height: 38px; }
 
 	/* ── Inspector floats directly above the dock ──
-	   v2.18: touch-first sheet. Every control is 44×44, swatches 32×32,
-	   the row wraps into up to three lines and scrolls inside on short
-	   screens instead of being clipped. */
+	   v2.18.1: compact two-row bar. The colour row is removed on phones
+	   (colours stay editable on desktop), the X/Z readout is hidden, and
+	   controls use 40px targets with tight spacing so the panel stays short. */
 	.ckb-wstudio-inspector {
 		bottom: calc(var(--ckb-dock-h, 56px) + env(safe-area-inset-bottom, 0px) + 10px);
 		left: 8px;
@@ -1340,18 +1340,18 @@ body.admin-bar .ckb-studio-full {
 		flex-wrap: wrap;
 		overflow-y: auto;
 		overscroll-behavior: contain;
-		max-height: 45vh;
-		max-height: 45dvh;
-		gap: 6px;
-		padding: 8px;
-		font-size: 12px;
-		border-radius: 16px;
+		max-height: 35vh;
+		max-height: 35dvh;
+		gap: 4px;
+		padding: 5px 6px;
+		font-size: 11px;
+		border-radius: 14px;
 	}
 	.ckb-wstudio-inspector button {
-		min-height: 44px;
-		min-width: 44px;
-		padding: 8px 10px;
-		font-size: 12px;
+		min-height: 40px;
+		min-width: 40px;
+		padding: 4px 7px;
+		font-size: 11px;
 		flex: 0 0 auto;
 	}
 	.ckb-wstudio-inspector .ckb-insp-rot-neg {
@@ -1361,12 +1361,16 @@ body.admin-bar .ckb-studio-full {
 	}
 	/* drag-fade must not inherit the desktop centering translate */
 	.ckb-dragging .ckb-wstudio-inspector { transform: translateY(16px); }
-	.ckb-insp-info { flex: 0 0 auto; max-width: 96px; }
-	.ckb-insp-name { max-width: 96px; font-size: 10px; }
-	.ckb-insp-nudge { padding: 3px; gap: 3px; }
-	.ckb-insp-nudge button { min-width: 44px; min-height: 44px; }
-	.ckb-insp-swatches { flex: 0 1 auto; max-width: 100%; overflow-x: auto; padding: 5px; gap: 5px; }
-	.ckb-insp-swatch { width: 32px !important; height: 32px !important; }
+	.ckb-insp-info { flex: 0 0 auto; max-width: 84px; }
+	.ckb-insp-name { max-width: 84px; font-size: 10px; }
+	.ckb-insp-pos { display: none; } /* no room for the coordinate readout on phones */
+	.ckb-insp-nudge { padding: 2px; gap: 2px; }
+	.ckb-insp-nudge button { min-width: 40px; min-height: 40px; }
+	/* v2.18.1: keep the two rotation buttons short on phones; the words are
+	   redundant next to their degree value and cost a full extra row at 320px */
+	.ckb-wstudio-inspector .ckb-rot-label { display: none; }
+	/* v2.18.1: colour swatches are desktop-only; hiding them removes a whole row */
+	.ckb-insp-swatches { display: none; }
 
 	/* ── Zoom buttons, bottom-left above the dock ── */
 	.ckb-zoom-controls {
@@ -1486,6 +1490,7 @@ body.admin-bar .ckb-studio-full {
 	.ckb-wstudio-dock .ckb-wstudio-btn { padding: 6px 5px; font-size: 15px; min-height: 50px; min-width: 47px; }
 	.ckb-wstudio-dock .ckb-btn-label-sm { font-size: 8px; max-width: 50px; }
 	.ckb-insp-pos { display: none; } /* no room for the coordinate readout */
+	.ckb-insp-info { display: none; } /* at 320px the item name costs a whole row */
 	.ckb-wstudio-modal-box { max-height: calc(100dvh - 12px - env(safe-area-inset-bottom, 0px)); }
 }
 
@@ -1569,8 +1574,8 @@ body.admin-bar .ckb-studio-full {
 	/* Full-bleed dock: no side gaps at the very edge */
 	.ckb-wstudio-dock { left: 0; right: 0; border-radius: 16px 16px 0 0; }
 
-	/* Comfortable 44px touch targets everywhere on phones */
-	.ckb-wstudio-inspector button { min-height: 44px; }
+	/* Comfortable touch targets everywhere on phones */
+	.ckb-wstudio-inspector button { min-height: 40px; }
 	.ckb-catalog-btn { min-height: 40px; }
 	.ckb-wstudio-x { width: 34px; height: 34px; }
 }

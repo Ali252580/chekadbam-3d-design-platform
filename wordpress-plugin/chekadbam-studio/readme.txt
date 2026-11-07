@@ -4,7 +4,7 @@ Tags: roof-garden, 3d-studio, modular, wpc, crm, rest-api, 3d-viewer
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 2.18.0
+Stable tag: 2.18.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -87,6 +87,9 @@ Namespace: /wp-json/chekadbam/v1
 * GET  /designs  — فهرست طرح‌ها با نام فیلدهای Next.js (userName, layoutData, snapshotUrl, estimatedPriceMin/Max, ...) + نام‌های قدیمی (فقط مدیر)
 
 == Changelog ==
+
+= 2.18.1 =
+* بازرس قلم در موبایل جمع‌وجور شد: ردیف رنگ‌های چوب‌پلاست در موبایل حذف شد، نمایش مختصات X/Z پنهان شد و اندازهٔ دکمه‌ها/فاصله‌ها به ۴۰px کاهش یافت تا پنل به‌جای سه ردیف بلند، دو ردیف باریک باشد. انتخاب رنگ همچنان در دسکتاپ در دسترس است.
 
 = 2.18.0 =
 * تجربهٔ لمسی استودیو بازسازی شد: ژست چندانگشتی سخت‌تر شد — پینچ دیگر بعد از برداشتن یک انگشت دوربین را نمی‌پراند، رسیدن انگشت دوم وسط درگ قلم را به موقعیت ثبت‌شده برمی‌گرداند، انگشت سوم پینچ را مختل نمی‌کند و لغو لمس (pointercancel) بدون ثبت تغییر پاک می‌شود. آستانهٔ درگ لمسی ۱۰ پیکسل شد.
