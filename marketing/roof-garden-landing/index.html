@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>اجرای روف گاردن پرتابل-مدولار | بدون سوراخکاری | چکادبام</title>
+<meta name="description" content="اجرای روف گاردن به روش پرتابل-مدولار در ۵ مرحله: بازدید و طراحی، ایزولاسیون، تولید و حمل، اجرای سازه و کاشت؛ همراه جدول لایه‌بندی، نکات زهکشی و بار مجاز سازه.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F2F4EC;          /* سیمانتِ بام */
+  --ink:#152218;            /* جنگلِ شب */
+  --forest:#1D3B2A;         /* سبز برند */
+  --forest-2:#254A36;
+  --teak:#C0903F;           /* چوب WPC */
+  --teak-deep:#9A6F2B;
+  --line:rgba(21,37,24,.14);
+  --iar: 1; /* reduced motion */
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto} *{animation:none!important;transition:none!important}}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:"Vazirmatn",Tahoma,sans-serif; font-weight:400;
+  font-size:17px; line-height:1.9;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%;display:block}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--teak);outline-offset:3px;border-radius:2px}
+.wrap{max-width:1140px;margin:0 auto;padding:0 24px}
+h1,h2,h3,.disp{font-family:"Lalezar",Vazirmatn,sans-serif;font-weight:400;line-height:1.35;letter-spacing:0}
+h2{font-size:clamp(28px,4vw,44px)}
+p{max-width:62ch}
+.num{font-variant-numeric:tabular-nums}
+
+/* ── هیرو ─────────────────────────────── */
+.hero{background:linear-gradient(178deg,var(--forest) 0%,var(--forest-2) 100%);color:var(--paper)}
+.hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;padding-top:76px;padding-bottom:76px}
+.hero h1{font-size:clamp(38px,5.4vw,66px);line-height:1.28;margin-bottom:20px}
+.hero .lead{color:rgba(242,244,236,.86);font-size:19px;margin-bottom:34px}
+.cta-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:10px;font-family:"Vazirmatn";font-weight:700;border-radius:6px;text-decoration:none;transition:transform .15s ease, background .2s}
+.btn:active{transform:scale(.98)}
+.btn-solid{background:var(--teak);color:#152218;padding:15px 30px;font-size:17px}
+.btn-solid:hover{background:#D2A355}
+.btn-ghost{color:var(--paper);border:1.5px solid rgba(242,244,236,.5);padding:14px 26px;font-size:16px}
+.btn-ghost:hover{border-color:var(--paper)}
+.hero-img{position:relative}
+.hero-img img{border-radius:8px;aspect-ratio:4/3;object-fit:cover;height:auto}
+.hero-img figcaption{position:absolute;bottom:14px;right:14px;background:var(--ink);color:var(--paper);font-size:13px;padding:6px 14px;border-radius:4px}
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.chip{border:1px solid rgba(242,244,236,.35);border-radius:999px;padding:6px 16px;font-size:13.5px;color:rgba(242,244,236,.9)}
+
+/* ── برش لایه‌ها (عنصر امضا) ───────────── */
+.strata-sec{padding:96px 0}
+.strata-sec .wrap{display:grid;grid-template-columns:.9fr 1.1fr;gap:64px;align-items:center}
+.strata-copy h2{margin-bottom:18px}
+.strata-copy p+p{margin-top:14px}
+.strata{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+.layer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 20px;border-bottom:1px solid rgba(255,255,255,.14)}
+.layer:last-child{border-bottom:0}
+.layer .t{font-size:15.5px;font-weight:700}
+.layer .d{font-size:13px;opacity:.85}
+.l-iso   {background:#3D4340;color:#F2F4EC;height:64px}
+.l-pad   {background:#E9E5D6;color:#152218;height:44px}
+.l-foam  {background:#DDE0D2;color:#152218;height:44px}
+.l-drain {background:#938E7E;color:#fff;height:56px;background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.16) 0 3px,transparent 3px 12px)}
+.l-soil  {background:#5C4632;color:#F2F4EC;height:48px}
+.l-plant {background:#2E5B3E;color:#F2F4EC;height:84px;font-size:18px}
+.l-plant .d{opacity:.95}
+.depth{font-family:"Lalezar";font-size:14px;opacity:.8;min-width:64px;text-align:left}
+.strata-note{margin-top:12px;font-size:13px;color:#5A6155}
+
+/* ── ۵ مرحله ──────────────────────────── */
+.steps{background:var(--paper);padding:24px 0 96px}
+.steps h2{margin-bottom:10px}
+.steps .sub{color:#5A6155;margin-bottom:52px}
+.steps-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:0;border-top:2px solid var(--ink)}
+.step{padding:26px 18px 0 18px;border-right:1px solid var(--line)}
+.step:first-child{border-right:0;padding-right:0}
+.step .n{font-family:"Lalezar";font-size:44px;color:var(--teak-deep);line-height:1}
+.step h3{font-size:19px;margin:10px 0 8px}
+.step p{font-size:14.5px;color:#454F42;line-height:1.8}
+
+/* ── استودیو سه‌بعدی ────────────────────── */
+.studio{background:var(--ink);color:var(--paper);padding:84px 0}
+.studio .wrap{display:grid;grid-template-columns:1fr auto;gap:48px;align-items:center}
+.studio h2{margin-bottom:16px}
+.studio p{color:rgba(242,244,236,.85)}
+
+/* ── محصولات ──────────────────────────── */
+.products{padding:96px 0}
+.products h2{margin-bottom:12px}
+.p-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:44px}
+.p-card{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;text-decoration:none;transition:transform .2s ease, box-shadow .2s ease}
+.p-card:hover{transform:translateY(-4px)}
+.p-card img{aspect-ratio:4/3;object-fit:cover;height:auto}
+.p-card .inner{padding:16px 18px}
+.p-card h3{font-size:18px}
+.p-card span{font-size:13.5px;color:#5A6155}
+
+/* ── پروژه‌ها ──────────────────────────── */
+.projects{padding:0 0 96px}
+.projects h2{margin-bottom:36px}
+.g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.g-grid figure{position:relative}
+.g-grid img{border-radius:10px;aspect-ratio:4/3;object-fit:cover;height:auto}
+.g-grid figcaption{position:absolute;bottom:12px;right:12px;background:rgba(21,37,24,.88);color:var(--paper);font-size:13.5px;padding:6px 14px;border-radius:4px}
+
+/* ── CTA پایانی ────────────────────────── */
+.final{background:var(--forest);color:var(--paper);padding:84px 0;text-align:center}
+.final h2{font-size:clamp(30px,4.4vw,52px);margin-bottom:14px}
+.final p{margin:0 auto 32px;color:rgba(242,244,236,.88)}
+.final .tel{font-family:"Lalezar";font-size:clamp(26px,3.4vw,40px);text-decoration:none;display:inline-block;margin-top:18px}
+
+/* ── FAQ ───────────────────────────────── */
+.faq{padding:88px 0}
+.faq h2{margin-bottom:30px}
+details{border-bottom:1px solid var(--line)}
+summary{cursor:pointer;list-style:none;font-weight:700;font-size:17px;padding:20px 0;display:flex;justify-content:space-between;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:"Lalezar";font-size:26px;color:var(--teak-deep)}
+details[open] summary::after{content:"−"}
+details .a{padding:0 0 22px;color:#454F42;max-width:70ch}
+details:not([open]) .a{display:none}
+
+/* ── ریسپانسیو ─────────────────────────── */
+@media (max-width:980px){
+  .hero .wrap,.strata-sec .wrap,.studio .wrap{grid-template-columns:1fr;gap:36px}
+  .steps-grid{grid-template-columns:1fr;border-top:0}
+  .step{border-right:0;border-top:1px solid var(--line);padding:18px 0 0;display:grid;grid-template-columns:64px 1fr;gap:4px 14px}
+  .step .n{grid-row:1/4;font-size:36px}
+  .step h3{margin:0}
+  .p-grid{grid-template-columns:repeat(2,1fr)}
+  .g-grid{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  body{font-size:16px}
+  .p-grid{grid-template-columns:1fr}
+  .cta-row .btn{width:100%;justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<!-- هیرو -->
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <h1>بامِ خالیِ ساختمان،<br>یک پنت‌هاوسِ نیمه‌کاره است</h1>
+      <p class="lead">چکادبام بام خالی را با ماژول‌های آمادهٔ چوب‌پلاست به فضای سبز کامل تبدیل می‌کند؛ بدون سوراخکاری، بدون تخریب ایزوگام — و در دو تا چهار روز، نه دو ماه.</p>
+      <div class="cta-row">
+        <a class="btn btn-solid" href="#studio">بام خودت را سه‌بعدی طراحی کن</a>
+        <a class="btn btn-ghost num" href="tel:09121306522">۰۹۱۲ ۱۳۰ ۶۵۲۲</a>
+      </div>
+      <div class="chips">
+        <span class="chip">بدون سوراخکاری بام</span>
+        <span class="chip">۱۵ سال ضمانت سازهٔ WPC</span>
+        <span class="chip">اجرا در ۲ تا ۴ روز</span>
+      </div>
+    </div>
+    <figure class="hero-img">
+      <img src="https://www.chekadeno.com/wp-content/uploads/2022/05/04.jpg.webp" alt="روف گاردن چکادبام بعد از اجرا: کاشت سبز، نیمکت چوب‌پلاست و پرگولا روی بام" width="900" height="600" fetchpriority="high">
+      <figcaption>پروژهٔ ارتش — بعد از اجرا</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- برش لایه‌ها: عنصر امضا -->
+<section class="strata-sec" id="layers">
+  <div class="wrap">
+    <div class="strata">
+      <div class="layer l-plant"><span class="t"> گیاهان و کاشت</span><span class="d">انتخاب گیاه کم‌آب، بر اساس جهت آفتاب</span><span class="depth num">—</span></div>
+      <div class="layer l-soil"><span class="t">بستر کشت</span><span class="d">خاک سبک کهکشانی، ۸ تا ۱۵ سانتی‌متر</span><span class="depth num">۸–۱۵cm</span></div>
+      <div class="layer l-drain"><span class="t">زه‌کشی</span><span class="d">هدایت آب به خروجی‌های بام؛ هیچ‌وقت روی ایزوگام نمی‌مانَد</span><span class="depth num">۵cm</span></div>
+      <div class="layer l-foam"><span class="t">عایق حرارتی</span><span class="d">کاهش انتقال گرمای بام به طبقهٔ آخر</span><span class="depth num">۳cm</span></div>
+      <div class="layer l-pad"><span class="t">پایه‌های مدولار</span><span class="d">ارتفاع‌دهنده — کل سیستم بدون هیچ اتصالی می‌نشیند</span><span class="depth num">۴–۱۲cm</span></div>
+      <div class="layer l-iso"><span class="t">ایزولاسیون موجود بام</span><span class="d">دست‌نخورده می‌مانَد — هیچ سوراخی، هیچ چسبی</span><span class="depth num">امضا ✱</span></div>
+    </div>
+    <div class="strata-copy">
+      <h2>پنج لایه،<br>یک بام سالم</h2>
+      <p>روف‌گاردن چکادبام مثل یک ساندویچ لایه‌دار روی بام شما می‌نشیند. پایه‌های مدولار از سطح ایزوگام فاصله می‌گیرند و آب باران در لایهٔ زه‌کشی، به سمت چاهک‌های موجود بام هدایت می‌شود.</p>
+      <p>ایزوگام و عایق شما دقیقاً همان‌طور که هست، باقی می‌ماند. اگر روزی خواستید سیستم را جمع یا جابه‌جا کنید، زیر بام دست‌نخورده پیدا می‌کنید.</p>
+      <p class="strata-note">✱ تنها روف‌گاردنی که برای اجاره یا فروش ملک، قابل جمع‌آوری کامل است.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ۵ مرحله -->
+<section class="steps">
+  <div class="wrap">
+    <h2>از بازدید تا کاشت، پنج مرحله</h2>
+    <p class="sub">متوسط زمان کل برای بام‌های ۱۵۰ تا ۳۰۰ متری: ۲ تا ۴ روز کاری.</p>
+    <div class="steps-grid">
+      <div class="step"><div class="n num">۱</div><h3>بازدید و طراحی</h3><p>بازدید میدانی، ثبت ابعاد و ارائهٔ طرح همراه لیست قیمت دقیق — بدون تعهد خرید.</p></div>
+      <div class="step"><div class="n num">۲</div><h3>ایزولاسیون</h3><p>بررسی و ترمیم نقاط ضعف عایق موجود؛ تا زیرِ بام پیش از هر کاری سالم باشد.</p></div>
+      <div class="step"><div class="n num">۳</div><h3>تولید و حمل</h3><p>فلاورباکس‌ها و سازه‌ها در کارخانه چکادبام پیش‌ساخته و به بام منتقل می‌شوند.</p></div>
+      <div class="step"><div class="n num">۴</div><h3>اجرای سازه</h3><p>نصب پایه‌ها و ماژول‌ها بدون اتصال به سطح بام؛ همان روز هم‌تراز و تثبیت.</p></div>
+      <div class="step"><div class="n num">۵</div><h3>کاشت</h3><p>کاشت گونه‌های متناسب با جهت آفتاب و تحویل راهنمای نگهداری.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- استودیو سه‌بعدی -->
+<section class="studio" id="studio">
+  <div class="wrap">
+    <div>
+      <h2>برای خودت بساز، قبل از اینکه بسازیم</h2>
+      <p>استودیوی سه‌بعدی چکادبام اجازه میدهد ابعاد بام را وارد کنی، فلاورباکس، پرگولا و نیمکت‌ها را روی پلان بچینی و از همهٔ زوایا ببینی — بعد خروجی طرح را برای ما بفرستی. قیمت دقیق، همان چیزی می‌شود که ساختی.</p>
+    </div>
+    <div class="cta-row"><a class="btn btn-solid" href="https://www.chekadeno.com/%da%86%da%a9%d8%a7%d8%af%d8%a8%d8%a7%d9%85-%d8%a7%d8%b3%d8%aa%d9%88%d8%af%d9%8a%d9%88/">شروع طراحی رایگان</a></div>
+  </div>
+</section>
+
+<!-- محصولات -->
+<section class="products">
+  <div class="wrap">
+    <h2>اجزای روی بام</h2>
+    <p class="sub">همه از چوب‌پلاست (WPC) ضدآب؛ رنگ ثابت، بدون رنگ‌آمیزی دوره‌ای.</p>
+    <div class="p-grid">
+      <a class="p-card" href="https://www.chekadeno.com/%D8%AE%D8%A7%D9%86%D9%87/%D9%85%D8%AD%D8%B5%D9%88%D9%84%D8%A7%D8%AA/%D9%81%D9%84%D8%A7%D9%88%D8%B1%D8%A8%D8%A7%DA%A9%D8%B3-%D9%87%D8%A7%DB%8C-%DA%86%DA%A9%D8%A7%D8%AF%D8%A8%D8%A7%D9%85/">
+        <img loading="lazy" decoding="async" src="https://www.chekadeno.com/wp-content/uploads/2017/08/07-3.jpg" alt="فلاورباکس‌های مکعبی چوب‌پلاست با درخت و کف‌سازی روی بام" width="800" height="1200">
+        <div class="inner"><h3>فلاورباکس مدولار</h3><span>بسترهای ۶۰ تا ۱۶۰ سانتی</span></div>
+      </a>
+      <a class="p-card" href="https://www.chekadeno.com/portfolio/%d9%be%d8%b1%d9%88%da%98%d9%87-%d9%87%d8%a7%db%8c-%d9%be%d8%b1%da%af%d9%88%d9%84%d8%a7/">
+        <img loading="lazy" decoding="async" src="https://www.chekadeno.com/wp-content/uploads/2017/08/Pergola-clinic-post-va-jozam-taleghani-01.jpg" alt="پرگولا چوب‌پلاست روی بام همراه با فلاورباکس" width="1024" height="768" fetchpriority="high">
+        <div class="inner"><h3>پرگولا و کف‌سازی WPC</h3><span>سایه، پناه و کف مقاوم به بارش</span></div>
+      </a>
+      <a class="p-card" href="https://www.chekadeno.com/%d8%ae%d8%a7%d9%86%d9%87/%d9%85%d8%ad%d8%b5%d9%88%d9%84%d8%a7%d8%aa/%d9%85%d8%a8%d9%84%d9%85%d8%a7%d9%86/">
+        <img loading="lazy" decoding="async" src="https://www.chekadeno.com/wp-content/uploads/2017/08/09-3.jpg" alt="آفتاب‌گیر چوبی روی کف‌سازی چوب‌پلاست بام" width="800" height="1200">
+        <div class="inner"><h3>آفتاب‌گیر و مبلمان</h3><span>فضای نشیمن سایه‌دار روی بام</span></div>
+      </a>
+      <a class="p-card" href="https://www.chekadeno.com/%da%86%da%a9%d8%a7%d8%af%d8%a8%d8%a7%d9%85-%d8%a7%d8%b3%d8%aa%d9%88%d8%af%d9%8a%d9%88/">
+        <img loading="lazy" decoding="async" src="https://www.chekadeno.com/wp-content/uploads/2018/07/plan-1.jpg" alt="پلان طراحی اختصاصی روف گاردن" width="900" height="675">
+        <div class="inner"><h3>طراحی پلان اختصاصی</h3><span>طرح مخصوص بام شما، با برآورد دقیق</span></div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- پروژه‌ها -->
+<section class="projects">
+  <div class="wrap">
+    <h2>از بام خالی تا بام سبز — مسیر یک پروژه</h2>
+    <div class="g-grid">
+      <figure><img loading="lazy" decoding="async" src="https://www.chekadeno.com/wp-content/uploads/2022/05/03.jpg.webp" alt="بام خالی پیش از اجرای روف گاردن" width="900" height="600"><figcaption>۱ — بام خالی، پیش از اجرا</figcaption></figure>
+      <figure><img loading="lazy" decoding="async" src="https://www.chekadeno.com/wp-content/uploads/2018/07/image010-scaled.jpg" alt="مرحلهٔ کاشت در فلاورباکس‌های روف گاردن صدمتری" width="1200" height="800"><figcaption>۲ — مرحلهٔ کاشت، پروژهٔ ۱۰۰۰ متری</figcaption></figure>
+      <figure><img loading="lazy" decoding="async" src="https://www.chekadeno.com/wp-content/uploads/2018/07/image011-scaled.jpg" alt="روف گاردن کامل آمادهٔ تحویل به کارفرما" width="1200" height="800"><figcaption>۳ — آمادهٔ تحویل به کارفرما</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq">
+  <div class="wrap">
+    <h2>سوال‌های متداول</h2>
+    <details open>
+      <summary>روف گاردن به وزن سازه آسیب نمی‌زند؟</summary>
+      <div class="a">سیستم پرتابل-مدولار از بستر خیس سنتی سبک‌تر است؛ بار واقعی هر متر مربع در گزارشِ بازدید و طراحی با اعداد دقیق اعلام می‌شود و توزیع بار با پایه‌های توزیع‌کننده انجام می‌گیرد.</div>
+    </details>
+    <details>
+      <summary>اگر ایزوگام بام مشکل داشته باشد چه؟</summary>
+      <div class="a">در مرحلهٔ بازدید، نقاط آسیب عایق ثبت و پیش از اجرا ترمیم می‌شود. چون سیستم هیچ اتصال دائمی (چسب/پیچ) به ایزوگام ندارد، احتمال آسیب بعدی عملاً صفر است.</div>
+    </details>
+    <details>
+      <summary>نگهداری چقدر است؟</summary>
+      <div class="a">آبیاری: سیستم آبیاری قطره‌ای توصیه می‌شود (۱۵ دقیقه در روز تابستان). چوب‌پلاست رنگ‌آمیزی نمی‌خواهد؛ فقط شست‌وشوی سالانه.</div>
+    </details>
+    <details>
+      <summary>قیمت را از کجا دقیق بگیرم؟</summary>
+      <div class="a">بعد از بازدید و طراحی، لیست قیمت تفکیک‌شده (سازه، کاشت، آبیاری، اجرا) ارائه می‌شود. در استودیوی سه‌بعدی هم می‌توانید قبل از تماس، خودتان طرح و برآورد بسازید.</div>
+    </details>
+  </div>
+</section>
+
+<!-- CTA پایانی -->
+<section class="final">
+  <div class="wrap">
+    <h2>این بهار، بامت را سبز کن</h2>
+    <p>بازدید میدانی و طرح اولیه رایگان است — پیش از شروع فصل کاشت وقت رزرو کن.</p>
+    <div class="cta-row" style="justify-content:center">
+      <a class="btn btn-solid" href="tel:09121306522">درخواست بازدید رایگان</a>
+      <a class="btn btn-ghost" href="https://www.chekadeno.com/%da%86%da%a9%d8%a7%d8%af%d8%a8%d8%a7%d9%85-%d8%a7%d8%b3%d8%aa%d9%88%d8%af%d9%8a%d9%88/">طراحی سه‌بعدی بامت</a>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
