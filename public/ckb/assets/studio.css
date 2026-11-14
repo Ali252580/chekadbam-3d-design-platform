@@ -1,0 +1,2077 @@
+/**
+ * Chekadbam Studio (WordPress) — Studio UI styles v2.
+ * Dark cinematic theme matching the Next.js studio.
+ */
+
+/* v2.16.5: قانون hidden باید display‌های صریح (مثل grid) را هم بشکند؛
+   بدون این، گروه‌های مخفی‌شدهٔ ویرایشگر پلان همچنان دیده می‌شدند */
+[hidden] { display: none !important; }
+
+/* ═══════════════ Container ═══════════════ */
+.ckb-wstudio-container {
+	position: relative;
+	width: 100%;
+	background: #020617;
+	color: #f1f5f9;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	font-family: inherit;
+	box-sizing: border-box;
+	user-select: none;
+	direction: rtl;
+}
+.ckb-wstudio-admin {
+	position: fixed !important;
+	top: 0 !important;
+	left: 0 !important;
+	width: 100vw !important;
+	height: 100vh !important;
+	z-index: 99999 !important;
+}
+
+/* ═══════════════ Header ═══════════════ */
+.ckb-wstudio-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 18px;
+	background: #0f172a;
+	border-bottom: 1px solid #1e293b;
+	z-index: 15;
+	flex-shrink: 0;
+}
+.ckb-wstudio-header h3 {
+	margin: 0;
+	color: #10b981;
+	font-size: 14px;
+	font-weight: 800;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.ckb-wstudio-header .ckb-plan-badge {
+	background: #020617;
+	border: 1px solid #334155;
+	padding: 4px 10px;
+	border-radius: 8px;
+	font-size: 11px;
+	color: #cbd5e1;
+}
+.ckb-wstudio-close {
+	background: #1e293b;
+	border: 1px solid #334155;
+	color: #cbd5e1;
+	padding: 6px 12px;
+	border-radius: 10px;
+	cursor: pointer;
+	font-size: 11px;
+	font-weight: bold;
+}
+.ckb-wstudio-close:hover { background: #dc2626; color: #fff; }
+
+/* ═══════════════ Body / Viewport ═══════════════ */
+.ckb-wstudio-body {
+	flex: 1;
+	display: flex;
+	position: relative;
+	overflow: hidden;
+}
+.ckb-wstudio-viewport {
+	flex: 1;
+	position: relative;
+	height: 100%;
+	width: 100%;
+}.ckb-wstudio-viewport { position: relative; }
+
+/* ─────────────── لودینگ گرافیکی (v2.13.2) ───────────────
+   پوشش برند روی ویوپورت تا اولین رندر کامل صحنه؛ سپس محو و حذف.
+   جفت این کلاس‌ها با JS در studio-app.js (تابع addLoadingOverlay) است:
+   .ckb-wstudio-loader         ← پوشش تمام‌صفحه (گرادیان تیره، z-25)
+   .ckb-loader-track / -arc    ← دایره SVG چرخان (تراک خاکستری / کمان سبز)
+   .ckb-loader-core span       ← چیپ برند سبز پالس‌دار
+   .ckb-loader-brand / -dot    ← نام استودیو + نقطه چشمک‌زن
+   .ckb-loader-note            ← خط وضعیت
+   .done                       ← پس از آماده شدن صحنه (محو ۶۵۰ms) */
+.ckb-wstudio-loader {
+	position: absolute; inset: 0; z-index: 25;
+	display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+	background: linear-gradient(180deg, #020617 0%, #0f172a 55%, #020617 100%);
+	pointer-events: none;
+	transition: opacity .65s ease;
+	opacity: 1;
+	direction: rtl;
+}
+.ckb-wstudio-loader.done { opacity: 0; }
+/* سرور-رندر ولی بدون JS: پوشش می‌ماند تا کاربر صفحه‌ی خالی نبیند؛
+   رفتار فلش سریع (۴۵۰ms) حتی با JS هم تداخل با مراحل بعدی ندارد. */
+.ckb-wstudio-loader.is-server { opacity: 1; }
+.ckb-loader-ring { position: relative; width: 84px; height: 84px; }
+.ckb-loader-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; animation: ckb-loader-spin 1.4s linear infinite; }
+.ckb-loader-track { stroke: rgba(51, 65, 85, .7); }
+.ckb-loader-arc { stroke: #34d399; }
+@keyframes ckb-loader-spin { to { transform: rotate(360deg); } }
+.ckb-loader-core {
+	position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+	animation: ckb-loader-pulse 1.8s ease-in-out infinite;
+}
+.ckb-loader-core span {
+	width: 36px; height: 36px; border-radius: 14px;
+	background: rgba(16, 185, 129, .1); border: 1.5px solid rgba(52, 211, 153, .5);
+	display: flex; align-items: center; justify-content: center;
+	box-shadow: 0 8px 30px rgba(6, 78, 59, .45);
+}
+.ckb-loader-core span::after { content: ''; width: 10px; height: 10px; border-radius: 50%; background: #34d399; }
+@keyframes ckb-loader-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+.ckb-loader-brand { display: flex; align-items: center; gap: 8px; color: #fff; font-size: 13px; }
+.ckb-loader-dot { width: 8px; height: 8px; border-radius: 50%; background: #34d399; animation: ckb-loader-blink 1.2s ease-in-out infinite; }
+@keyframes ckb-loader-blink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+.ckb-loader-note { color: #94a3b8; font-size: 11px; }
+
+.ckb-wstudio-viewport canvas {
+	display: block;
+	width: 100% !important;
+	height: 100% !important;
+	touch-action: none;
+	cursor: grab;
+}
+.ckb-wstudio-viewport canvas:active { cursor: grabbing; }
+
+/* Floating overlays */
+.ckb-wstudio-collision {
+	position: absolute;
+	top: 14px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: rgba(245, 158, 11, 0.92);
+	color: #020617;
+	font-weight: 600;
+	padding: 6px 16px;
+	border-radius: 999px;
+	font-size: 11px;
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+	display: none;
+	z-index: 20;
+	pointer-events: none;
+}
+.ckb-wstudio-compass {
+	position: absolute;
+	top: 14px;
+	right: 14px;
+	background: rgba(15, 23, 42, 0.85);
+	backdrop-filter: blur(8px);
+	color: #fff;
+	font-size: 11px;
+	padding: 6px 12px;
+	border-radius: 12px;
+	border: 1px solid rgba(51, 65, 85, 0.6);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	z-index: 20;
+}
+
+/* One-off warning toast (v2.7.2) — sits under the collision banner */
+.ckb-wstudio-toast {
+	position: absolute;
+	top: 56px;
+	left: 50%;
+	transform: translateX(-50%) translateY(-6px);
+	background: rgba(245, 158, 11, 0.95);
+	color: #020617;
+	font-weight: 600;
+	padding: 8px 18px;
+	border-radius: 12px;
+	font-size: 11.5px;
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+	max-width: min(92%, 420px);
+	text-align: center;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+	z-index: 21;
+	pointer-events: none;
+}
+.ckb-wstudio-toast.show {
+	opacity: 1;
+	visibility: visible;
+	transform: translateX(-50%) translateY(0);
+}
+.ckb-wstudio-compass .ckb-n-dot {
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	border: 1px solid #34d399;
+	display: grid;
+	place-items: center;
+	font-size: 9px;
+	color: #34d399;
+	font-weight: bold;
+}
+
+/* ═══════════════ Floating Action Dock ═══════════════ */
+.ckb-wstudio-dock {
+	position: absolute;
+	bottom: 18px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: rgba(15, 23, 42, 0.92);
+	border: 1px solid #334155;
+	backdrop-filter: blur(12px);
+	border-radius: 18px;
+	padding: 6px 10px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	z-index: 25;
+	box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+	max-width: 95%;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+.ckb-wstudio-btn {
+	background: #1e293b;
+	border: 1px solid #334155;
+	color: #cbd5e1;
+	padding: 7px 12px;
+	border-radius: 12px;
+	cursor: pointer;
+	font-size: 11px;
+	font-weight: bold;
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	transition: all 0.15s ease;
+}
+.ckb-wstudio-btn:hover { background: #334155; color: #fff; }
+.ckb-wstudio-btn.primary { background: #10b981; color: #022c22; border-color: #10b981; }
+.ckb-wstudio-btn.primary:hover { background: #059669; color: #fff; }
+.ckb-wstudio-btn.active { background: #312e81; color: #c7d2fe; border-color: #4f46e5; }
+.ckb-wstudio-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ckb-wstudio-div { width: 1px; height: 18px; background: #334155; margin: 0 3px; }
+
+/* ═══════════════ Selected Item Floating Inspector ═══════════════ */
+.ckb-wstudio-inspector {
+	position: absolute;
+	bottom: 76px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: rgba(15, 23, 42, 0.95);
+	border: 1px solid #10b981;
+	border-radius: 14px;
+	padding: 6px 12px;
+	display: none;
+	align-items: center;
+	gap: 8px;
+	z-index: 26;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+	font-size: 11px;
+}
+.ckb-wstudio-inspector span { font-weight: bold; color: #34d399; }
+.ckb-wstudio-inspector button {
+	background: #1e293b;
+	border: 1px solid #334155;
+	color: #cbd5e1;
+	padding: 5px 9px;
+	border-radius: 8px;
+	font-size: 11px;
+	cursor: pointer;
+}
+.ckb-wstudio-inspector button:hover { background: #334155; color: #fff; }
+.ckb-wstudio-inspector button.del:hover { background: #dc2626; color: #fff; border-color: #dc2626; }
+
+/* ═══════════════ Modals / Drawers ═══════════════ */
+.ckb-wstudio-modal {
+	position: absolute;
+	inset: 0;
+	/* v2.12.1: پرده پشت مودال روشن‌تر شد تا صحنه پشت آن قابل تشخیص بماند */
+	background: rgba(2, 6, 23, 0.62);
+	backdrop-filter: blur(8px);
+	display: none;
+	align-items: center;
+	justify-content: center;
+	z-index: 40;
+	/* v2.13.10: پنجره‌ها زیر نوار تب تمام نشوند تا زیر قرصِ تب پنهان نشوند */
+	padding: 14px 14px calc(var(--ckb-dock-h, 68px) + 18px);
+}
+/* v2.13.12: در نما تمام‌صفحه مودال‌ها به ویوپورت قفل شوند تا حتی اگر تودرتوی
+   HTML به‌هم بریزد (مودال بیرون کانتینر بیفتد) پشت بوم سه‌بعدی پنهان نشوند */
+.ckb-studio-full .ckb-wstudio-modal {
+	position: fixed;
+	z-index: 99999;
+}
+/* v2.16.7: نوار تب در نمای تمام‌صفحه بالای پردهٔ شیت می‌ماند تا تب‌ها
+   هنگام باز بودن کاتالوگ/فرم هم قابل لمس باشند (شیت هم بالای تب تمام می‌شود) */
+.ckb-studio-full .ckb-tabbar { z-index: 100000; }
+.ckb-wstudio-modal-box {
+	/* v2.12.1: یک پله روشن‌تر از قبل (#0f172a) — پنجره‌ها تاریکِ خفه نباشند */
+	background: #17233b;
+	border: 1px solid #3b4a63;
+	border-radius: 20px;
+	box-sizing: border-box; /* v2.9.1: max-height must include padding+border */
+	width: 100%;
+	max-width: 640px;
+	max-height: 88vh;
+	overflow-y: auto;
+	padding: 22px;
+	box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+	position: relative;
+}
+.ckb-wstudio-modal-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 16px;
+	border-bottom: 1px solid #1e293b;
+	padding-bottom: 10px;
+}
+.ckb-wstudio-modal-head h4 { margin: 0; color: #10b981; font-size: 15px; font-weight: 800; }
+.ckb-wstudio-x {
+	background: #1e293b;
+	border: 1px solid #334155;
+	color: #94a3b8;
+	border-radius: 8px;
+	width: 28px;
+	height: 28px;
+	display: grid;
+	place-items: center;
+	cursor: pointer;
+}
+.ckb-wstudio-x:hover { color: #fff; }
+
+/* ═══════════════ Catalog Grid ═══════════════ */
+.ckb-catalog-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+	gap: 10px;
+	max-height: 60vh;
+	overflow-y: auto;
+}
+.ckb-catalog-card {
+	/* v2.12.1: کارت‌ها روشن‌تر */
+	background: #26344f;
+	border: 1px solid #3b4a63;
+	border-radius: 12px;
+	padding: 10px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	transition: border-color 0.15s ease;
+}
+.ckb-catalog-card:hover { border-color: #10b981; }
+.ckb-catalog-3d {
+	width: 100%;
+	height: 110px;
+	border-radius: 8px;
+	background: #1b2740;
+	overflow: hidden;
+	position: relative;
+}
+.ckb-catalog-3d canvas { width: 100% !important; height: 100% !important; display: block; }
+.ckb-catalog-card h5 { margin: 0; font-size: 12px; color: #f8fafc; font-weight: bold; }
+.ckb-catalog-card small { color: #93a5bd; font-size: 10px; font-family: monospace; }
+.ckb-catalog-btn {
+	background: #10b981;
+	color: #022c22;
+	font-weight: bold;
+	border: 0;
+	border-radius: 8px;
+	padding: 7px;
+	font-size: 11px;
+	cursor: pointer;
+	text-align: center;
+}
+.ckb-catalog-btn:hover { background: #059669; color: #fff; }
+
+/* ═══════════════ Catalog search & category pills (v2.7) ═══════════════ */
+.ckb-catalog-tools { margin-bottom: 12px; }
+.ckb-catalog-search {
+	width: 100%;
+	background: #26344f;
+	border: 1px solid #3b4a63;
+	border-radius: 10px;
+	color: #f1f5f9;
+	padding: 9px 12px;
+	font-size: 12px;
+	font-family: inherit;
+	outline: none;
+	box-sizing: border-box;
+}
+.ckb-catalog-search:focus { border-color: #10b981; }
+.ckb-catalog-search::placeholder { color: #64748b; }
+.ckb-catalog-cats {
+	display: flex;
+	gap: 6px;
+	overflow-x: auto;
+	/* v2.16.7: در RTL محتوا به سمت چپ ادامه دارد؛ محو شدن لبهٔ چپ نشانهٔ
+	   اسکرول است تا دسته‌های بیرون کادر پنهان نمانند */
+	padding: 10px 0 4px 20px;
+	scrollbar-width: thin;
+	scrollbar-color: #334155 transparent;
+	-webkit-mask-image: linear-gradient(to right, transparent 0, #000 20px);
+	mask-image: linear-gradient(to right, transparent 0, #000 20px);
+}
+.ckb-catalog-cats::-webkit-scrollbar { height: 4px; }
+.ckb-catalog-cats::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+.ckb-catalog-cats button {
+	background: #26344f;
+	border: 1px solid #3b4a63;
+	color: #a9b8cc;
+	padding: 5px 10px;
+	border-radius: 9px;
+	font-size: 10.5px;
+	font-family: inherit;
+	white-space: nowrap;
+	cursor: pointer;
+	transition: all 0.15s ease;
+	flex: 0 0 auto;
+}
+.ckb-catalog-cats button:hover { color: #e2e8f0; }
+.ckb-catalog-cats button.on {
+	background: #10b981;
+	border-color: #10b981;
+	color: #022c22;
+	font-weight: bold;
+}
+.ckb-catalog-empty {
+	grid-column: 1 / -1;
+	text-align: center;
+	color: #64748b;
+	padding: 26px 10px;
+	font-size: 12px;
+	border: 1px dashed #334155;
+	border-radius: 12px;
+}
+
+/* ═══════════════ Inspector extras (v2.7): coords, nudge, swatches ═══════════════ */
+.ckb-wstudio-inspector { flex-wrap: wrap; justify-content: center; }
+.ckb-insp-info {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 1px;
+	max-width: 190px;
+}
+.ckb-insp-name {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 190px;
+	font-size: 11px;
+}
+.ckb-wstudio-inspector .ckb-insp-pos {
+	color: #94a3b8;
+	font-weight: normal;
+	font-family: monospace;
+	font-size: 9.5px;
+	white-space: nowrap;
+}
+.ckb-insp-nudge {
+	display: flex;
+	gap: 3px;
+	background: #0f172a;
+	border: 1px solid #1e293b;
+	border-radius: 10px;
+	padding: 3px;
+}
+.ckb-insp-nudge button { min-width: 26px; text-align: center; }
+.ckb-insp-swatches {
+	display: flex;
+	gap: 5px;
+	background: #0f172a;
+	border: 1px solid #1e293b;
+	border-radius: 10px;
+	padding: 6px;
+}
+.ckb-insp-swatch {
+	width: 16px !important;
+	height: 16px !important;
+	padding: 0 !important;
+	border-radius: 50% !important;
+	border: 2px solid #64748b !important;
+	cursor: pointer;
+	transition: transform 0.12s ease, border-color 0.12s ease;
+}
+.ckb-insp-swatch.on {
+	border-color: #34d399 !important;
+	transform: scale(1.25);
+	/* outline (not box-shadow): the theme-guard zeroes box-shadow on all container buttons */
+	outline: 1.5px solid rgba(52, 211, 153, 0.55);
+	outline-offset: 1px;
+}
+
+/* ═══════════════ BOM count bubble (v2.7) ═══════════════ */
+.ckb-bom-btn { position: relative; }
+.ckb-bom-count {
+	position: absolute;
+	top: 1px;
+	left: 1px;
+	min-width: 15px;
+	height: 15px;
+	padding: 0 3px;
+	border-radius: 999px;
+	background: #10b981;
+	color: #022c22;
+	font-size: 9.5px;
+	font-family: monospace;
+	font-weight: bold;
+	display: inline-grid;
+	place-items: center;
+	line-height: 1;
+	box-shadow: 0 0 0 2px #0f172a;
+}
+.ckb-bom-count[hidden] { display: none; }
+
+/* ═══════════════ Save modal snapshot preview (v2.7) ═══════════════ */
+.ckb-save-shot {
+	background: #0b1220;
+	border: 1px solid #334155;
+	border-radius: 12px;
+	padding: 10px;
+	margin-bottom: 12px;
+	text-align: center;
+}
+.ckb-save-shot[hidden] { display: none; }
+.ckb-save-shot img {
+	width: 100%;
+	max-height: 210px;
+	object-fit: contain;
+	border-radius: 8px;
+	display: block;
+	margin-bottom: 8px;
+	background: #020617;
+}
+
+/* ═══════════════ Print: only the open modal (BOM) prints (v2.7) ═══════════════ */
+@media print {
+	body * { visibility: hidden !important; }
+	.ckb-wstudio-modal-box, .ckb-wstudio-modal-box * { visibility: visible !important; }
+	.ckb-wstudio-modal-box {
+		position: fixed !important;
+		inset: 0 !important;
+		max-height: none !important;
+		overflow: visible !important;
+		box-shadow: none !important;
+		border: 0 !important;
+		border-radius: 0 !important;
+	}
+	.ckb-wstudio-x,
+	.ckb-wstudio-head-actions .ckb-wstudio-btn { display: none !important; }
+	.ckb-bom-table { font-size: 11px; }
+}
+
+/* ═══════════════ Plan Select Cards ═══════════════ */
+.ckb-plans-grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 10px;
+	max-height: 60vh;
+	overflow-y: auto;
+}
+.ckb-pcard {
+	background: #1e293b;
+	border: 1px solid #334155;
+	border-radius: 12px;
+	padding: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	cursor: pointer;
+	transition: border-color 0.15s ease;
+}
+.ckb-pcard:hover { border-color: #10b981; }
+.ckb-pcard.selected { border-color: #10b981; background: #064e3b22; }
+.ckb-pcard-meta h5 { margin: 0 0 4px; color: #f8fafc; font-size: 13px; font-weight: bold; }
+.ckb-pcard-meta p { margin: 0; color: #94a3b8; font-size: 11px; }
+
+/* ═══════════════ Plan Editor Form ═══════════════ */
+.ckb-fgroup { margin-bottom: 12px; }
+.ckb-fgroup label {
+	display: block;
+	font-size: 11px;
+	color: #cbd5e1;
+	margin-bottom: 5px;
+	font-weight: bold;
+}
+.ckb-fgroup input,
+.ckb-fgroup select,
+.ckb-fgroup textarea {
+	width: 100%;
+	background: #020617;
+	border: 1px solid #334155;
+	border-radius: 10px;
+	padding: 9px 12px;
+	color: #f8fafc;
+	font-size: 12px;
+	box-sizing: border-box;
+}
+.ckb-fgroup input:focus,
+.ckb-fgroup select:focus,
+.ckb-fgroup textarea:focus { border-color: #10b981; outline: none; }
+.ckb-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ckb-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+/* ═══════════════ OTP (کد تایید پیامکی) ═══════════════ */
+.ckb-otp-row { display: flex; gap: 8px; align-items: stretch; }
+.ckb-otp-row input { flex: 1; min-width: 0; }
+.ckb-otp-send-btn {
+	flex-shrink: 0;
+	white-space: nowrap;
+	background: #064e3b;
+	color: #6ee7b7;
+	border: 1px solid #10b981;
+	border-radius: 10px;
+	padding: 8px 14px;
+	font-size: 11px;
+	font-weight: bold;
+	cursor: pointer;
+}
+.ckb-otp-send-btn:hover:not(:disabled) { background: #065f46; }
+.ckb-otp-send-btn:disabled { opacity: 0.55; cursor: wait; }
+.ckb-otp-hint { display: block; margin-top: 5px; font-size: 10px; color: #94a3b8; line-height: 1.7; }
+.ckb-otp-code-input { letter-spacing: 4px; text-align: center; font-size: 15px; }
+input.ckb-otp-bad { border-color: #dc2626 !important; background: #450a0a !important; }
+
+/* ═══════════════ BOM Table ═══════════════ */
+.ckb-bom-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.ckb-bom-table th {
+	padding: 8px;
+	text-align: right;
+	color: #94a3b8;
+	border-bottom: 1px solid #334155;
+	font-size: 11px;
+}
+.ckb-bom-table td { padding: 7px 8px; border-bottom: 1px solid #1e293b; color: #f1f5f9; }
+.ckb-bom-stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+	gap: 8px;
+	margin-bottom: 16px;
+}
+.ckb-bom-stat {
+	background: #1e293b;
+	border: 1px solid #334155;
+	border-radius: 10px;
+	padding: 10px;
+	text-align: center;
+}
+.ckb-bom-stat b { display: block; color: #34d399; font-size: 15px; margin-bottom: 3px; }
+.ckb-bom-stat span { color: #94a3b8; font-size: 10px; }
+.ckb-bom-safe { color: #34d399 !important; }
+.ckb-bom-moderate { color: #fbbf24 !important; }
+.ckb-bom-danger { color: #f87171 !important; }
+
+/* ═══════════════ Form Notices ═══════════════ */
+.ckb-notice {
+	border-radius: 10px;
+	padding: 10px 14px;
+	font-size: 12px;
+	margin-bottom: 12px;
+	display: none;
+}
+.ckb-notice.success { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; display: block; }
+.ckb-notice.error { background: #450a0a; color: #fca5a5; border: 1px solid #dc2626; display: block; }
+
+/* ═══════════════ Product 3D Viewer (shortcode + metabox) ═══════════════ */
+.ckb-3d-viewer {
+	position: relative;
+	width: 100%;
+	background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+	border-radius: 18px;
+	overflow: hidden;
+	border: 1px solid #1e293b;
+	direction: rtl;
+}
+.ckb-3d-viewer canvas {
+	display: block;
+	width: 100% !important;
+	height: 100% !important;
+	touch-action: none;
+	cursor: grab;
+}
+.ckb-3d-viewer canvas:active { cursor: grabbing; }
+.ckb-3d-viewer .ckb-3d-hint {
+	position: absolute;
+	bottom: 10px;
+	right: 50%;
+	transform: translateX(50%);
+	background: rgba(15, 23, 42, 0.85);
+	border: 1px solid #334155;
+	color: #94a3b8;
+	font-size: 10px;
+	padding: 4px 12px;
+	border-radius: 999px;
+	pointer-events: none;
+}
+.ckb-3d-viewer .ckb-3d-title {
+	position: absolute;
+	top: 10px;
+	right: 12px;
+	color: #34d399;
+	font-size: 12px;
+	font-weight: 800;
+	background: rgba(2, 6, 23, 0.6);
+	padding: 4px 10px;
+	border-radius: 8px;
+	pointer-events: none;
+}
+.ckb-3d-loading {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	color: #10b981;
+	font-size: 12px;
+	font-weight: bold;
+}
+
+/* Gallery grid of product viewers */
+.ckb-3d-gallery {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 16px;
+}
+.ckb-3d-gallery-item h4 {
+	margin: 0 0 8px;
+	font-size: 13px;
+	color: #f8fafc;
+	font-weight: bold;
+}
+.ckb-3d-gallery-item small { color: #64748b; font-size: 10px; font-family: monospace; display: block; margin-top: 6px; }
+
+/* ═══════════════ Front (non-admin) tweaks ═══════════════ */
+.ckb-wstudio-front { border-radius: 20px; border: 1px solid #1e293b; }
+
+
+/* ─────────────── Studio guide modal ─────────────── */
+.ckb-guide-box { max-width: 620px; }
+/* v2.16.7: عرض ۴۸۰ فقط برای دسکتاپ؛ روی موبایل قاعدهٔ تمام‌عرض پایین‌تر
+   اعمال می‌شود (inline style قبلی این را در حالت افقی هم ۴۸۰ نگه می‌داشت) */
+.ckb-save-box { max-width: 480px; }
+.ckb-guide-head { display: flex; align-items: center; gap: 12px; }
+.ckb-guide-ic {
+	width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+	background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3);
+	color: #34d399; font-weight: bold; font-size: 20px;
+	display: flex; align-items: center; justify-content: center;
+}
+.ckb-guide-head h4 { margin: 0; color: #fff; font-size: 15px; }
+.ckb-guide-head p { margin: 2px 0 0; color: #94a3b8; font-size: 11px; }
+.ckb-guide-body { padding: 16px 20px 6px; overflow-y: auto; max-height: 52vh; }
+.ckb-guide-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.ckb-guide-steps li {
+	display: flex; gap: 12px; align-items: flex-start; text-align: right;
+	background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(51, 65, 85, 0.5);
+	border-radius: 16px; padding: 12px 14px;
+}
+.ckb-guide-num {
+	width: 26px; height: 26px; flex-shrink: 0; border-radius: 8px;
+	background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3);
+	color: #34d399; font-weight: 900; font-size: 12px;
+	display: flex; align-items: center; justify-content: center;
+}
+.ckb-guide-steps b { color: #fff; font-size: 12.5px; display: block; }
+.ckb-guide-steps p { margin: 4px 0 0; color: #94a3b8; font-size: 11.5px; line-height: 1.8; }
+.ckb-guide-hint { color: #64748b; font-size: 11px; margin: 12px 0 8px; }
+.ckb-guide-foot {
+	display: flex; align-items: center; justify-content: space-between; gap: 12px;
+	padding: 12px 20px; border-top: 1px solid #1e293b; background: rgba(2, 6, 23, 0.6);
+}
+.ckb-guide-foot > span { color: #64748b; font-size: 11px; }
+
+/* ─────────────── Visual tour (spotlight) ─────────────── */
+.ckb-tour-spot {
+	position: fixed; z-index: 99990; pointer-events: none;
+	border-radius: 16px;
+	box-shadow: 0 0 0 9999px rgba(2, 6, 23, 0.78);
+	border: 2px solid rgba(52, 211, 153, 0.8);
+	transition: all 0.3s ease;
+}
+.ckb-tour-card {
+	position: fixed; z-index: 99991; width: 330px; direction: rtl; text-align: right;
+	background: #0f172a; border: 1px solid rgba(52, 211, 153, 0.4);
+	border-radius: 16px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+	padding: 14px;
+}
+.ckb-tour-row { display: flex; gap: 10px; align-items: flex-start; }
+.ckb-tour-ic {
+	width: 34px; height: 34px; flex-shrink: 0; border-radius: 10px;
+	background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3);
+	color: #34d399; font-weight: bold;
+	display: flex; align-items: center; justify-content: center;
+}
+.ckb-tour-body { flex: 1; min-width: 0; }
+.ckb-tour-body h5 { margin: 0; color: #fff; font-size: 13px; }
+.ckb-tour-body p { margin: 6px 0 0; color: #cbd5e1; font-size: 11.5px; line-height: 1.8; }
+.ckb-tour-foot {
+	display: flex; align-items: center; justify-content: space-between;
+	margin-top: 10px; padding-top: 8px;
+}
+.ckb-tour-skip { background: none; border: none; color: #64748b; font-size: 11px; cursor: pointer; }
+.ckb-tour-skip:hover { color: #cbd5e1; }
+.ckb-tour-nav { display: flex; align-items: center; gap: 8px; }
+.ckb-tour-dots { display: flex; align-items: center; gap: 4px; }
+.ckb-tour-dots span { width: 6px; height: 6px; border-radius: 50%; background: #334155; }
+.ckb-tour-dots span.on { background: #34d399; }
+.ckb-tour-prev, .ckb-tour-next {
+	border: none; cursor: pointer; border-radius: 8px;
+	font-size: 11px; padding: 6px 12px; transition: background 0.2s;
+}
+.ckb-tour-prev { background: #1e293b; color: #cbd5e1; }
+.ckb-tour-prev:hover { background: #334155; }
+.ckb-tour-next { background: #059669; color: #fff; font-weight: bold; }
+.ckb-tour-next:hover { background: #10b981; }
+.ckb-wstudio-head-actions { display: flex; align-items: center; gap: 8px; }
+
+/* ─────────────── راهنمای درون‌پلان (v2.14 — ckb-hints.js) ───────────────
+   کارت بالای بوم + نشانگر حرکت روی همان نقطه‌ای که کاربر باید لمس کند.
+   z-index 20: زیر توست هشدار (۲۱) و همهٔ نوارها/مودال‌ها. */
+.ckb-hint-card {
+	position: absolute; top: 14px; left: 50%; z-index: 20; box-sizing: border-box;
+	width: min(300px, calc(100% - 24px));
+	transform: translate(-50%, -8px); opacity: 0; visibility: hidden;
+	transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+	direction: rtl; text-align: right;
+	background: rgba(15, 23, 42, 0.94); backdrop-filter: blur(8px);
+	border: 1px solid rgba(52, 211, 153, 0.45); border-radius: 16px;
+	box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+	padding: 11px 14px 10px;
+}
+.ckb-hint-card.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+.ckb-hint-top { display: flex; align-items: center; gap: 10px; }
+.ckb-hint-step { color: #34d399; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.ckb-hint-bar { flex: 1; height: 4px; border-radius: 4px; background: #1e293b; overflow: hidden; }
+.ckb-hint-bar i { display: block; height: 100%; width: 0; background: #10b981; border-radius: 4px; transition: width 0.35s ease; }
+.ckb-hint-x {
+	background: none; border: none; color: #64748b; cursor: pointer;
+	font-size: 12px; line-height: 1; padding: 4px;
+}
+.ckb-hint-x:hover { color: #e2e8f0; }
+.ckb-hint-title { color: #fff; font-size: 13px; margin-left: 6px; }
+.ckb-hint-desc { display: inline; margin: 0; color: #cbd5e1; font-size: 12px; line-height: 1.8; }
+.ckb-hint-msg { margin-top: 6px; }
+.ckb-hint-foot { display: flex; justify-content: flex-start; gap: 8px; margin-top: 6px; }
+.ckb-hint-foot button {
+	border: none; cursor: pointer; border-radius: 8px; font-size: 11px; padding: 5px 12px;
+	font-family: inherit;
+}
+.ckb-hint-skip { background: none; color: #94a3b8; padding: 5px 0 !important; }
+.ckb-hint-skip:hover { color: #fff; }
+.ckb-hint-tour { background: #1e293b; color: #cbd5e1; }
+.ckb-hint-tour:hover { background: #334155; }
+.ckb-hint-ok { background: #059669; color: #fff; font-weight: 700; }
+.ckb-hint-ok:hover { background: #10b981; }
+.ckb-hint-card:not(.is-done) .ckb-hint-tour,
+.ckb-hint-card:not(.is-done) .ckb-hint-ok,
+.ckb-hint-card.is-done .ckb-hint-skip { display: none; }
+
+/* z-index 46: روی نوار تب (۴۵) تا حلقهٔ «+ افزودن» دیده شود؛ وقتی مودالی باز
+   است استودیو anchor را null می‌دهد و نشانگر با .off پنهان می‌شود */
+.ckb-hint-mark {
+	position: absolute; z-index: 46; width: 0; height: 0;
+	pointer-events: none; opacity: 0; transition: opacity 0.25s ease;
+}
+.ckb-hint-mark.show { opacity: 1; }
+.ckb-hint-mark.off,
+.ckb-dragging .ckb-hint-mark { opacity: 0; }
+.ckb-hint-ring, .ckb-hint-hand, .ckb-hint-hand2 {
+	position: absolute; left: 0; top: 0; display: none; border-radius: 50%;
+}
+.ckb-hint-ring {
+	width: 64px; height: 64px; margin: -32px 0 0 -32px;
+	border: 2px solid #34d399;
+}
+.ckb-hint-hand, .ckb-hint-hand2 {
+	width: 24px; height: 24px; margin: -12px 0 0 -12px;
+	background: rgba(255, 255, 255, 0.92); border: 2px solid #10b981;
+	box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.25), 0 6px 14px rgba(0, 0, 0, 0.4);
+}
+
+/* ↔ کشیدن روی فضای خالی = چرخش دید */
+.ckb-hint-mark.g-swipe .ckb-hint-hand { display: block; animation: ckb-hint-swipe 2.2s ease-in-out infinite; }
+.ckb-hint-mark.g-swipe::before {
+	content: ''; position: absolute; left: -80px; top: -1px; width: 160px; height: 2px;
+	background: linear-gradient(90deg, transparent, rgba(52, 211, 153, 0.7), transparent);
+}
+@keyframes ckb-hint-swipe {
+	0%, 100% { transform: translateX(-70px); }
+	50% { transform: translateX(70px); }
+}
+
+/* زوم: دسکتاپ = ماوس با چرخ متحرک، لمسی = دو انگشت باز و بسته */
+.ckb-hint-mark.g-zoom:not(.is-touch) .ckb-hint-hand {
+	display: block; width: 26px; height: 40px; margin: -20px 0 0 -13px;
+	border-radius: 13px; background: rgba(15, 23, 42, 0.75); border: 2px solid #fff;
+}
+.ckb-hint-mark.g-zoom:not(.is-touch) .ckb-hint-hand::after {
+	content: ''; position: absolute; left: 50%; top: 7px; width: 4px; height: 8px;
+	margin-left: -2px; border-radius: 2px; background: #34d399;
+	animation: ckb-hint-wheel 1.3s ease-in-out infinite;
+}
+@keyframes ckb-hint-wheel {
+	0% { transform: translateY(0); opacity: 1; }
+	80% { transform: translateY(10px); opacity: 0; }
+	100% { transform: translateY(0); opacity: 0; }
+}
+.ckb-hint-mark.g-zoom.is-touch .ckb-hint-hand,
+.ckb-hint-mark.g-zoom.is-touch .ckb-hint-hand2 { display: block; }
+.ckb-hint-mark.g-zoom.is-touch .ckb-hint-hand { animation: ckb-hint-pinch-a 1.8s ease-in-out infinite; }
+.ckb-hint-mark.g-zoom.is-touch .ckb-hint-hand2 { animation: ckb-hint-pinch-b 1.8s ease-in-out infinite; }
+@keyframes ckb-hint-pinch-a {
+	0%, 100% { transform: translate(-12px, 12px); }
+	50% { transform: translate(-48px, 48px); }
+}
+@keyframes ckb-hint-pinch-b {
+	0%, 100% { transform: translate(12px, -12px); }
+	50% { transform: translate(48px, -48px); }
+}
+
+/* ضربه روی دکمه/نوار: حلقهٔ تپنده */
+.ckb-hint-mark.g-tap .ckb-hint-ring { display: block; animation: ckb-hint-pulse 1.6s ease-out infinite; }
+.ckb-hint-mark.g-tap .ckb-hint-hand { display: block; animation: ckb-hint-tap 1.6s ease-out infinite; }
+@keyframes ckb-hint-pulse {
+	0% { transform: scale(0.5); opacity: 0.9; }
+	100% { transform: scale(1.6); opacity: 0; }
+}
+@keyframes ckb-hint-tap {
+	0%, 100% { transform: scale(1); }
+	15% { transform: scale(0.75); }
+	35% { transform: scale(1); }
+}
+
+/* گرفتن و کشیدن قلم */
+.ckb-hint-mark.g-drag .ckb-hint-ring { display: block; animation: ckb-hint-pulse 2.4s ease-out infinite; }
+.ckb-hint-mark.g-drag .ckb-hint-hand { display: block; animation: ckb-hint-drag 2.4s ease-in-out infinite; }
+@keyframes ckb-hint-drag {
+	0% { transform: translate(0, 0) scale(1); opacity: 0; }
+	12% { transform: translate(0, 0) scale(1); opacity: 1; }
+	22% { transform: translate(0, 0) scale(0.75); }
+	70% { transform: translate(60px, -34px) scale(0.75); opacity: 1; }
+	85%, 100% { transform: translate(60px, -34px) scale(1); opacity: 0; }
+}
+
+@media (max-width: 768px) {
+	/* v2.16.7: کارت راهنما زیر ردیف «شمال» بنشیند تا روی قطب‌نما نیفتد */
+	.ckb-hint-card { top: 46px; width: min(300px, calc(100% - 20px)); padding: 9px 12px 7px; }
+}
+
+/* Keyboard focus affordance */
+.ckb-wstudio-container button:focus-visible,
+.ckb-wstudio-container .ckb-wstudio-x:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.6);
+}
+
+/* Respect users who opt out of motion */
+@media (prefers-reduced-motion: reduce) {
+	.ckb-wstudio-container *,
+	.ckb-tour-spot, .ckb-tour-card {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}
+
+/* ─────────────── Plan cards with blueprint thumbnails ─────────────── */
+.ckb-pcard {
+	cursor: pointer;
+	display: flex; flex-direction: column; overflow: hidden;
+	background: rgba(30, 41, 59, 0.6);
+	border: 1px solid rgba(71, 85, 105, 0.6);
+	border-radius: 16px;
+	transition: all 0.2s;
+}
+.ckb-pcard:hover {
+	background: rgba(30, 41, 59, 0.9);
+	border-color: rgba(52, 211, 153, 0.5);
+	transform: translateY(-1px);
+}
+.ckb-pcard.selected { border-color: #10b981; box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.4); }
+.ckb-pcard-thumb {
+	aspect-ratio: 16 / 10; overflow: hidden; position: relative;
+	background: #080d1a; border-bottom: 1px solid rgba(71, 85, 105, 0.6);
+}
+.ckb-pcard-thumb .ckb-bp-svg { width: 100%; height: 100%; display: block; }
+.ckb-pcard-meta { padding: 12px 14px; }
+.ckb-pcard-meta h5 { margin: 0; color: #fff; font-size: 12.5px; font-weight: bold; }
+.ckb-pcard-meta p { margin: 4px 0 0; color: #94a3b8; font-size: 11px; }
+.ckb-pcard-badge {
+	align-self: flex-start; margin: 0 14px 12px;
+	background: #020617; color: #10b981;
+	padding: 4px 10px; border-radius: 8px;
+	font-size: 11px; font-weight: bold;
+}
+
+
+/* ─────────────── Typography ─────────────── */
+.ckb-wstudio-container,
+.ckb-wstudio-modal,
+.ckb-tour-card,
+.ckb-guide-box {
+	font-family: 'Vazirmatn', 'Vazir', 'IRANSansX', 'IRANSans', 'Yekan Bakh', 'Segoe UI', Tahoma, sans-serif;
+}
+.ckb-fgroup label {
+	font-size: 12px;
+	font-weight: 700;
+	color: #cbd5e1;
+	letter-spacing: 0.01em;
+}
+.ckb-fgroup input,
+.ckb-fgroup select {
+	font-size: 13px;
+	padding: 9px 12px;
+	color: #f1f5f9;
+}
+.ckb-fgroup input:focus,
+.ckb-fgroup select:focus {
+	border-color: #10b981;
+	box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+	outline: none;
+}
+.ckb-plan-tabs button {
+	font-size: 12.5px;
+	padding: 9px 18px;
+}
+
+/* ─────────────── Two-column plan editor ─────────────── */
+.ckb-pe-grid {
+	display: grid;
+	grid-template-columns: 1.25fr 1fr;
+	gap: 16px;
+	align-items: start;
+}
+/* v2.16.5: سرتیترهای بخش‌های ویرایشگر پلان — فرم طولانی را قابل‌اسکن می‌کنند */
+.ckb-pe-sec {
+	font-size: 12px;
+	font-weight: 800;
+	color: #6ee7b7;
+	margin: 16px 0 8px;
+	padding-bottom: 6px;
+	border-bottom: 1px solid #26334d;
+}
+/* گزینه‌های دراپ‌داون روی زمینهٔ تیره خوانا بمانند (فایرفاکس/کروم دسکتاپ) */
+.ckb-fgroup select option { background: #0f172a; color: #f1f5f9; }
+.ckb-pe-side .ckb-pe-blueprint {
+	aspect-ratio: 16 / 10;
+	background: #080d1a;
+	border: 1px solid #334155;
+	border-radius: 14px;
+	overflow: hidden;
+	margin-bottom: 12px;
+}
+.ckb-pe-actions {
+	display: flex;
+	gap: 8px;
+	margin-top: 14px;
+}
+.ckb-pe-actions .ckb-catalog-btn { flex: 1.4; padding: 12px; font-size: 13px; }
+.ckb-pe-actions .ckb-wstudio-btn { flex: 1; justify-content: center; }
+.ckb-pe-side .ckb-bp-svg { width: 100%; height: 100%; display: block; }
+@media (max-width: 900px) {
+	.ckb-pe-grid { grid-template-columns: 1fr; }
+	/* v2.16.5: در چیدمان تک‌ستونی، نقشهٔ زنده و دکمه‌ها اول دیده شوند */
+	.ckb-pe-side { order: -1; }
+}
+
+/* ─────────────── Fullscreen studio (shortcode page) ─────────────── */
+.ckb-studio-full {
+	position: fixed !important;
+	top: 0 !important;
+	left: 0 !important;
+	right: 0 !important;
+	bottom: 0 !important;
+	width: 100vw !important;
+	height: 100vh !important;
+	height: 100dvh !important;
+	max-height: none !important;
+	z-index: 99998;
+	border-radius: 0 !important;
+}
+html:has(.ckb-studio-full) {
+	overflow: hidden;
+}
+body.admin-bar .ckb-studio-full {
+	top: var(--wp-admin--admin-bar--height, 32px) !important;
+	height: calc(100dvh - var(--wp-admin--admin-bar--height, 32px)) !important;
+}
+
+
+/* ─────────────── Theme-override guard: studio buttons always look right ─────────────── */
+.ckb-wstudio-container button {
+	font-family: inherit;
+	text-transform: none;
+	letter-spacing: normal;
+	box-shadow: none !important;
+}
+.ckb-wstudio-container .ckb-wstudio-btn {
+	background: #1e293b !important;
+	color: #cbd5e1 !important;
+	border: 1px solid rgba(71, 85, 105, 0.6) !important;
+	text-shadow: none !important;
+	cursor: pointer;
+}
+.ckb-wstudio-container .ckb-wstudio-btn:hover {
+	background: #334155 !important;
+	color: #ffffff !important;
+}
+.ckb-wstudio-container .ckb-wstudio-btn.active {
+	background: rgba(16, 185, 129, 0.18) !important;
+	color: #34d399 !important;
+	border-color: rgba(52, 211, 153, 0.5) !important;
+}
+.ckb-wstudio-container .ckb-wstudio-btn.primary,
+.ckb-wstudio-container .ckb-catalog-btn {
+	background: #059669 !important;
+	color: #ffffff !important;
+	border: none !important;
+	font-weight: bold;
+}
+.ckb-wstudio-container .ckb-wstudio-btn.primary:hover,
+.ckb-wstudio-container .ckb-catalog-btn:hover {
+	background: #10b981 !important;
+	color: #ffffff !important;
+}
+.ckb-wstudio-container .ckb-wstudio-btn.del {
+	background: rgba(159, 18, 57, 0.4) !important;
+	color: #fda4af !important;
+	border-color: rgba(190, 18, 60, 0.6) !important;
+}
+.ckb-wstudio-container .ckb-wstudio-btn.del:hover {
+	background: rgba(190, 18, 60, 0.6) !important;
+	color: #ffe4e6 !important;
+}
+.ckb-wstudio-container .ckb-wstudio-x {
+	background: #1e293b !important;
+	color: #94a3b8 !important;
+	cursor: pointer;
+}
+.ckb-wstudio-container .ckb-wstudio-x:hover { color: #ffffff !important; }
+.ckb-wstudio-container .ckb-plan-tabs button {
+	background: #1e293b !important;
+	color: #cbd5e1 !important;
+	border: none !important;
+}
+.ckb-wstudio-container .ckb-plan-tabs button.active {
+	background: #059669 !important;
+	color: #ffffff !important;
+}
+.ckb-wstudio-container .ckb-pcard-badge {
+	background: #020617 !important;
+	color: #10b981 !important;
+}
+/* v2.7 additions to the guard: inspector buttons, category pills, color swatches
+   (:not(.ckb-insp-swatch) — the swatch color lives in an inline style the guard must not beat) */
+.ckb-wstudio-container .ckb-wstudio-inspector button:not(.ckb-insp-swatch) {
+	background: #1e293b !important;
+	color: #cbd5e1 !important;
+	border: 1px solid rgba(71, 85, 105, 0.6) !important;
+	text-shadow: none !important;
+}
+.ckb-wstudio-container .ckb-wstudio-inspector button:not(.ckb-insp-swatch):hover {
+	background: #334155 !important;
+	color: #ffffff !important;
+}
+.ckb-wstudio-container .ckb-wstudio-inspector button.del {
+	background: rgba(159, 18, 57, 0.4) !important;
+	color: #fda4af !important;
+	border-color: rgba(190, 18, 60, 0.6) !important;
+}
+.ckb-wstudio-container .ckb-catalog-cats button {
+	background: #1e293b !important;
+	color: #94a3b8 !important;
+	border: 1px solid rgba(71, 85, 105, 0.6) !important;
+	border-radius: 9px !important;
+	text-shadow: none !important;
+}
+.ckb-wstudio-container .ckb-catalog-cats button.on {
+	background: #059669 !important;
+	color: #ffffff !important;
+	border-color: #059669 !important;
+}
+.ckb-wstudio-container .ckb-insp-swatch {
+	padding: 0 !important;
+	border-radius: 50% !important;
+	min-width: 16px !important;
+	min-height: 16px !important;
+	text-shadow: none !important;
+}
+
+/* Short save-button label: desktop shows the long one, mobile swaps to the short one */
+.ckb-btn-label-sm { display: none; }
+
+/* Dock collapse handle — mobile-only control (v2.7.1) */
+.ckb-dock-handle { display: none; font-size: 14px; min-width: 30px; justify-content: center; }
+
+/* Drag auto-fade: while an item is being dragged the dock/inspector step aside */
+.ckb-wstudio-dock,
+.ckb-wstudio-inspector { transition: opacity 0.22s ease, transform 0.22s ease; }
+.ckb-dragging .ckb-wstudio-dock,
+.ckb-dragging .ckb-wstudio-inspector {
+	opacity: 0.12;
+	pointer-events: none;
+	transform: translateX(-50%) translateY(16px);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Mobile UX (v2.6) — single-row labeled-icon dock, compact
+   header/modals, dock-synced inspector, small-screen catalog & BOM.
+   The second condition is the fix for "the menu fills the screen
+   in landscape": a rotated phone is WIDE (e.g. 844px) but SHORT,
+   so the width-only test used to fall back to the desktop
+   multi-row dock that ate the whole canvas.
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px), (max-height: 480px) and (orientation: landscape) {
+
+	/* ── Header: designed for 360px-wide screens ── */
+	.ckb-wstudio-header {
+		padding: 8px 10px;
+		gap: 8px;
+	}
+	.ckb-wstudio-header h3 {
+		font-size: 11px;
+		gap: 6px;
+		min-width: 0; /* allow shrinking below content size */
+	}
+	.ckb-wstudio-header h3 span:first-child {
+		width: 7px;
+		height: 7px;
+		min-width: 7px;
+	}
+	.ckb-wstudio-header .ckb-plan-badge {
+		display: none; /* plan name already lives inside the plans modal */
+	}
+	.ckb-wstudio-close {
+		padding: 6px 9px;
+		font-size: 12px;
+		flex-shrink: 0;
+	}
+
+	/* ── Dock: one scrollable icon row, no canvas-hiding wrapping ──
+	   Perf (v2.7.1): backdrop-filter over a WebGL canvas forces expensive
+	   readback every frame on phones — dropped on mobile, opacity raised to
+	   keep the dock readable. Buttons shrunk so the scene shows above them. */
+	.ckb-wstudio-dock {
+		bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+		left: 8px;
+		right: 8px;
+		transform: none;
+		max-width: none;
+		width: auto;
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		overflow-y: hidden;
+		-webkit-overflow-scrolling: touch;
+		scrollbar-width: thin;
+		scrollbar-color: #334155 transparent;
+		justify-content: flex-start;
+		gap: 4px;
+		padding: 5px 6px;
+		border-radius: 14px;
+		background: rgba(15, 23, 42, 0.97);
+		backdrop-filter: none;
+		box-shadow: 0 8px 22px rgba(0, 0, 0, 0.5);
+	}
+	.ckb-wstudio-compass { backdrop-filter: none; background: rgba(15, 23, 42, 0.92); }
+	.ckb-wstudio-modal { backdrop-filter: none; background: rgba(2, 6, 23, 0.94); }
+	.ckb-wstudio-dock::-webkit-scrollbar { height: 4px; }
+	.ckb-wstudio-dock::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+	.ckb-wstudio-dock::-webkit-scrollbar-track { background: transparent; }
+
+	.ckb-wstudio-dock .ckb-wstudio-btn {
+		padding: 5px 6px;
+		font-size: 15px; /* the leading icon/emoji itself */
+		gap: 3px;
+		border-radius: 10px;
+		flex: 0 0 auto;
+		flex-direction: column; /* icon on top, tiny label below (v2.6) */
+		justify-content: center;
+		min-height: 46px; /* comfortable touch target */
+		min-width: 46px;
+		white-space: nowrap;
+		line-height: 1;
+	}
+	/* Long label hidden on mobile; a short label sits UNDER the icon
+	   (icon-only buttons were confusing — v2.6) */
+	.ckb-wstudio-dock .ckb-btn-label { display: none; }
+	.ckb-wstudio-dock .ckb-btn-label-sm {
+		display: block;
+		font-size: 8px;
+		font-weight: 700;
+		line-height: 1.25;
+		color: #94a3b8;
+		max-width: 56px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.ckb-wstudio-dock .ckb-wstudio-btn.primary .ckb-btn-label-sm { color: #d1fae5; }
+	.ckb-wstudio-dock .ckb-wstudio-divider { height: 26px; }
+	.ckb-wstudio-dock .ckb-wstudio-divider { flex: 0 0 auto; }
+	/* Dock height is mirrored into --ckb-dock-h by studio-app.js */
+
+	/* Collapsed dock (v2.7.1): «⌄» keeps only the primary actions + handle,
+	   label-free and shorter, so the deck is (almost) fully visible */
+	.ckb-wstudio-dock .ckb-dock-handle { display: inline-flex; min-height: 46px; min-width: 34px; }
+	.ckb-wstudio-dock.collapsed .ckb-wstudio-btn:not(.primary):not(.ckb-dock-handle) { display: none; }
+	.ckb-wstudio-dock.collapsed .ckb-wstudio-div { display: none; }
+	.ckb-wstudio-dock.collapsed { justify-content: center; overflow-x: visible; }
+	.ckb-wstudio-dock.collapsed .ckb-wstudio-btn {
+		min-height: 38px;
+		min-width: 40px;
+		flex-direction: row;
+		padding: 5px 9px;
+	}
+	.ckb-wstudio-dock.collapsed .ckb-btn-label-sm { display: none; }
+	.ckb-wstudio-dock.collapsed .ckb-dock-handle { min-height: 38px; }
+
+	/* ── Inspector floats directly above the dock ──
+	   v2.16.7: بازرس به‌جای ردیف افقیِ بریده، در دو ردیف جمع می‌شود تا
+	   همهٔ دکمه‌های چرخش/تکثیر/رنگ/حذف روی صفحه دیده شوند */
+	.ckb-wstudio-inspector {
+		bottom: calc(var(--ckb-dock-h, 56px) + env(safe-area-inset-bottom, 0px) + 10px);
+		left: 8px;
+		right: 8px;
+		transform: none;
+		justify-content: center;
+		flex-wrap: wrap;
+		overflow: visible;
+		gap: 4px;
+		padding: 5px 6px;
+		font-size: 12px;
+	}
+	.ckb-wstudio-inspector button {
+		padding: 5px 7px;
+		min-height: 32px;
+		flex: 0 0 auto;
+	}
+	/* drag-fade must not inherit the desktop centering translate */
+	.ckb-dragging .ckb-wstudio-inspector { transform: translateY(16px); }
+	.ckb-insp-info { flex: 0 0 auto; max-width: 96px; }
+	.ckb-insp-name { max-width: 96px; font-size: 10px; }
+	.ckb-insp-nudge { padding: 2px; gap: 2px; }
+	.ckb-insp-nudge button { min-width: 26px; min-height: 28px; }
+	.ckb-insp-swatches { flex: 0 0 auto; padding: 4px; gap: 3px; }
+	.ckb-insp-swatch { width: 16px !important; height: 16px !important; }
+
+	/* ── Compass: small, tucked into the corner ── */
+	.ckb-wstudio-compass {
+		top: 8px;
+		right: 8px;
+		padding: 4px 8px;
+		font-size: 10px;
+		gap: 6px;
+		border-radius: 10px;
+	}
+	.ckb-wstudio-compass .ckb-n-dot {
+		width: 12px;
+		height: 12px;
+		font-size: 8px;
+	}
+
+	/* ── Modals: near-fullscreen bottom sheets ── */
+	.ckb-wstudio-modal {
+		padding: 10px;
+		align-items: flex-end;
+	}
+	.ckb-wstudio-modal-box {
+		max-height: calc(100vh - 20px - env(safe-area-inset-bottom, 0px));
+		padding: 14px 12px 16px;
+		border-radius: 16px;
+	}
+	.ckb-wstudio-modal-head h4 { font-size: 13.5px; }
+
+	/* ── Catalog: 2-up cards instead of 190px minimum ── */
+	.ckb-catalog-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 8px;
+		max-height: 58vh;
+	}
+	.ckb-catalog-3d { height: 84px; }
+	.ckb-catalog-card h5 {
+		font-size: 11px;
+		line-height: 1.5;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.ckb-catalog-card small { font-size: 9px; }
+	.ckb-catalog-btn { padding: 8px 6px; font-size: 11px; min-height: 34px; }
+
+	/* ── Plan presets & editor ── */
+	.ckb-plans-grid { max-height: 54vh; }
+	.ckb-plan-tabs button { font-size: 11.5px; padding: 8px 12px; }
+	.ckb-grid3 { grid-template-columns: 1fr; } /* 3-up inputs unreadable at 360px */
+	.ckb-grid2 { gap: 8px; }
+	.ckb-fgroup input,
+	.ckb-fgroup select,
+	.ckb-fgroup textarea { font-size: 16px; } /* stop iOS zoom-on-focus */
+
+	/* ── v2.16.5: فرم پلان روی موبایل — برچسب درشت‌تر و ورودی‌های نفس‌دار ── */
+	.ckb-fgroup label { font-size: 13.5px; line-height: 1.6; margin-bottom: 6px; }
+	.ckb-fgroup input,
+	.ckb-fgroup select { padding: 12px; border-radius: 12px; }
+	.ckb-pe-sec { font-size: 13px; margin: 18px 0 10px; }
+	.ckb-pe-actions { position: sticky; bottom: 0; background: #17233b; padding: 10px 0 2px; margin-top: 12px; }
+	.ckb-pe-actions .ckb-catalog-btn { min-height: 46px; font-size: 14px; }
+	.ckb-pe-actions .ckb-wstudio-btn { min-height: 46px; }
+
+	/* ── BOM table: horizontal scroll wrapper instead of squeezed columns ── */
+	.ckb-bom-wrap {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		margin: 0 -4px;
+		padding: 0 4px;
+	}
+	.ckb-bom-table { min-width: 430px; }
+	.ckb-bom-stats {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 6px;
+	}
+	.ckb-bom-stat b { font-size: 13px; }
+	.ckb-bom-stat span { font-size: 9.5px; }
+
+	/* ── Save form ── */
+	.ckb-wstudio-modal-box .ckb-grid2 { grid-template-columns: 1fr; }
+
+	/* ── Visual tour card fits small screens ── */
+	.ckb-tour-card {
+		width: min(330px, calc(100vw - 24px));
+	}
+}
+
+/* Very narrow phones (<=380px): tighten the crowded dock further */
+@media (max-width: 380px) {
+	.ckb-wstudio-dock { gap: 3px; padding: 5px 5px; }
+	.ckb-wstudio-dock .ckb-wstudio-btn { padding: 6px 5px; font-size: 15px; min-height: 50px; min-width: 47px; }
+	.ckb-wstudio-dock .ckb-btn-label-sm { font-size: 8px; max-width: 50px; }
+	.ckb-insp-pos { display: none; } /* no room for the coordinate readout */
+	.ckb-wstudio-modal-box { max-height: calc(100dvh - 12px - env(safe-area-inset-bottom, 0px)); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Mobile UX v2.8 — bottom-sheet grab handle, dvh modals, viewer
+   double-tap hint pulse, and long-press-free 44px touch targets.
+   ══════════════════════════════════════════════════════════════ */
+
+/* Bottom-sheet grab bar: modals render as sheets on mobile; a handle makes
+   the affordance obvious and doubles as a tap-to-close strip */
+.ckb-sheet-handle {
+	display: none;
+	width: 42px;
+	height: 4px;
+	border-radius: 999px;
+	background: #334155;
+	margin: 0 auto 10px;
+	padding: 0;
+	border: 0;
+	cursor: pointer;
+}
+.ckb-wstudio-x:active,
+.ckb-wstudio-btn:active,
+.ckb-catalog-btn:active {
+	transform: scale(0.96);
+	transition: transform 0.08s ease;
+}
+
+/* Viewer hint pulse: draws the eye to «بچرخانید • زوم با اسکرول» and tells
+   mobile users rotation works before they try it */
+.ckb-3d-viewer .ckb-3d-hint { transition: opacity 0.5s ease; }
+.ckb-3d-viewer .ckb-hint-pulse { animation: ckb-hint-pulse 2s ease-in-out infinite; }
+.ckb-3d-viewer .ckb-hint-seen { opacity: 0.65; animation: none; }
+@keyframes ckb-hint-pulse {
+	0%, 100% { opacity: 0.85; }
+	50% { opacity: 1; box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.25); }
+}
+
+/* Double-tap resets the viewer — mirror of the studio's «دوربین» button */
+.ckb-3d-viewer::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+@media (max-width: 768px), (max-height: 480px) and (orientation: landscape) {
+	/* dvh: URL-bar-proof modal height (100vh measures the full screen and
+	   leaves the bottom of sheets hidden behind the phone's browser chrome) */
+	@supports (height: 100dvh) {
+		.ckb-wstudio-modal-box {
+			max-height: calc(100dvh - 20px - env(safe-area-inset-bottom, 0px));
+		}
+	}
+
+	/* Bottom-sheet handle visible + closes the modal when tapped */
+	.ckb-wstudio-modal-box .ckb-sheet-handle { display: block; }
+
+	/* Modals become true bottom sheets sliding from below */
+	/* v2.13.10: ورق‌ها بالای نوار تب تمام شوند — تب‌ها همیشه در دسترس‌اند */
+	.ckb-wstudio-modal {
+		padding: 0 0 calc(var(--ckb-dock-h, 64px) + 6px);
+		align-items: flex-end;
+	}
+	.ckb-wstudio-modal-box {
+		width: 100%;
+		max-width: none;
+		border-radius: 18px 18px 0 0;
+		border-bottom: 0;
+		max-height: 92dvh;
+		animation: ckb-sheet-up 0.25s ease-out;
+	}
+	@keyframes ckb-sheet-up {
+		from { transform: translateY(30px); opacity: 0.6; }
+		to { transform: translateY(0); opacity: 1; }
+	}
+
+	/* Tap outside the sheet closes it (target = backdrop) */
+	.ckb-wstudio-modal { justify-content: stretch; }
+
+	/* Full-bleed dock: no side gaps at the very edge */
+	.ckb-wstudio-dock { left: 0; right: 0; border-radius: 16px 16px 0 0; }
+
+	/* Comfortable 44px touch targets everywhere on phones */
+	.ckb-wstudio-inspector button { min-height: 36px; }
+	.ckb-catalog-btn { min-height: 40px; }
+	.ckb-wstudio-x { width: 34px; height: 34px; }
+}
+
+/* Landscape phones: sheet keeps a small top gap so the close X stays visible */
+@media (max-height: 480px) and (orientation: landscape) {
+	.ckb-wstudio-modal { padding: 8px 0 calc(var(--ckb-dock-h, 64px) + 6px); }
+	.ckb-wstudio-modal-box { border-radius: 16px 16px 0 0; }
+}
+
+/* Landscape phones: slim the header so the canvas keeps most of
+   the already-short screen (v2.6) */
+@media (max-height: 480px) and (orientation: landscape) {
+	.ckb-wstudio-header { padding: 3px 10px; }
+	.ckb-wstudio-header h3 { font-size: 10px; }
+	.ckb-wstudio-header .ckb-plan-badge { display: none; }
+	.ckb-wstudio-close { padding: 4px 8px; font-size: 11px; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   UX v2.9 → v2.10 — Bottom Tab Bar + Tools Sheet (all viewports)
+   Native-style 5-tab navigation (icons + labels) replaces the
+   cluttered dock everywhere; secondary tools live in one floating
+   sheet. Elements are built by studio-app.js (setupTabbar).
+   Base rules read as the phone layout; the desktop block below
+   re-dresses the same bar as a floating centered pill.
+   ══════════════════════════════════════════════════════════════ */
+.ckb-tabbar {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	/* v2.13.10: بالاتر از مودال‌ها (z-index 40) — وقتی پنجره‌ای باز است
+	   کلیک «ثبت طرح» و بقیه تب‌ها زیر پردهٔ مودال گم نمی‌شود */
+	z-index: 45;
+	display: flex;
+	align-items: stretch;
+	justify-content: space-around;
+	padding: 6px 4px calc(9px + env(safe-area-inset-bottom, 0px));
+	background: rgba(9, 14, 28, 0.98);
+	border-top: 1px solid rgba(148, 163, 184, 0.14);
+	box-shadow: 0 -8px 26px rgba(0, 0, 0, 0.45);
+}
+.ckb-tab {
+	-webkit-appearance: none;
+	appearance: none;
+	background: none;
+	border: 0;
+	position: relative;
+	flex: 1 1 0;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 3px;
+	padding: 5px 2px;
+	color: #8ea0b8;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+	transition: color 0.15s ease, transform 0.1s ease;
+	font-family: inherit;
+}
+.ckb-tab svg { width: 23px; height: 23px; display: block; }
+.ckb-tab-label {
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.2px;
+	white-space: nowrap;
+	line-height: 1;
+}
+.ckb-tab:active { transform: scale(0.93); }
+.ckb-tab.on { color: #34d399; }
+/* Primary action gets a soft emerald chip behind the icon */
+.ckb-tab.primary { color: #34d399; }
+.ckb-tab.primary svg {
+	width: 28px;
+	height: 28px;
+	padding: 4px;
+	box-sizing: content-box;
+	background: rgba(16, 185, 129, 0.16);
+	border-radius: 13px;
+}
+/* BOM badge re-anchored to the tab (was the dock button corner) */
+.ckb-tab .ckb-bom-count {
+	top: 2px;
+	left: calc(50% + 8px);
+}
+
+/* Dim behind the tools sheet */
+.ckb-more-backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(2, 6, 23, 0.55);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.2s ease;
+	z-index: 24;
+}
+.ckb-more-backdrop.show { opacity: 1; pointer-events: auto; }
+
+/* Floating tools sheet, sits just above the tab bar */
+.ckb-more-sheet {
+	position: absolute;
+	left: 10px;
+	right: 10px;
+	bottom: calc(var(--ckb-dock-h, 64px) + 8px);
+	z-index: 27;
+	background: #0f172a;
+	border: 1px solid #293548;
+	border-radius: 20px;
+	padding: 10px 12px 12px;
+	box-shadow: 0 18px 48px rgba(0, 0, 0, 0.6);
+	transform: translateY(14px) scale(0.98);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.18s ease, transform 0.18s ease;
+	direction: rtl;
+}
+.ckb-more-sheet.open { transform: none; opacity: 1; pointer-events: auto; }
+.ckb-more-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	font-size: 12px;
+	font-weight: 800;
+	color: #e2e8f0;
+	padding: 2px 2px 8px;
+	border-bottom: 1px solid #1e293b;
+	margin-bottom: 9px;
+}
+.ckb-more-close {
+	background: none;
+	border: 0;
+	color: #94a3b8;
+	font-size: 15px;
+	padding: 4px 8px;
+	cursor: pointer;
+	line-height: 1;
+}
+.ckb-more-group { margin-bottom: 9px; }
+.ckb-more-group:last-child { margin-bottom: 0; }
+.ckb-more-cap {
+	display: block;
+	font-size: 9.5px;
+	font-weight: 700;
+	color: #64748b;
+	letter-spacing: 0.3px;
+	margin: 0 2px 5px;
+}
+.ckb-more-row { display: flex; gap: 6px; }
+.ckb-more-row .ckb-wstudio-btn {
+	flex: 1 1 0;
+	justify-content: center;
+	min-height: 42px;
+	padding: 8px 6px;
+	border-radius: 12px;
+	background: #16223a;
+	border-color: #24334d;
+	gap: 4px;
+}
+.ckb-more-row .ckb-wstudio-btn:disabled { opacity: 0.35; }
+.ckb-more-row .ckb-btn-label { display: none; }
+.ckb-more-row .ckb-btn-label-sm {
+	display: inline;
+	font-size: 10.5px;
+	color: #cbd5e1;
+	max-width: none;
+}
+.ckb-more-row .ckb-wstudio-btn.active {
+	background: #312e81;
+	color: #c7d2fe;
+	border-color: #4f46e5;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Desktop (v2.10) — same tab bar as a floating centered pill,
+   tools sheet as a centered popover with full-label buttons
+   ══════════════════════════════════════════════════════════════ */
+@media (min-width: 769px) {
+	.ckb-tabbar {
+		left: 50%;
+		right: auto;
+		bottom: 16px;
+		transform: translateX(-50%);
+		width: auto;
+		max-width: 94%;
+		justify-content: center;
+		gap: 4px;
+		padding: 7px 10px;
+		background: rgba(15, 23, 42, 0.92);
+		border: 1px solid #334155;
+		border-radius: 20px;
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
+		box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+	}
+	.ckb-tab {
+		flex: 0 1 auto;
+		padding: 7px 24px;
+		border-radius: 14px;
+		transition: color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+	}
+	.ckb-tab:hover { color: #e2e8f0; background: rgba(51, 65, 85, 0.55); }
+	.ckb-tab.on, .ckb-tab.primary { color: #34d399; }
+	.ckb-tab.on:hover, .ckb-tab.primary:hover {
+		color: #6ee7b7;
+		background: rgba(16, 185, 129, 0.14);
+	}
+	.ckb-tab svg { width: 24px; height: 24px; }
+	.ckb-tab-label { font-size: 11.5px; }
+	.ckb-tab.primary svg { width: 30px; height: 30px; border-radius: 15px; }
+	.ckb-tab .ckb-bom-count { top: 1px; left: calc(50% + 10px); }
+
+	/* Tools sheet: centered popover above the pill, roomier rows,
+	   full labels instead of the short mobile ones */
+	.ckb-more-sheet {
+		left: 50%;
+		right: auto;
+		width: 580px;
+		max-width: 94%;
+		bottom: calc(var(--ckb-dock-h, 68px) + 28px);
+		padding: 14px 16px 16px;
+		border-radius: 22px;
+		transform: translateX(-50%) translateY(14px) scale(0.98);
+	}
+	.ckb-more-sheet.open { transform: translateX(-50%); }
+	.ckb-more-cap { font-size: 10.5px; }
+	.ckb-more-row { gap: 8px; }
+	.ckb-more-row .ckb-wstudio-btn {
+		min-height: 46px;
+		padding: 9px 10px;
+		font-size: 12px;
+		border-radius: 13px;
+		gap: 6px;
+	}
+	.ckb-more-row .ckb-btn-label { display: inline; font-size: 12px; color: #e2e8f0; }
+	.ckb-more-row .ckb-btn-label-sm { display: none; }
+
+	/* Inspector floats above the pill */
+	.ckb-wstudio-inspector { bottom: calc(var(--ckb-dock-h, 68px) + 30px); }
+}
+
+/* v2.9: --ckb-dock-h now mirrors the full tab-bar height (safe-area
+   included), so the inspector needs no extra env() offset */
+@media (max-width: 768px), (max-height: 480px) and (orientation: landscape) {
+	.ckb-wstudio-inspector { bottom: calc(var(--ckb-dock-h, 64px) + 10px); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Mobile UX (v2.9.1) — save-modal ergonomics
+   The submit form (snapshot + 5 fields + submit) is taller than the
+   92dvh sheet, which buried the submit button below the fold. Now:
+   sticky header (title + ✕), compact snapshot, and a sticky submit
+   button that never leaves the screen while the form scrolls under it.
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px), (max-height: 480px) and (orientation: landscape) {
+	/* v2.9.1: the sheet must size against the studio root (the modal
+	   wrapper), not the browser viewport — when the studio is embedded
+	   shorter than the page, 92dvh pushed the box off the top and the
+	   sticky header/submit ended up off-screen. 100% of the wrapper
+	   (absolute, inset 0) is always exactly right. */
+	/* v2.16.7: پدینگ پایین برگشت — این قاعده قبلاً آن را صفر می‌کرد و
+	   ورق روی نوار تب می‌افتاد (ضربه روی تب به محتوای پشتش می‌خورد) */
+	.ckb-wstudio-modal { max-height: 100%; padding: 8px 0 calc(var(--ckb-dock-h, 64px) + 6px); }
+	.ckb-wstudio-modal-box {
+		max-height: 100%;
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
+		overscroll-behavior: contain;
+	}
+	/* Title + ✕ stay pinned while the form scrolls */
+	.ckb-wstudio-modal-box > .ckb-wstudio-modal-head {
+		position: sticky;
+		top: 0;
+		z-index: 3;
+		background: #0f172a;
+		margin: -14px -12px 10px;
+		padding: 10px 12px 8px;
+		border-bottom: 1px solid #1e293b;
+	}
+	/* Balanced snapshot: big enough to read the design, small enough
+	   that the form starts on screen (submit is sticky anyway) */
+	.ckb-save-shot { padding: 8px; margin-bottom: 10px; }
+	.ckb-save-shot img { max-height: 190px; }
+	.ckb-save-shot .ckb-wstudio-btn { min-height: 32px; padding: 5px 10px; font-size: 10.5px; }
+	/* The submit CTA never leaves the screen */
+	.ckb-save-box > .ckb-catalog-btn {
+		position: sticky;
+		bottom: 2px;
+		z-index: 3;
+		box-shadow: 0 -10px 20px rgba(15, 23, 42, 0.92);
+	}
+	/* v2.16.7: فوکوس/اسکرول زیر CTA چسبان پنهان نشود */
+	.ckb-save-box { scroll-padding-bottom: 64px; }
+}
+
+/* v2.16.7: در صفحه‌های کوتاه پیش‌نمایش کوتاه‌تر می‌شود تا «ارسال کد» و
+   «دانلود تصویر» زیر دکمهٔ چسبان ثبت پنهان نمانند */
+@media (max-height: 620px) {
+	.ckb-save-shot img { max-height: 110px; }
+}
+@media (max-height: 480px) and (orientation: landscape) {
+	.ckb-save-shot { padding: 6px; margin-bottom: 8px; }
+	.ckb-save-shot img { max-height: 84px; }
+	.ckb-save-shot .ckb-wstudio-btn { min-height: 30px; padding: 4px 8px; }
+	.ckb-save-box { scroll-padding-bottom: 56px; }
+}
+/* v2.16.7: در عرض‌های دسکتاپ/تبلت نوار تب قرص شناور است (bottom: 16px)؛
+   فاصلهٔ ورق باید ارتفاع قرص + ۱۶ + ۶ باشد تا رویش نیفتد */
+@media (min-width: 769px) {
+	.ckb-wstudio-modal { padding-bottom: calc(var(--ckb-dock-h, 64px) + 22px); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   همراه طراح (v2.11) — پنل «راهنمای چیدمان بام و تراس»
+   ماژول مستقل: assets/ckb-coach.js پنل را می‌سازد؛ این بخش فقط استایل.
+   دسکتاپ: پنل شناور سمت راست ویوپورت (پهنا ۳۲۰px).
+   موبایل: بات‌شیت تمام‌عرض بالای نوار تب.
+   z-index 23 = زیر پس‌زمینه شیت ابزارها (۲۴) و خود شیت (۲۷).
+   ══════════════════════════════════════════════════════════════ */
+.ckb-coach {
+	position: absolute;
+	/* زیر ردیف قطب‌نمای «شمال» (بالا-راست ویوپورت) تا روی آن نیفتد */
+	top: 66px;
+	right: 14px;
+	bottom: calc(var(--ckb-dock-h, 68px) + 22px);
+	width: 320px;
+	z-index: 23;
+	display: flex;
+	flex-direction: column;
+	background: rgba(15, 23, 42, 0.97);
+	border: 1px solid #334155;
+	border-radius: 22px;
+	box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+	overflow: hidden;
+	opacity: 0;
+	transform: translateX(12px);
+	pointer-events: none;
+	transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.ckb-coach.open { opacity: 1; transform: none; pointer-events: auto; }
+
+/* سربرگ: آیکن ✦ + عنوان + بستن */
+.ckb-coach-head {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 12px 15px;
+	border-bottom: 1px solid #293548;
+	background: rgba(16, 185, 129, 0.06);
+}
+.ckb-coach-ic {
+	width: 34px;
+	height: 34px;
+	border-radius: 11px;
+	flex: 0 0 auto;
+	background: rgba(16, 185, 129, 0.15);
+	border: 1px solid rgba(16, 185, 129, 0.45);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #34d399;
+	font-size: 17px;
+}
+.ckb-coach-tt { flex: 1; min-width: 0; }
+.ckb-coach-tt b { display: block; color: #fff; font-size: 13.5px; }
+.ckb-coach-tt span { font-size: 10.5px; color: #94a3b8; }
+.ckb-coach-x {
+	background: none;
+	border: 0;
+	color: #94a3b8;
+	font-size: 14px;
+	padding: 4px 8px;
+	cursor: pointer;
+	line-height: 1;
+	font-family: inherit;
+}
+.ckb-coach-x:hover { color: #fff; }
+
+/* بدنه پنل */
+.ckb-coach-body {
+	flex: 1;
+	overflow-y: auto;
+	padding: 13px 15px;
+	scrollbar-width: thin;
+	scrollbar-color: #293548 transparent;
+}
+.ckb-coach-body::-webkit-scrollbar { width: 5px; }
+.ckb-coach-body::-webkit-scrollbar-thumb { background: #293548; border-radius: 3px; }
+.ckb-coach-body::-webkit-scrollbar-track { background: transparent; }
+
+/* بلوک امتیاز: حلقه SVG + برچسب */
+.ckb-coach-score { display: flex; align-items: center; gap: 13px; margin-bottom: 13px; }
+.ckb-coach-ring { position: relative; width: 86px; height: 86px; flex: 0 0 auto; }
+.ckb-coach-ring svg { transform: rotate(-90deg); display: block; }
+.ckb-coach-ringval {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+.ckb-coach-ringval b { color: #6ee7b7; font-size: 19px; line-height: 1; }
+.ckb-coach-ringval span { font-size: 8.5px; color: #64748b; }
+.ckb-coach-scorelbl { font-size: 11px; color: #e2e8f0; }
+.ckb-coach-scorelbl b { color: #fff; font-size: 12px; display: block; }
+.ckb-coach-scorelbl small { display: block; color: #94a3b8; font-size: 10.5px; line-height: 1.7; margin-top: 2px; }
+
+/* چیپ‌های شش‌گانه معیار — سه حالت ok/warn/bad */
+.ckb-coach-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.ckb-coach-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 10.5px;
+	font-weight: 700;
+	border-radius: 999px;
+	padding: 4px 10px;
+	border: 1px solid;
+}
+.ckb-coach-chip.ok { color: #6ee7b7; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.4); }
+.ckb-coach-chip.warn { color: #fde68a; background: rgba(251, 191, 36, 0.09); border-color: rgba(251, 191, 36, 0.4); }
+.ckb-coach-chip.bad { color: #fecaca; background: rgba(251, 113, 133, 0.09); border-color: rgba(251, 113, 133, 0.4); }
+
+/* عنوان بخش‌های داخل پنل */
+.ckb-coach-sec {
+	font-size: 11px;
+	font-weight: 800;
+	color: #34d399;
+	margin: 2px 0 8px;
+}
+
+/* کارت راهنمای زنده */
+.ckb-coach-tip {
+	display: flex;
+	gap: 9px;
+	align-items: flex-start;
+	background: #16223a;
+	border: 1px solid #293548;
+	border-radius: 14px;
+	padding: 9px 11px;
+	margin-bottom: 8px;
+}
+.ckb-coach-tip.warn { border-color: rgba(251, 191, 36, 0.35); }
+.ckb-coach-tip.bad { border-color: rgba(251, 113, 133, 0.4); }
+.ckb-coach-tip.ok { border-color: rgba(16, 185, 129, 0.35); }
+.ckb-coach-tip-ic { font-size: 13px; flex: 0 0 auto; margin-top: 2px; }
+.ckb-coach-tip b { font-size: 11.5px; color: #f1f5f9; display: block; }
+.ckb-coach-tip p { font-size: 10.5px; color: #94a3b8; line-height: 1.8; margin: 2px 0 0; }
+
+/* نکته لحظه‌ای چرخان */
+.ckb-coach-moment {
+	border-radius: 14px;
+	padding: 11px 13px;
+	background: linear-gradient(135deg, rgba(56, 189, 248, 0.09), rgba(16, 185, 129, 0.09));
+	border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.ckb-coach-moment b { font-size: 11px; color: #38bdf8; }
+.ckb-coach-moment-text { font-size: 11px; color: #e2e8f0; margin: 3px 0 0; min-height: 38px; }
+.ckb-coach-dots { display: flex; gap: 4px; margin-top: 8px; }
+.ckb-coach-dots i { width: 6px; height: 6px; border-radius: 50%; background: #334155; }
+.ckb-coach-dots i.on { background: #38bdf8; }
+
+/* موبایل: بات‌شیت تمام‌عرض بالای نوار تب */
+@media (max-width: 768px) {
+	.ckb-coach {
+		top: auto;
+		right: 8px;
+		left: 8px;
+		bottom: calc(var(--ckb-dock-h, 64px) + 8px);
+		width: auto;
+		max-height: 62%;
+		border-radius: 20px;
+	}
+}
+/* صفحه‌های خیلی کوتاه (لپ‌تاپ کوچک): پنل متعادل‌تر */
+@media (min-width: 769px) and (max-height: 560px) {
+	.ckb-coach { top: 62px; bottom: calc(var(--ckb-dock-h, 68px) + 14px); width: 290px; }
+}
+
+/* ═══════════════ v2.13 — اعتمادسازی (مودال ثبت طرح) ═══════════════ */
+
+/* ── سه نقطه شروع: سربرگ مودال «نقشه و ابعاد بام» ── */
+.ckb-start-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 8px;
+	padding: 12px 14px 0;
+}
+.ckb-start-card {
+	position: relative;
+	text-align: right;
+	background: rgba(30, 41, 59, 0.6);
+	border: 1px solid rgba(71, 85, 105, 0.6);
+	border-radius: 14px;
+	padding: 10px 12px;
+	cursor: pointer;
+	font-family: inherit;
+	color: inherit;
+	transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+.ckb-start-card:hover {
+	border-color: rgba(52, 211, 153, 0.55);
+	background: rgba(30, 41, 59, 0.9);
+	transform: translateY(-1px);
+}
+.ckb-start-card b { display: block; color: #f8fafc; font-size: 12px; margin: 6px 0 3px; }
+.ckb-start-card p { margin: 0; color: #94a3b8; font-size: 10.5px; line-height: 1.7; }
+.ckb-sic { font-size: 16px; line-height: 1; }
+.ckb-start-tag {
+	position: absolute;
+	top: 8px;
+	left: 8px;
+	background: #10b981;
+	color: #022c22;
+	font-size: 9px;
+	font-weight: bold;
+	padding: 2px 7px;
+	border-radius: 7px;
+}
+
+/* ── اعتمادسازی: دیسکلیمر مهندسی (مودال ثبت طرح) ── */
+.ckb-trust-row { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 12px; }
+.ckb-disclaimer {
+	display: flex;
+	gap: 10px;
+	align-items: flex-start;
+	background: rgba(2, 6, 23, 0.5);
+	border: 1px solid rgba(71, 85, 105, 0.55);
+	border-radius: 14px;
+	padding: 10px 12px;
+}
+.ckb-di { font-size: 16px; line-height: 1.4; }
+.ckb-disclaimer b { display: block; color: #e2e8f0; font-size: 11.5px; }
+.ckb-disclaimer p { margin: 2px 0 0; color: #94a3b8; font-size: 10.5px; line-height: 1.8; }
+
+/* موبایل: پنل ثبت فشرده */
+	@media (max-width: 768px) {
+		.ckb-start-grid { grid-template-columns: 1fr 1fr; padding: 10px 10px 0; }
+		.ckb-start-card p { display: none; }
+		/* کارت سوم (شروع از صفر) تمام‌عرض تا ردیف دوم نیمه‌خالی نماند */
+		.ckb-start-card:last-child { grid-column: 1 / -1; }
+	}

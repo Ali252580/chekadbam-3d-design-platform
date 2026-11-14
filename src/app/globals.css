@@ -144,9 +144,13 @@ body {
   from { opacity: 0; transform: scale(0.98); }
   to { opacity: 1; transform: scale(1); }
 }
+/* Only translate on Y: X-axis centering is handled by the element's own
+   `left-1/2 -translate-x-1/2` (Tailwind v4 uses the independent `translate`
+   property), so the keyframe must not re-apply translateX or it shifts
+   centered dialogs off-screen. */
 @keyframes slideUp {
-  from { opacity: 0; transform: translate(-50%, 20px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 @keyframes slideLeft {
   from { opacity: 0; transform: translateX(100%); }

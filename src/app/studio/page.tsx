@@ -14,7 +14,7 @@ import { SaveConsultationModal } from "@/components/studio/SaveConsultationModal
 import { PlanSpaceModal } from "@/components/studio/PlanSpaceModal";
 import { StudioGuideModal } from "@/components/studio/StudioGuideModal";
 import { ItemInspectorBar } from "@/components/studio/ItemInspectorBar";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 
 export default function ChekadbamStudioPage() {
   const canvasRef = useRef<Chekadbam3DCanvasRef | null>(null);
@@ -45,6 +45,20 @@ export default function ChekadbamStudioPage() {
   const [isPlanSpaceOpen, setIsPlanSpaceOpen] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [screenshotDataUrl, setScreenshotDataUrl] = useState<string>("");
+
+  // Lightweight confirmation toast — announced politely to screen readers.
+  const toastIdRef = useRef(0);
+  const [toast, setToast] = useState<{ id: number; message: string } | null>(null);
+  const showToast = useCallback((message: string) => {
+    toastIdRef.current += 1;
+    setToast({ id: toastIdRef.current, message });
+  }, []);
+
+  useEffect(() => {
+    if (!toast) return;
+    const id = window.setTimeout(() => setToast(null), 3200);
+    return () => window.clearTimeout(id);
+  }, [toast]);
 
   // First-visit onboarding: let the 3D scene mount first, then show the guide once.
   // The short deferral also keeps the effect free of synchronous setState.
@@ -114,6 +128,13 @@ export default function ChekadbamStudioPage() {
     setItems(newItems);
     pushHistory(newItems);
     setSelectedItemId(newItem.id);
+    showToast(`«${product.name}» به صحنه اضافه شد`);
+
+    // On phones the drawer covers the whole canvas — close it so the user
+    // immediately sees the newly placed module and its inspector.
+    if (window.matchMedia("(max-width: 639px)").matches) {
+      setIsProductDrawerOpen(false);
+    }
   };
 
   // Update item position - strictly clamped to plan boundaries (rotation-aware)
@@ -288,6 +309,24 @@ export default function ChekadbamStudioPage() {
       </div>
 
 
+
+      {/* Add-to-scene confirmation: stable live region + visual toast */}
+      <div className="sr-only" role="status" aria-live="polite">
+        {toast?.message ?? ""}
+      </div>
+      {toast && (
+        <div
+          key={toast.id}
+          aria-hidden="true"
+          className="pointer-events-none fixed top-16 sm:top-4 left-1/2 -translate-x-1/2 z-50 max-w-[calc(100vw-2rem)] animate-fadeIn"
+          dir="rtl"
+        >
+          <div className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-slate-900/95 px-4 py-2.5 text-xs font-semibold text-emerald-100 shadow-2xl backdrop-blur-md">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+            <span className="truncate">{toast.message}</span>
+          </div>
+        </div>
+      )}
 
       {/* Selected Item Floating Inspector Bar (Floats comfortably above bottom toolbar) */}
       <ItemInspectorBar

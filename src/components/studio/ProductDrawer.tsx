@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { CHEKADBAM_PRODUCTS, CATEGORIES, ChekadbamProduct } from "@/lib/products-data";
-import { Plus, Search, Layers, ShieldCheck, Sparkles, X } from "lucide-react";
+import { Plus, Search, Layers, ShieldCheck, X, Check } from "lucide-react";
 
 interface ProductDrawerProps {
   isOpen: boolean;
@@ -13,8 +13,20 @@ interface ProductDrawerProps {
 export function ProductDrawer({ isOpen, onClose, onAddProduct }: ProductDrawerProps) {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [addedId, setAddedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!addedId) return;
+    const id = window.setTimeout(() => setAddedId(null), 1600);
+    return () => window.clearTimeout(id);
+  }, [addedId]);
 
   if (!isOpen) return null;
+
+  const handleAdd = (product: ChekadbamProduct) => {
+    onAddProduct(product);
+    setAddedId(product.id);
+  };
 
   const filteredProducts = CHEKADBAM_PRODUCTS.filter((p) => {
     const matchCat = selectedCategory === "all" || p.category === selectedCategory;
@@ -27,7 +39,13 @@ export function ProductDrawer({ isOpen, onClose, onAddProduct }: ProductDrawerPr
   });
 
   return (
-    <div className="fixed inset-y-0 right-0 z-40 w-full sm:w-96 bg-slate-900/95 border-l border-slate-800 shadow-2xl backdrop-blur-xl flex flex-col text-right animate-slideLeft" dir="rtl">
+    <div
+      className="fixed inset-y-0 right-0 z-40 w-full sm:w-96 bg-slate-900/95 border-l border-slate-800 shadow-2xl backdrop-blur-xl flex flex-col text-right animate-slideLeft"
+      dir="rtl"
+      role="dialog"
+      aria-modal="true"
+      aria-label="کتابخانه ماژول‌های چکادبام"
+    >
       {/* Header */}
       <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/40">
         <div className="flex items-center gap-2.5">
@@ -41,7 +59,9 @@ export function ProductDrawer({ isOpen, onClose, onAddProduct }: ProductDrawerPr
         </div>
         <button
           onClick={onClose}
-          className="w-7 h-7 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
+          aria-label="بستن کتابخانه ماژول‌ها"
+          title="بستن کتابخانه"
+          className="w-9 h-9 sm:w-7 sm:h-7 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60"
         >
           <X className="w-4 h-4" />
         </button>
@@ -54,6 +74,7 @@ export function ProductDrawer({ isOpen, onClose, onAddProduct }: ProductDrawerPr
           <input
             type="text"
             placeholder="جستجوی محصول، ابعاد یا کد..."
+            aria-label="جستجوی محصول، ابعاد یا کد"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl pr-9 pl-3 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500"
@@ -130,11 +151,23 @@ export function ProductDrawer({ isOpen, onClose, onAddProduct }: ProductDrawerPr
 
               <button
                 type="button"
-                onClick={() => onAddProduct(product)}
-                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-emerald-950/40 transition-transform active:scale-95"
+                onClick={() => handleAdd(product)}
+                aria-label={`افزودن ${product.name} به صحنه`}
+                className={`min-h-10 px-3 py-2 rounded-lg text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-emerald-950/40 transition-all active:scale-95 ${
+                  addedId === product.id ? "bg-teal-500" : "bg-emerald-600 hover:bg-emerald-500"
+                }`}
               >
-                <Plus className="w-3.5 h-3.5" />
-                <span>افزودن به صحنه</span>
+                {addedId === product.id ? (
+                  <>
+                    <Check className="w-3.5 h-3.5" />
+                    <span>افزوده شد</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>افزودن به صحنه</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

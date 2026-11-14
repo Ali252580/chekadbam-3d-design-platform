@@ -14,6 +14,37 @@ interface PlanSpaceModalProps {
   onApplySpace: (cfg: SpaceConfig) => void;
 }
 
+// ── Numeric draft handling ────────────────────────────────────────────────────
+// Dimension inputs used to clamp on every keystroke, so typing "12" became "32".
+// We now keep the raw text while the field is focused and clamp only on
+// blur / Enter / apply.
+const NUMERIC_FIELDS = [
+  "width",
+  "length",
+  "parapetHeight",
+  "cutoutWidth",
+  "cutoutLength",
+  "shaftWidth",
+  "shaftLength",
+] as const;
+type NumericField = (typeof NUMERIC_FIELDS)[number];
+
+const PERSIAN_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
+const ARABIC_DIGITS = "٠١٢٣٤٥٦٧٨٩";
+
+/** Accepts Persian/Arabic digits and the Persian decimal separator. */
+function parseNumericInput(raw: string): number {
+  const normalized = raw
+    .replace(/[۰-۹]/g, (d) => String(PERSIAN_DIGITS.indexOf(d)))
+    .replace(/[٠-٩]/g, (d) => String(ARABIC_DIGITS.indexOf(d)))
+    .replace(/[٫]/g, ".")
+    .replace(/[٬,\s]/g, "");
+  const value = Number.parseFloat(normalized);
+  return Number.isFinite(value) ? value : Number.NaN;
+}
+
+const roundOneDecimal = (n: number) => Math.round(n * 10) / 10;
+
 const PLAN_SHAPES: Array<{ id: FloorPlanShape; name: string; desc: string; iconSvg: string }> = [
   { id: "rectangular", name: "مستطیلی استاندارد", desc: "پشت‌بام یکپارچه مسکونی و اداری", iconSvg: "M3 3h18v18H3z" },
   { id: "l_shaped", name: "L شکل (دو زون)", desc: "تفکیک نشیمن خصوصی از زون پذیرایی", iconSvg: "M3 3h18v9h-9v9H3z" },
@@ -47,6 +78,8 @@ export function PlanSpaceModal({ isOpen, onClose, spaceConfig, onApplySpace }: P
     ...spaceConfig,
     flooringType: "wpc_wood",
   });
+  // Raw text per field while typing; missing key = mirror formData.
+  const [drafts, setDrafts] = useState<Partial<Record<NumericField, string>>>({});
 
   // ── Visual guided tour (spotlight + caption card) ──────────────────────────
   const [tourStep, setTourStep] = useState<number | null>(null);
@@ -147,9 +180,104 @@ export function PlanSpaceModal({ isOpen, onClose, spaceConfig, onApplySpace }: P
 
   const liveArea = calculatePlanArea(formData);
 
+  const commitField = (
+    key: NumericField,
+    limits: { min: number; max: number; fallback: number }
+  ) => {
+    const raw = drafts[key];
+    if (raw === undefined) return;
+
+    const parsed = parseNumericInput(raw);
+    const { min, max, fallback } = limits;
+    const current = formData[key];
+    const value = Number.isFinite(parsed)
+      ? Math.min(max, Math.max(min, parsed))
+      : current ?? fallback;
+
+    setFormData((prev) => ({ ...prev, [key]: roundOneDecimal(value) }));
+    setDrafts((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
+  /** Clamp every pending draft and return the resolved config (used by Apply). */
+  const resolveDraftConfig = (): SpaceConfig => {
+    const next: SpaceConfig = { ...formData };
+
+    const apply = (key: NumericField, min: number, max: number, fallback: number) => {
+      const raw = drafts[key];
+      if (raw === undefined) return;
+      const parsed = parseNumericInput(raw);
+      const current = next[key];
+      const value = Number.isFinite(parsed)
+        ? Math.min(max, Math.max(min, parsed))
+        : current ?? fallback;
+      next[key] = roundOneDecimal(value);
+    };
+
+    // Order matters: dependent cutout/shaft limits follow the new outer size.
+    apply("width", 3, 40, 40);
+    apply("length", 2, 40, 20);
+    apply("parapetHeight", 0.5, 2.5, 1.1);
+    apply("cutoutWidth", 1, Math.max(1, next.width - 1), 4);
+    apply("cutoutLength", 1, Math.max(1, next.length - 1), 3.5);
+    apply("shaftWidth", 1, Math.max(1, next.width - 2), 3.2);
+    apply("shaftLength", 1, Math.max(1, next.length - 2), 3);
+
+    return next;
+  };
+
+  const numericField = (
+    key: NumericField,
+    label: string,
+    limits: { min: number; max: number; step?: number; fallback: number; accent?: boolean }
+  ) => {
+    const value = formData[key] ?? limits.fallback;
+    const draft = drafts[key];
+
+    return (
+      <div>
+        <label
+          htmlFor={`plan-${key}`}
+          className={`block text-[11px] mb-1 ${limits.accent ? "text-emerald-400" : "text-slate-400"}`}
+        >
+          {label}
+        </label>
+        <input
+          id={`plan-${key}`}
+          type="text"
+          inputMode="decimal"
+          autoComplete="off"
+          dir="ltr"
+          value={draft ?? String(value)}
+          onFocus={(e) => e.currentTarget.select()}
+          onChange={(e) => setDrafts((prev) => ({ ...prev, [key]: e.target.value }))}
+          onBlur={() => commitField(key, limits)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              commitField(key, limits);
+              e.currentTarget.blur();
+            }
+          }}
+          aria-describedby={`plan-${key}-hint`}
+          className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono text-left focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60"
+        />
+        <span id={`plan-${key}-hint`} className="sr-only">
+          مقدار مجاز بین {limits.min} و {limits.max} متر
+        </span>
+      </div>
+    );
+  };
+
   const handleApplyCustom = () => {
+    const resolved = resolveDraftConfig();
+    setDrafts({});
+    setFormData(resolved);
     onApplySpace({
-      ...formData,
+      ...resolved,
       flooringType: "wpc_wood",
     });
     onClose();
@@ -245,99 +373,46 @@ export function PlanSpaceModal({ isOpen, onClose, spaceConfig, onApplySpace }: P
                 <div className="bg-slate-800/40 p-4 rounded-2xl border border-slate-700/60 space-y-4">
                   <label className="block text-xs font-semibold text-slate-300">۲. ابعاد کلی (متر)</label>
                   <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-[11px] text-slate-400 mb-1">طول</label>
-                      <input
-                        type="number"
-                        min={3}
-                        max={40}
-                        step={0.5}
-                        value={formData.width}
-                        onChange={(e) => setFormData({ ...formData, width: Math.max(3, parseFloat(e.target.value) || 3) })}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:border-emerald-500 focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] text-slate-400 mb-1">عرض</label>
-                      <input
-                        type="number"
-                        min={2}
-                        max={40}
-                        step={0.5}
-                        value={formData.length}
-                        onChange={(e) => setFormData({ ...formData, length: Math.max(2, parseFloat(e.target.value) || 2) })}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:border-emerald-500 focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] text-slate-400 mb-1">جان‌پناه</label>
-                      <input
-                        type="number"
-                        min={0.5}
-                        max={2.5}
-                        step={0.1}
-                        value={formData.parapetHeight}
-                        onChange={(e) => setFormData({ ...formData, parapetHeight: parseFloat(e.target.value) || 1.1 })}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:border-emerald-500 focus:outline-none"
-                      />
-                    </div>
+                    {numericField("width", "طول", { min: 3, max: 40, step: 0.5, fallback: 40 })}
+                    {numericField("length", "عرض", { min: 2, max: 40, step: 0.5, fallback: 20 })}
+                    {numericField("parapetHeight", "جان‌پناه", { min: 0.5, max: 2.5, step: 0.1, fallback: 1.1 })}
                   </div>
 
                   {(formData.shape === "l_shaped" || formData.shape === "u_shaped") && (
                     <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-700/50">
-                      <div>
-                        <label className="block text-[11px] text-emerald-400 mb-1">طول فرورفتگی</label>
-                        <input
-                          type="number"
-                          min={1}
-                          max={formData.width - 1}
-                          step={0.5}
-                          value={formData.cutoutWidth || 4}
-                          onChange={(e) => setFormData({ ...formData, cutoutWidth: parseFloat(e.target.value) || 4 })}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:border-emerald-500 focus:outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] text-emerald-400 mb-1">عرض فرورفتگی</label>
-                        <input
-                          type="number"
-                          min={1}
-                          max={formData.length - 1}
-                          step={0.5}
-                          value={formData.cutoutLength || 3.5}
-                          onChange={(e) => setFormData({ ...formData, cutoutLength: parseFloat(e.target.value) || 3.5 })}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:border-emerald-500 focus:outline-none"
-                        />
-                      </div>
+                      {numericField("cutoutWidth", "طول فرورفتگی", {
+                        min: 1,
+                        max: Math.max(1, formData.width - 1),
+                        step: 0.5,
+                        fallback: 4,
+                        accent: true,
+                      })}
+                      {numericField("cutoutLength", "عرض فرورفتگی", {
+                        min: 1,
+                        max: Math.max(1, formData.length - 1),
+                        step: 0.5,
+                        fallback: 3.5,
+                        accent: true,
+                      })}
                     </div>
                   )}
 
                   {formData.shape === "central_shaft" && (
                     <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-700/50">
-                      <div>
-                        <label className="block text-[11px] text-emerald-400 mb-1">طول باکس پله</label>
-                        <input
-                          type="number"
-                          min={1}
-                          max={formData.width - 2}
-                          step={0.2}
-                          value={formData.shaftWidth || 3.2}
-                          onChange={(e) => setFormData({ ...formData, shaftWidth: parseFloat(e.target.value) || 3.2 })}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:border-emerald-500 focus:outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] text-emerald-400 mb-1">عرض باکس پله</label>
-                        <input
-                          type="number"
-                          min={1}
-                          max={formData.length - 2}
-                          step={0.2}
-                          value={formData.shaftLength || 3.0}
-                          onChange={(e) => setFormData({ ...formData, shaftLength: parseFloat(e.target.value) || 3.0 })}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:border-emerald-500 focus:outline-none"
-                        />
-                      </div>
+                      {numericField("shaftWidth", "طول باکس پله", {
+                        min: 1,
+                        max: Math.max(1, formData.width - 2),
+                        step: 0.2,
+                        fallback: 3.2,
+                        accent: true,
+                      })}
+                      {numericField("shaftLength", "عرض باکس پله", {
+                        min: 1,
+                        max: Math.max(1, formData.length - 2),
+                        step: 0.2,
+                        fallback: 3,
+                        accent: true,
+                      })}
                     </div>
                   )}
 
