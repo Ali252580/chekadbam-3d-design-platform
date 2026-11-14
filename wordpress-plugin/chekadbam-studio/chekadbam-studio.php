@@ -286,6 +286,8 @@ function ckb_render_dashboard() {
 		</div>
 
 		<?php ckb_render_seed_tools(); ?>
+
+		<?php ckb_license_dashboard_settings(); ?>
 	</div>
 	<?php
 }

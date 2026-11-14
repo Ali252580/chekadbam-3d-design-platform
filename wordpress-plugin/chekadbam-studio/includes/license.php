@@ -13,7 +13,7 @@
  *    کلی notAfter.
  *  - وقتی دامنه فعال نیست: شورت‌کدها (استودیو/فرم/نمایشگر)، صفحه استودیو در
  *    پیشخوان، ذخیره‌سازی AJAX و REST API همه بسته می‌شوند؛ پیشخوان وردپرس و
- *    همین صفحهٔ لایسنس برای مدیریت در دسترس می‌ماند.
+ *    پنل توکن/دامنه در پایین داشبورد افزونه برای مدیریت در دسترس می‌ماند.
  *
  * تأمین‌کننده: license/domains.json → license/sign.mjs (یا GitHub Action) →
  * امضا؛ جزئیات در license/README.md همین مخزن.
@@ -347,18 +347,43 @@ function ckb_license_run_cron_tick() {
 	ckb_license_fetch( 12 );
 }
 
-/* ============================ Admin page ============================ */
+/* ============================ پنل توکن/دامنه در داشبورد افزونه ============================ */
 
-add_action( 'admin_menu', 'ckb_license_menu', 14 );
-function ckb_license_menu() {
-	add_submenu_page(
-		CKB_MENU_SLUG,
-		__( 'لایسنس و دامنه‌ها', 'chekadbam' ),
-		__( 'لایسنس و دامنه‌ها', 'chekadbam' ),
-		'manage_options',
-		'ckb-license',
-		'ckb_license_render_page'
-	);
+/**
+ * پنل کوچک و بسته‌شده در پایین داشبورد خودِ افزونه — فقط توکن و دامنه؛
+ * هیچ آیتم منو یا صفحهٔ جداگانه‌ای برای آن وجود ندارد.
+ */
+function ckb_license_dashboard_settings() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	ckb_license_save_settings();
+
+	$state = ckb_license_state();
+	$token = (string) get_option( 'ckb_license_token', '' );
+	?>
+	<details class="ckb-panel" style="max-width:760px;margin-top:16px">
+		<summary style="cursor:pointer;font-weight:700"><?php esc_html_e( 'تنظیمات اتصال', 'chekadbam' ); ?></summary>
+		<form method="post" style="margin-top:12px">
+			<table class="form-table ckb-form">
+				<tr>
+					<th><label for="ckb_license_token"><?php esc_html_e( 'توکن', 'chekadbam' ); ?></label></th>
+					<td>
+						<input type="password" id="ckb_license_token" name="ckb_license_token" value="<?php echo esc_attr( $token ); ?>" class="regular-text" dir="ltr" autocomplete="off" />
+					</td>
+				</tr>
+				<tr>
+					<th><label><?php esc_html_e( 'دامنه', 'chekadbam' ); ?></label></th>
+					<td>
+						<input type="text" value="<?php echo esc_attr( $state['domain'] ); ?>" class="regular-text" dir="ltr" readonly="readonly" disabled="disabled" />
+					</td>
+				</tr>
+			</table>
+			<?php wp_nonce_field( 'ckb_license_settings', 'ckb_license_nonce' ); ?>
+			<p><button type="submit" class="button button-primary"><?php esc_html_e( 'ذخیره', 'chekadbam' ); ?></button></p>
+		</form>
+	</details>
+	<?php
 }
 
 function ckb_license_save_settings() {
@@ -368,188 +393,11 @@ function ckb_license_save_settings() {
 	if ( ! current_user_can( 'manage_options' ) ) {
 		return;
 	}
-	/* فقط توکن در پیشخوان قابل ویرایش است؛ آدرس منبع و گزارش از فرم حذف شده‌اند. */
+	/* فقط توکن قابل ویرایش است؛ آدرس منبع و گزارش از فرم حذف شده‌اند. */
 	if ( isset( $_POST['ckb_license_token'] ) ) {
 		update_option( 'ckb_license_token', sanitize_text_field( wp_unslash( $_POST['ckb_license_token'] ) ) );
 	}
-	if ( isset( $_POST['ckb_license_refresh_now'] ) ) {
-		delete_transient( 'ckb_license_fetch_lock' );
-		ckb_license_fetch( 10 );
-	}
-	echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'تنظیمات لایسنس ذخیره شد.', 'chekadbam' ) . '</p></div>';
-}
-
-function ckb_license_status_badge( $status_label, $color ) {
-	return '<span style="background:' . esc_attr( $color ) . ';color:#fff;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:99px;">' . esc_html( $status_label ) . '</span>';
-}
-
-function ckb_license_render_page() {
-	ckb_license_save_settings();
-
-	$state   = ckb_license_state();
-	$token   = (string) get_option( 'ckb_license_token', '' );
-
-	$badges = array(
-		'active'     => array( 'فعال', '#10b981' ),
-		'grace'      => array( 'فعال (حالت مرحمت)', '#f59e0b' ),
-		'disabled'   => array( 'غیرفعال', '#dc2626' ),
-		'expired'    => array( 'منقضی', '#dc2626' ),
-		'unlicensed' => array( 'لایسنس نامعتبر', '#dc2626' ),
-	);
-	$st     = $badges[ $state['status'] ] ?? array( $state['status'], '#64748b' );
-
-	$last = $state['fetchedAt'] ? $state['fetchedAt'] : 0;
-	$fetched_human = $last ? sprintf( __( '%1$s پیش (%2$s)', 'chekadbam' ), human_time_diff( $last, time() ), date_i18n( 'Y/m/d H:i', $last ) ) : '—';
-	?>
-	<div class="wrap ckb-wrap" dir="rtl">
-		<h1><?php esc_html_e( 'لایسنس و دامنه‌ها', 'chekadbam' ); ?></h1>
-
-		<div class="ckb-panel">
-			<h2><?php esc_html_e( 'وضعیت همین دامنه', 'chekadbam' ); ?></h2>
-			<p style="margin-top:0">
-				<?php echo ckb_license_status_badge( $st[0], $st[1] ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-				<span dir="ltr" style="font-weight:700;margin-inline-start:10px"><?php echo esc_html( $state['domain'] ); ?></span>
-				<?php if ( ! empty( $state['until'] ) ) : ?>
-					<span>— اعتبار تا <?php echo esc_html( $state['until'] ); ?></span>
-				<?php endif; ?>
-			</p>
-			<?php if ( ! empty( $state['message'] ) ) : ?>
-				<p style="color:#dc2626;margin:4px 0 0"><?php echo esc_html( $state['message'] ); ?></p>
-			<?php endif; ?>
-			<p class="description">
-				آخرین دریافت از منبع: <?php echo esc_html( $fetched_human ); ?> ·
-				امضا: <?php echo esc_html( is_array( $state['domains'] ) ? sprintf( __( 'معتبر (%d دامنه در فایل)', 'chekadbam' ), count( $state['domains'] ) ) : '—' ); ?> ·
-				صدور فایل: <?php echo esc_html( $state['generatedAt'] ? $state['generatedAt'] : '—' ); ?>
-			</p>
-			<?php ckb_license_refresh_button(); ?>
-		</div>
-
-		<div class="ckb-panel">
-			<h2><?php esc_html_e( 'دامنه‌های داخل فایل لایسنس', 'chekadbam' ); ?></h2>
-			<p class="description">
-				<?php esc_html_e( 'این فهرست فقط از گیت‌هاب کنترل می‌شود (فایل license.json امضاشده). در مخزن گیت‌هاب، فایل domains.json را ویرایش کنید؛ اکشن خودکار فایل را امضا می‌کند و سایت‌ها ماهی یک‌بار به‌روز می‌شوند — برای اعمال فوری همین حالا «بررسی دوباره» را بزنید.', 'chekadbam' ); ?>
-			</p>
-			<?php if ( empty( $state['domains'] ) ) : ?>
-				<p style="color:#dc2626"><?php esc_html_e( 'هیچ داده‌ای در دسترس نیست — آدرس منبع را بررسی کن و «بررسی دوباره» را بزن.', 'chekadbam' ); ?></p>
-			<?php else : ?>
-				<table class="widefat fixed striped ckb-table" style="max-width:780px">
-					<thead>
-						<tr>
-							<th><?php esc_html_e( 'دامنه', 'chekadbam' ); ?></th>
-							<th><?php esc_html_e( 'وضعیت', 'chekadbam' ); ?></th>
-							<th><?php esc_html_e( 'اعتبار تا', 'chekadbam' ); ?></th>
-							<th><?php esc_html_e( 'یادداشت', 'chekadbam' ); ?></th>
-						</tr>
-					</thead>
-					<tbody>
-					<?php foreach ( $state['domains'] as $d_host => $d_entry ) : ?>
-						<?php
-						$d_entry = (array) $d_entry;
-						$d_status = isset( $d_entry['status'] ) && 'disabled' === $d_entry['status'] ? 'disabled' : 'active';
-						$d_this   = strtolower( trim( (string) $d_host ) ) === $state['domain'];
-						if ( ! empty( $d_entry['until'] ) && $d_status ) {
-							$u = strtotime( (string) $d_entry['until'] . ' 23:59:59 UTC' );
-							if ( $u && time() > $u ) {
-								$d_status = 'expired';
-							}
-						}
-						$d_badge  = array(
-							'active'   => array( 'فعال', '#10b981' ),
-							'disabled' => array( 'غیرفعال', '#64748b' ),
-							'expired'  => array( 'منقضی', '#dc2626' ),
-						)[ $d_status ];
-						?>
-						<tr>
-							<td dir="ltr" style="text-align:left">
-								<?php echo esc_html( $d_host ); ?>
-								<?php if ( $d_this ) : ?><span style="font-weight:700;color:#10b981"> ← این سایت</span><?php endif; ?>
-							</td>
-							<td><?php echo ckb_license_status_badge( $d_badge[0], $d_badge[1] ); // phpcs:ignore WordPress.Security.EscapeOutput ?></td>
-							<td><?php echo esc_html( ! empty( $d_entry['until'] ) ? $d_entry['until'] : '—' ); ?></td>
-							<td><?php echo esc_html( ! empty( $d_entry['note'] ) ? $d_entry['note'] : '' ); ?></td>
-						</tr>
-					<?php endforeach; ?>
-					</tbody>
-				</table>
-			<?php endif; ?>
-		</div>
-
-		<form method="post" class="ckb-panel" style="max-width:760px">
-			<h2><?php esc_html_e( 'تنظیمات اتصال به مخزن لایسنس', 'chekadbam' ); ?></h2>
-			<table class="form-table ckb-form">
-				<tr>
-					<th><label for="ckb_license_token"><?php esc_html_e( 'توکن مخزن خصوصی', 'chekadbam' ); ?></label></th>
-					<td>
-						<input type="password" id="ckb_license_token" name="ckb_license_token" value="<?php echo esc_attr( $token ); ?>" class="regular-text" dir="ltr" autocomplete="off" />
-						<p class="description"><?php esc_html_e( 'توکن دسترسی Fine-grained فقط با مجوز «Contents: Read» روی مخزن لایسنس؛ مخزن خصوصی است و این توکن برای خواندن فایل امضاشده لازم است.', 'chekadbam' ); ?></p>
-					</td>
-				</tr>
-			</table>
-			<?php wp_nonce_field( 'ckb_license_settings', 'ckb_license_nonce' ); ?>
-			<p>
-				<button type="submit" class="button button-primary button-large"><?php esc_html_e( 'ذخیره تنظیمات لایسنس', 'chekadbam' ); ?></button>
-				<button type="submit" name="ckb_license_refresh_now" value="1" class="button button-secondary button-large"><?php esc_html_e( 'ذخیره + بررسی دوباره', 'chekadbam' ); ?></button>
-			</p>
-		</form>
-
-		<div class="ckb-panel" style="max-width:760px">
-			<h2><?php esc_html_e( 'چطور دامنه فعال/غیرفعال کنم؟', 'chekadbam' ); ?></h2>
-			<ol class="ckb-list" style="line-height:2.2">
-				<li><?php esc_html_e( 'در مخزن گیت‌هاب لایسنس، فایل domains.json را ویرایش کن (status: «active» یا «disabled»، تاریخ اختیاری «until»).' ); ?></li>
-				<li><?php esc_html_e( 'GitHub Action خودکار فایل را با کلید خصوصی امضا و license.json را کامیت می‌کند (یا با node sign.mjs دستی امضا کن).' ); ?></li>
-				<li><?php esc_html_e( 'هر سایت ماهی یک‌بار فایل لایسنس را تازه می‌کند؛ با دکمهٔ «بررسی دوباره» تغییرات فوراً اعمال می‌شود. بدون اتصال به منبع هم تا ۳۴ روز با نسخهٔ آخر کار می‌کند.' ); ?></li>
-			</ol>
-			<p class="description"><?php esc_html_e( 'کلید عمومی امضا: c9yxe0tZ5janVvOPuoDZhRlaoeJu6Pr1fBpdpSge2Yc= — دستکاری فایل (افزودن دامنه بدون کلید خصوصی) باعث نامعتبرشدن امضا و قفل‌شدن افزونه می‌شود.', 'chekadbam' ); ?></p>
-		</div>
-	</div>
-	<?php
-}
-
-/** دکمهٔ بررسی مجدد با AJAX (بدون رفرش صفحه). */
-function ckb_license_refresh_button() {
-	?>
-	<p>
-		<button type="button" class="button button-secondary" id="ckb-license-refresh-btn"><?php esc_html_e( 'بررسی دوباره همین حالا', 'chekadbam' ); ?></button>
-		<span id="ckb-license-refresh-result" style="margin-inline-start:10px;font-weight:700"></span>
-	</p>
-	<script>
-	(function () {
-		var btn = document.getElementById('ckb-license-refresh-btn');
-		if (!btn) return;
-		btn.addEventListener('click', function () {
-			var out = document.getElementById('ckb-license-refresh-result');
-			btn.disabled = true; out.textContent = 'در حال دریافت…'; out.style.color = '#64748b';
-			var fd = new FormData();
-			fd.append('action', 'ckb_license_refresh');
-			fd.append('nonce', '<?php echo esc_js( wp_create_nonce( 'ckb_license_refresh' ) ); ?>');
-			fetch('<?php echo esc_url_raw( admin_url( 'admin-ajax.php' ) ); ?>', { method: 'POST', body: fd, credentials: 'same-origin' })
-				.then(function (r) { return r.json(); })
-				.then(function (res) {
-					btn.disabled = false;
-					var ok = res && res.success;
-					out.textContent = ok ? 'به‌روزرسانی شد — صفحه را رفرش کن.' : 'خطا: ' + ((res && res.data) ? res.data : 'نامشخص');
-					out.style.color = ok ? '#059669' : '#dc2626';
-					if (ok) setTimeout(function () { location.reload(); }, 900);
-				})
-				.catch(function () { btn.disabled = false; out.textContent = 'خطای شبکه'; out.style.color = '#dc2626'; });
-		});
-	})();
-	</script>
-	<?php
-}
-
-add_action( 'wp_ajax_ckb_license_refresh', 'ckb_license_ajax_refresh' );
-function ckb_license_ajax_refresh() {
-	if ( ! current_user_can( 'manage_options' ) ) {
-		wp_send_json_error( __( 'دسترسی ندارید.', 'chekadbam' ) );
-	}
-	check_ajax_referer( 'ckb_license_refresh', 'nonce' );
-	delete_transient( 'ckb_license_fetch_lock' );
-	$result = ckb_license_fetch( 12 );
-	if ( is_wp_error( $result ) ) {
-		wp_send_json_error( $result->get_error_message() );
-	}
-	wp_send_json_success( array( 'status' => ckb_license_state()['status'] ) );
+	echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'ذخیره شد.', 'chekadbam' ) . '</p></div>';
 }
 
 /* ============================ Notice on dashboard ============================ */
@@ -565,5 +413,5 @@ function ckb_license_admin_notice() {
 	}
 	$color = 'grace' === $state['status'] ? '#f59e0b' : '#dc2626';
 	$msg   = $state['message'] ? $state['message'] : 'لایسنس چکادبام روی این دامنه فعال نیست — شورت‌کدها، استودیو و REST API متوقف‌اند.';
-	echo '<div class="notice notice-error is-dismissible"><p style="color:' . esc_attr( $color ) . ';font-weight:700">⚠ ' . esc_html( $msg ) . ' <a href="' . esc_url( admin_url( 'admin.php?page=ckb-license' ) ) . '">' . esc_html__( 'صفحهٔ لایسنس', 'chekadbam' ) . '</a></p></div>';
+	echo '<div class="notice notice-error is-dismissible"><p style="color:' . esc_attr( $color ) . ';font-weight:700">⚠ ' . esc_html( $msg ) . ' <a href="' . esc_url( admin_url( 'admin.php?page=' . CKB_MENU_SLUG ) ) . '">' . esc_html__( 'داشبورد چکادبام', 'chekadbam' ) . '</a></p></div>';
 }
